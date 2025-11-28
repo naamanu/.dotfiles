@@ -1,32 +1,50 @@
-alias wks="cd ~/workspace"
+# ------------------------------------------------------------------------------
+# Environment Variables
+# ------------------------------------------------------------------------------
 
-eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-# BEGIN opam configuration
-# This is useful if you're using opam as it adds:
-#   - the correct directories to the PATH
-#   - auto-completion for the opam binary
-# This section can be safely removed at any time if needed.
-test -r '/home/nana/.opam/opam-init/init.fish' && source '/home/nana/.opam/opam-init/init.fish' > /dev/null 2> /dev/null; or true
-# END opam configuration
-
-# bun
-set --export BUN_INSTALL "$HOME/.bun"
-set --export PATH $BUN_INSTALL/bin $PATH
-
-alias gs="git status"
-alias gc="git commit"
-alias gcm="git commit -m"
-alias vim="nvim"
-alias wks="cd ~/workspace"
-alias work="wks && cd work"
-alias gra="git remote add origin"
-
-starship init fish | source
-
+# Bun
+set -gx BUN_INSTALL "$HOME/.bun"
+fish_add_path $BUN_INSTALL/bin
 
 # pnpm
 set -gx PNPM_HOME "/home/nana/.local/share/pnpm"
-if not string match -q -- $PNPM_HOME $PATH
-  set -gx PATH "$PNPM_HOME" $PATH
+fish_add_path $PNPM_HOME
+
+# Brew
+eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+
+# Opam
+test -r '/home/nana/.opam/opam-init/init.fish' && source '/home/nana/.opam/opam-init/init.fish' > /dev/null 2> /dev/null; or true
+
+# ------------------------------------------------------------------------------
+# Aliases
+# ------------------------------------------------------------------------------
+
+alias wks="cd ~/workspace"
+alias work="wks && cd work"
+alias gs="git status"
+alias gc="git commit"
+alias gcm="git commit -m"
+alias gra="git remote add origin"
+alias vim="nvim"
+
+# ------------------------------------------------------------------------------
+# Plugin Management (Fisher)
+# ------------------------------------------------------------------------------
+
+# Install fisher if not already installed
+if not functions -q fisher
+  curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
 end
-# pnpm end
+
+# Plugins
+fisher install jorgebucaran/nvm.fish
+fisher install jethrokuan/z
+fisher install PatrickF1/fzf.fish
+fisher install fish-shell/fish-syntax-highlighting
+
+# ------------------------------------------------------------------------------
+# Starship Prompt
+# ------------------------------------------------------------------------------
+
+starship init fish | source
