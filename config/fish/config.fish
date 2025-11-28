@@ -32,21 +32,10 @@ alias vim="nvim"
 # Plugin Management (Fisher)
 # ------------------------------------------------------------------------------
 
-function install_plugins
-  fisher install jorgebucaran/nvm.fish
-  fisher install jethrokuan/z
-  fisher install PatrickF1/fzf.fish
-  fisher install fish-shell/fish-syntax-highlighting
-  touch ~/.config/fish/plugins_installed
-end
-
-if not functions -q fisher
-  curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
-end
-
-if not test -e ~/.config/fish/plugins_installed
-  install_plugins
-end
+fisher install jorgebucaran/nvm.fish
+fisher install jethrokuan/z
+fisher install PatrickF1/fzf.fish
+fisher install fish-shell/fish-syntax-highlighting
 
 # ------------------------------------------------------------------------------
 # Starship Prompt
