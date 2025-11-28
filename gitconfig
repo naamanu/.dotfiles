@@ -1,0 +1,11 @@
+[color]
+	ui = true
+[user]
+	name = Nana Adjei Manu
+	email = n.k.a.manu06@gmail.com
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+[core]
+	editor = vim

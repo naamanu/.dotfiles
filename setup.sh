@@ -9,7 +9,7 @@
 
 dir=~/dotfiles                    # dotfiles directory
 olddir=~/dotfiles_old             # old dotfiles backup directory
-files="tmux.conf"    # list of files/folders to symlink in homedir
+files="tmux.conf gitconfig"    # list of files/folders to symlink in homedir
 
 ##########
 
@@ -31,13 +31,26 @@ for file in $files; do
     ln -s $dir/$file ~/.$file
 done
 
-# create symlink for nvim
+# create symlink for nvim and fish
 echo "Moving any existing nvim config from ~/.config to $olddir"
 mv ~/.config/nvim ~/dotfiles_old/
 echo "Creating symlink to nvim in ~/.config directory."
 ln -s $dir/config/nvim ~/.config/nvim
 
+echo "Moving any existing fish config from ~/.config to $olddir"
+mv ~/.config/fish ~/dotfiles_old/
+echo "Creating symlink to fish in ~/.config directory."
+ln -s $dir/config/fish ~/.config/fish
+
+
 # initialize git submodules
 echo "Initializing git submodules"
 git submodule update --init --recursive
+echo "...done"
+
+# install packages
+echo "Installing packages..."
+sudo apt-get update
+sudo apt-get install -y build-essential git curl wget
+# add other packages here
 echo "...done"
