@@ -32,23 +32,20 @@ alias vim="nvim"
 # Plugin Management (Fisher)
 # ------------------------------------------------------------------------------
 
-# Install fisher if not already installed
+function install_plugins
+  fisher install jorgebucaran/nvm.fish
+  fisher install jethrokuan/z
+  fisher install PatrickF1/fzf.fish
+  fisher install fish-shell/fish-syntax-highlighting
+  touch ~/.config/fish/plugins_installed
+end
+
 if not functions -q fisher
   curl -sL https://git.io/fisher | source && fisher install jorgebucaran/fisher
 end
 
-# Install plugins if they are not already installed
-if not fisher list | grep -q jorgebucaran/nvm.fish
-  fisher install jorgebucaran/nvm.fish
-end
-if not fisher list | grep -q jethrokuan/z
-  fisher install jethrokuan/z
-end
-if not fisher list | grep -q PatrickF1/fzf.fish
-  fisher install PatrickF1/fzf.fish
-end
-if not fisher list | grep -q fish-shell/fish-syntax-highlighting
-  fisher install fish-shell/fish-syntax-highlighting
+if not test -e ~/.config/fish/plugins_installed
+  install_plugins
 end
 
 # ------------------------------------------------------------------------------
