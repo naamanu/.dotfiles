@@ -1,6 +1,6 @@
 alias wks="cd ~/workspace"
 
-eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+# eval (/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 # BEGIN opam configuration
 # This is useful if you're using opam as it adds:
 #   - the correct directories to the PATH
