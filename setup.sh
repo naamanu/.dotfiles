@@ -26,19 +26,19 @@ echo "...done"
 # move any existing dotfiles in homedir to dotfiles_old directory, then create symlinks 
 for file in $files; do
     echo "Moving any existing dotfiles from ~ to $olddir"
-    mv ~/.$file ~/dotfiles_old/
+    mv ~/.$file $olddir/
     echo "Creating symlink to $file in home directory."
     ln -s $dir/$file ~/.$file
 done
 
 # create symlink for nvim and fish
 echo "Moving any existing nvim config from ~/.config to $olddir"
-mv ~/.config/nvim ~/dotfiles_old/
+mv ~/.config/nvim $olddir/
 echo "Creating symlink to nvim in ~/.config directory."
 ln -s $dir/config/nvim ~/.config/nvim
 
 echo "Moving any existing fish config from ~/.config to $olddir"
-mv ~/.config/fish ~/dotfiles_old/
+mv ~/.config/fish $olddir/
 echo "Creating symlink to fish in ~/.config directory."
 ln -s $dir/config/fish ~/.config/fish
 
@@ -48,9 +48,4 @@ echo "Initializing git submodules"
 git submodule update --init --recursive
 echo "...done"
 
-# install packages
-echo "Installing packages..."
-sudo apt-get update
-sudo apt-get install -y build-essential git curl wget
-# add other packages here
-echo "...done"
+
