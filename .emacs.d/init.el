@@ -129,6 +129,12 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev))
 
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (display-line-numbers-mode 1)
+            (hl-line-mode 1)
+            (hs-minor-mode 1)))
+
 ;;; --- 6. DEVELOPMENT TOOLS ---
 
 (use-package magit
@@ -177,16 +183,22 @@
   :config
   (dap-ui-mode 1)
   :bind (:map dap-mode-map
-         ("C-c d b" . dap-add-breakpoint)
-         ("C-c d d" . dap-debug)
-         ("C-c d n" . dap-next)
-         ("C-c d c" . dap-continue)))
+              ("C-c d b" . dap-add-breakpoint)
+              ("C-c d d" . dap-debug)
+              ("C-c d n" . dap-next)
+              ("C-c d c" . dap-continue)))
 
 ;; Web, GraphQL, and SQL modes
+
 (use-package web-mode
   :ensure t
   :mode (("\\.html?\\'" . web-mode)
          ("\\.jsx\\\'" . web-mode)))
+(use-package astro-mode
+  :ensure nil
+  :mode ("\\.astro\\'" . astro-mode)
+  :config
+  (define-derived-mode astro-mode web-mode "astro"))
 
 (use-package graphql-mode
   :ensure t
@@ -206,6 +218,15 @@
 (use-package ruby-mode
   :ensure nil ; Built-in
   :mode "\\.rb\\'")
+
+(use-package rust-ts-mode
+  :ensure t
+  :mode ("\\.rs\\'" . rust-ts-mode)
+  :hook (rust-ts-mode . eglot-ensure))
+
+(use-package go-mode
+  :ensure t
+  :mode "\\.go\\'")
 
 (use-package projectile-rails
   :ensure t
@@ -227,25 +248,34 @@
           (cpp "https://github.com/tree-sitter/tree-sitter-cpp")))
   (global-treesit-auto-mode))
 
+
 ;;; --- 7. LSP (EGLOT) ---
+;; NOTE: You need to install the language servers for eglot to work.
+;; For example, for rust, you would run: rustup component add rust-analyzer
 (use-package eglot
   :ensure nil ; Built-in
-  :init
-  (setq eglot-ensure-modes
-        '(python-mode python-ts-mode typescript-ts-mode tsx-ts-mode
-          haskell-ts-mode haskell-mode go-ts-mode go-mode
-          rust-ts-mode rust-mode js-ts-mode c-ts-mode c++-ts-mode
-          tuareg-mode elm-mode reason-mode rescript-mode css-mode
-          lua-ts-mode tuareg-ts-mode
-          web-mode graphql-mode sql-mode
-          elixir-mode ruby-mode))
-  :hook
-  ((eval . (lambda ()
-             (mapc (lambda (mode) (add-hook mode 'eglot-ensure))
-                   eglot-ensure-modes)))
-   (eglot-managed-mode . (lambda ()
-                           (add-hook 'before-save-hook #'eglot-format-buffer nil 'local))))
+  :hook (prog-mode . eglot-ensure)
   :config
+  (add-to-list 'eglot-server-programs '(elixir-mode . ("elixir-ls")))
+  (add-to-list 'eglot-server-programs '(ruby-mode . ("solargraph" "stdio")))
+  (add-to-list 'eglot-server-programs '(rust-mode . ("rust-analyzer")))
+  (add-to-list 'eglot-server-programs '(rust-ts-mode . ("rust-analyzer")))
+  (add-to-list 'eglot-server-programs '(go-mode . ("gopls")))
+  (add-to-list 'eglot-server-programs '(go-ts-mode . ("gopls")))
+  (add-to-list 'eglot-server-programs '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
+  (add-to-list 'eglot-server-programs '(haskell-ts-mode . ("haskell-language-server-wrapper" "--lsp")))
+  (add-to-list 'eglot-server-programs '(js-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(js-ts-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(typescript-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(typescript-ts-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(tsx-ts-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '((c-mode c++-mode) . ("clangd")))
+  (add-to-list 'eglot-server-programs '((c-ts-mode c++-ts-mode) . ("clangd")))
+  (add-to-list 'eglot-server-programs '(tuareg-mode . ("ocaml-lsp-server")))
+  (add-to-list 'eglot-server-programs '(tuareg-ts-mode . ("ocaml-lsp-server")))
+  (add-to-list 'eglot-server-programs '(sql-mode . ("sqls")))
+  (add-to-list 'eglot-server-programs '(graphql-mode . ("graphql-language-server" "--stdio")))
+
   (setq eglot-autoshutdown t
         eglot-send-changes-idle-time 0.1
         eglot-hover-eldoc-documentation t
@@ -345,4 +375,5 @@
   :after treemacs
   :ensure t
   :config (treemacs-load-theme "all-the-icons"))
+
 

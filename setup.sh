@@ -42,6 +42,12 @@ mv ~/.config/fish $olddir/
 echo "Creating symlink to fish in ~/.config directory."
 ln -s $dir/config/fish ~/.config/fish
 
+# create symlink for emacs
+echo "Moving any existing emacs config from ~/.emacs.d to $olddir"
+mv ~/.emacs.d $olddir/
+echo "Creating symlink to .emacs.d in home directory."
+ln -s $dir/.emacs.d ~/.emacs.d
+
 
 # initialize git submodules
 echo "Initializing git submodules"
