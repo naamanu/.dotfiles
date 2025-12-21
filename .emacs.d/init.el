@@ -63,18 +63,33 @@
 (use-package nerd-icons
   :if (display-graphic-p))
 
-(setq modus-themes-region '(accented)
-      modus-themes-mode-line '(:eval (list 'borderless 'accented)) ; Stylize the modeline
-      modus-themes-completions '((matches . (extrabold underline)))
-      modus-themes-bold-constructs t
-      modus-themes-italic-constructs t
-      modus-themes-prompts '(bold)
-      modus-themes-paren-match '(bold intense underline)
-      modus-themes-syntax '(alt-syntax ansi-color-faint)
-      modus-themes-syntax '(green-strings yellow-comments)
-      )
+(use-package doom-themes
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
 
-(load-theme 'modus-operandi t)
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  ;; Enable custom keywords
+  (doom-themes-org-config))
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1)
+  :custom
+  (doom-modeline-height 25)
+  (doom-modeline-bar-width 5)
+  (doom-modeline-icon t)
+  (doom-modeline-major-mode-icon t)
+  (doom-modeline-major-mode-color-icon t)
+  (doom-modeline-buffer-state-icon t)
+  (doom-modeline-buffer-modification-icon t)
+  (doom-modeline-project-root-dir (replace-regexp-in-string (getenv "HOME") "~" (doom-project-root)))
+  )
 
 (use-package all-the-icons-dired
   :ensure t
@@ -84,11 +99,7 @@
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(set-face-attribute 'default nil :font "Fira Mono" :height 150)
-
-;; Custom modeline styling
-(set-face-attribute 'mode-line nil :background "#B18AE2" :foreground "#FFFFFF" :box '(:line-width 1 :color "#B18AE2"))
-(set-face-attribute 'mode-line-inactive nil :background "#E0BBE4" :foreground "#000000" :box '(:line-width 1 :color "#E0BBE4"))
+(set-face-attribute 'default nil :font "Inconsolata" :height 165)
 
 ;;; --- 5. COMPLETION STACK (Vertico/Corfu) ---
 
@@ -375,5 +386,19 @@
   :after treemacs
   :ensure t
   :config (treemacs-load-theme "all-the-icons"))
+
+;;; --- 12. EVIL MODE ---
+;; (use-package evil
+;;   :ensure t
+;;   :init
+;;   (setq evil-want-integration t)
+;;   :config
+;;   (evil-mode 1))
+
+;; (use-package evil-collection
+;;   :after evil
+;;   :ensure t
+;;   :config
+;;   (evil-collection-init))
 
 
