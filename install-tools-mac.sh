@@ -110,7 +110,7 @@ brew install --cask raycast    # Spotlight replacement
 
 echo ""
 echo "Installing fonts..."
-brew tap homebrew/cask-fonts
+# brew tap homebrew/cask-fonts
 brew install --cask font-jetbrains-mono-nerd-font
 brew install --cask font-fira-code-nerd-font
 brew install --cask font-hack-nerd-font

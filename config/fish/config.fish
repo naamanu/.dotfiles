@@ -107,3 +107,38 @@ alias v='nvim'
 #   - auto-completion for the opam binary
 test -r "$HOME/.opam/opam-init/init.fish" && source "$HOME/.opam/opam-init/init.fish" > /dev/null 2> /dev/null; or true
 # END opam configuration
+starship init fish | source
+zoxide init fish | source
+
+# Modern CLI tool aliases
+if command -v eza &> /dev/null
+    alias ls='eza --icons'
+    alias ll='eza -l --icons'
+    alias la='eza -la --icons'
+    alias lt='eza --tree --icons'
+end
+
+if command -v bat &> /dev/null
+    alias cat='bat'
+end
+
+# Git aliases
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git pull'
+alias glog='git log --oneline --graph --decorate'
+
+# Directory navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# Useful shortcuts
+alias c='clear'
+alias h='history'
+alias vim='nvim'
+alias v='nvim'
+
