@@ -1,0 +1,5 @@
+I have successfully added `Comment.nvim` and `indent-blankline.nvim` to your Neovim configuration.
+
+Please restart Neovim for the changes to take effect.
+
+Is there anything else I can help you with?

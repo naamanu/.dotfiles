@@ -29,7 +29,6 @@
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(set-fringe-mode 10)
 (global-display-line-numbers-mode 1)
 (setq display-line-numbers-type 'relative)
 (pixel-scroll-precision-mode 1)
