@@ -306,7 +306,6 @@
 
 ;; Ensure Opam environment is loaded into Emacs
 (use-package exec-path-from-shell
-  :if (memq window-system '(mac ns x))
   :config
   (exec-path-from-shell-initialize))
 
