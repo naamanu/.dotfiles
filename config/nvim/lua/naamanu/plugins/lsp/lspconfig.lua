@@ -6,7 +6,20 @@ return {
     { "antosha417/nvim-lsp-file-operations", config = true },
   },
   config = function()
+    -- Suppress lspconfig deprecation warnings for now
+    local notify = vim.notify
+    vim.notify = function(msg, ...)
+      if msg:match("lspconfig.*deprecated") then
+        return
+      end
+      notify(msg, ...)
+    end
+
     local lspconfig = require("lspconfig")
+
+    -- Restore original notify function
+    vim.notify = notify
+
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
     local keymap = vim.keymap
 
