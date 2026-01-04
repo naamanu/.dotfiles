@@ -107,3 +107,6 @@ alias v='nvim'
 #   - auto-completion for the opam binary
 test -r "$HOME/.opam/opam-init/init.fish" && source "$HOME/.opam/opam-init/init.fish" > /dev/null 2> /dev/null; or true
 # END opam configuration
+
+# Added by Antigravity
+fish_add_path /Users/nanaadjeimanu/.antigravity/antigravity/bin

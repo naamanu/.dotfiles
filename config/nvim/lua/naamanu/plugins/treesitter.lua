@@ -4,32 +4,56 @@ return {
   event = { "BufReadPost", "BufNewFile" },
   dependencies = {
     "nvim-treesitter/nvim-treesitter-textobjects",
+    "nvim-treesitter/nvim-treesitter-context",
+    "windwp/nvim-ts-autotag",
   },
   config = function()
+    require("treesitter-context").setup({ enable = true })
+    require("nvim-ts-autotag").setup()
     require("nvim-treesitter.configs").setup({
       ensure_installed = {
+        -- Web
         "typescript",
         "tsx",
         "javascript",
+        "html",
+        "css",
+        -- Systems
         "rust",
         "go",
         "c",
         "cpp",
+        -- Scripting
         "lua",
         "vim",
         "vimdoc",
+        "bash",
+        "python",
+        -- Data
         "json",
         "yaml",
         "toml",
         "markdown",
         "markdown_inline",
-        "html",
-        "css",
-        "bash",
+        -- Functional (ML family)
         "ocaml",
         "ocaml_interface",
         "haskell",
         "elm",
+        "gleam",
+        "purescript",
+        -- Functional (Lisp family)
+        "clojure",
+        "racket",
+        "scheme",
+        "commonlisp",
+        -- Functional (BEAM)
+        "erlang",
+        "elixir",
+        "heex",
+        -- Functional (Other)
+        "scala",
+        "nix",
       },
       auto_install = true,
       highlight = {

@@ -10,13 +10,6 @@ autocmd("TextYankPost", {
   desc = "Highlight when yanking text",
 })
 
--- Remove trailing whitespace on save
-autocmd("BufWritePre", {
-  group = augroup("trim-whitespace", { clear = true }),
-  pattern = "*",
-  command = [[%s/\s\+$//e]],
-  desc = "Remove trailing whitespace on save",
-})
 
 -- Close some filetypes with <q>
 autocmd("FileType", {

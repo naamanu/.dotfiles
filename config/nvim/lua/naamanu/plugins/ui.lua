@@ -5,7 +5,7 @@ return {
     config = function()
       require("lualine").setup({
         options = {
-          theme = "catppuccin",
+          theme = "tokyonight",
           component_separators = { left = "|", right = "|" },
           section_separators = { left = "", right = "" },
         },
@@ -28,7 +28,7 @@ return {
     "akinsho/bufferline.nvim",
     dependencies = {
       "nvim-tree/nvim-web-devicons",
-      "catppuccin/nvim",
+      "folke/tokyonight.nvim",
     },
     version = "*",
     config = function()
@@ -44,31 +44,7 @@ return {
       })
     end,
   },
-  {
-    "lukas-reineke/indent-blankline.nvim",
-    main = "ibl",
-    event = { "BufReadPost", "BufNewFile" },
-    config = function()
-      require("ibl").setup({
-        indent = {
-          char = "│",
-        },
-        scope = {
-          enabled = true,
-          show_start = true,
-          show_end = false,
-        },
-        exclude = {
-          filetypes = {
-            "help",
-            "lazy",
-            "mason",
-            "nvim-tree",
-          },
-        },
-      })
-    end,
-  },
+
   {
     "folke/which-key.nvim",
     event = "VeryLazy",

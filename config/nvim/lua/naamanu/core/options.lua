@@ -70,3 +70,12 @@ opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
 -- File encoding
 opt.fileencoding = "utf-8"
+
+-- Suppress lspconfig deprecation warnings (must be set early)
+local notify = vim.notify
+vim.notify = function(msg, ...)
+  if type(msg) == "string" and (msg:match("lspconfig.*deprecated") or msg:match("deprecated.*lspconfig")) then
+    return
+  end
+  notify(msg, ...)
+end

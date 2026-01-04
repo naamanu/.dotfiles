@@ -6,19 +6,9 @@ return {
     { "antosha417/nvim-lsp-file-operations", config = true },
   },
   config = function()
-    -- Suppress lspconfig deprecation warnings for now
-    local notify = vim.notify
-    vim.notify = function(msg, ...)
-      if msg:match("lspconfig.*deprecated") then
-        return
-      end
-      notify(msg, ...)
-    end
-
+    -- Suppress lspconfig deprecation warnings (handled in core/options.lua now)
     local lspconfig = require("lspconfig")
 
-    -- Restore original notify function
-    vim.notify = notify
 
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
     local keymap = vim.keymap
@@ -65,11 +55,6 @@ return {
 
       opts.desc = "Restart LSP"
       keymap.set("n", "<leader>ls", "<cmd>LspRestart<CR>", opts)
-
-      opts.desc = "Format file"
-      keymap.set("n", "<leader>lf", function()
-        vim.lsp.buf.format({ async = true })
-      end, opts)
     end
 
     -- Capabilities for autocompletion
@@ -81,6 +66,16 @@ return {
       local hl = "DiagnosticSign" .. type
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
+
+    -- Python (Ruff)
+    lspconfig.ruff.setup({
+      capabilities = capabilities,
+      on_attach = function(client, bufnr)
+        -- Disable hover in favor of Pyright
+        client.server_capabilities.hoverProvider = false
+        on_attach(client, bufnr)
+      end,
+    })
 
     -- TypeScript/JavaScript
     lspconfig.ts_ls.setup({
@@ -198,6 +193,68 @@ return {
       capabilities = capabilities,
       on_attach = on_attach,
       cmd = { "rescript-language-server", "--stdio" },
+    })
+
+    -- PureScript
+    lspconfig.purescriptls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = {
+        purescript = {
+          addSpagoSources = true,
+          formatter = "purs-tidy",
+        },
+      },
+    })
+
+    -- Gleam
+    lspconfig.gleam.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    -- Clojure
+    lspconfig.clojure_lsp.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    -- Elixir
+    lspconfig.elixirls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+      cmd = { "elixir-ls" },
+    })
+
+    -- Erlang
+    lspconfig.erlangls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    -- Nix
+    lspconfig.nil_ls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = {
+        ["nil"] = {
+          formatting = {
+            command = { "nixpkgs-fmt" },
+          },
+        },
+      },
+    })
+
+    -- Scala (Metals)
+    lspconfig.metals.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    -- Racket (manual setup - not in Mason)
+    lspconfig.racket_langserver.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
     })
   end,
 }
