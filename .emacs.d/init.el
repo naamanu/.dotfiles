@@ -11,6 +11,7 @@
 
 ;; Load Plugin modules
 (require 'el-theme)
+(require 'el-which-key)
 (require 'el-completion)
 (require 'el-dev-tools)
 (require 'el-lsp)
@@ -19,6 +20,7 @@
 (require 'el-treemacs)
 (require 'el-vterm)
 (require 'el-evil)
+(require 'el-session)
 
 (provide 'init)
 ;;; init.el ends here

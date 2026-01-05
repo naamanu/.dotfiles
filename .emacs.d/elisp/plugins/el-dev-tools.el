@@ -7,6 +7,21 @@
   :ensure t
   :after magit)
 
+;; Git gutter - inline change indicators (like Neovim's gitsigns)
+(use-package git-gutter
+  :ensure t
+  :hook (prog-mode . git-gutter-mode)
+  :config
+  (setq git-gutter:update-interval 0.02))
+
+(use-package git-gutter-fringe
+  :ensure t
+  :after git-gutter
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+
 (use-package projectile
   :init (projectile-mode 1)
   :bind-keymap ("C-c p" . projectile-command-map))
@@ -15,9 +30,6 @@
   :bind (("M-s" . consult-line)
          ("M-y" . consult-yank-pop)
          ("C-x b" . consult-buffer)))
-
-(use-package which-key
-  :init (which-key-mode))
 
 (use-package smartparens
   :init (smartparens-global-mode 1))

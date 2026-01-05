@@ -18,15 +18,18 @@
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :init (nerd-icons-completion-mode))
 
-;; In-buffer completion (Corfu)
+;; In-buffer completion (Corfu) - matching Neovim's nvim-cmp
 (use-package corfu
+  :ensure t
   :init (global-corfu-mode)
   :custom
   (corfu-auto t)
-  (corfu-auto-delay 0.1)
-  (corfu-auto-prefix 1)
-  (corfu-cycle t)
-  (corfu-quit-no-match 'separator))
+  (corfu-auto-delay 0.1)        ; Match Neovim's quick response
+  (corfu-auto-prefix 2)         ; Trigger after 2 characters
+  (corfu-cycle t)               ; Cycle through completions
+  (corfu-quit-no-match 'separator)
+  (corfu-preview-current nil)   ; Don't preview current selection
+  (corfu-on-exact-match nil))   ; Don't auto-insert exact match
 
 (use-package nerd-icons-corfu
   :after (corfu nerd-icons)

@@ -24,6 +24,19 @@
   (add-to-list 'eglot-server-programs '(tuareg-ts-mode . ("ocaml-lsp-server")))
   (add-to-list 'eglot-server-programs '(sql-mode . ("sqls")))
   (add-to-list 'eglot-server-programs '(graphql-mode . ("graphql-language-server" "--stdio")))
+  
+  ;; Functional languages - ML family
+  (add-to-list 'eglot-server-programs '(gleam-mode . ("gleam" "lsp")))
+  (add-to-list 'eglot-server-programs '(purescript-mode . ("purescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(elm-mode . ("elm-language-server")))
+  
+  ;; Functional languages - Lisp family
+  (add-to-list 'eglot-server-programs '(clojure-mode . ("clojure-lsp")))
+  (add-to-list 'eglot-server-programs '(racket-mode . ("racket-langserver")))
+  
+  ;; Functional languages - Other
+  (add-to-list 'eglot-server-programs '(scala-mode . ("metals")))
+  (add-to-list 'eglot-server-programs '(nix-mode . ("nil")))
 
   (setq eglot-autoshutdown t
         eglot-send-changes-idle-time 0.1

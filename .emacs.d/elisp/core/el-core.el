@@ -48,5 +48,34 @@
             (hl-line-mode 1)
             (hs-minor-mode 1)))
 
+;;; --- 3. MODERN DEFAULTS (Neovim parity) ---
+
+;; Scrolloff equivalent - keep cursor centered
+(setq scroll-margin 8)
+(setq scroll-conservatively 101)
+(setq scroll-preserve-screen-position t)
+
+;; Color column at 100 (like Neovim)
+(setq-default fill-column 100)
+(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+
+;; System clipboard integration
+(setq select-enable-clipboard t)
+(setq select-enable-primary t)
+(setq save-interprogram-paste-before-kill t)
+
+;; Persistent undo history
+(use-package undo-tree
+  :ensure t
+  :config
+  (global-undo-tree-mode)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-history-directory-alist
+        '(("." . "~/.emacs.d/undo"))))
+
+;; Create undo directory if it doesn't exist
+(let ((undo-dir (expand-file-name "~/.emacs.d/undo")))
+  (unless (file-directory-p undo-dir)
+    (make-directory undo-dir t)))
 
 (provide 'el-core)
