@@ -2,7 +2,7 @@
 
 # Font configuration
 font-family = "Inconsolata Nerd Font"
-font-size = 17
+font-size = 15
 font-thicken = true
 
 # Window configuration
@@ -34,3 +34,4 @@ copy-on-select = true
 # Cursor
 cursor-style = block
 cursor-style-blink = true
+

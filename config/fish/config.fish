@@ -108,3 +108,6 @@ fish_add_path /Users/nanaadjeimanu/.antigravity/antigravity/bin
 # >>> coursier install directory >>>
 set -gx PATH "$PATH:/Users/nanaadjeimanu/Library/Application Support/Coursier/bin"
 # <<< coursier install directory <<<
+
+# Starship prompt
+starship init fish | source
