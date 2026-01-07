@@ -5,7 +5,7 @@ return {
     config = function()
       require("lualine").setup({
         options = {
-          theme = "tokyonight",
+          theme = "auto",
           component_separators = { left = "|", right = "|" },
           section_separators = { left = "", right = "" },
         },
@@ -14,7 +14,6 @@ return {
             {
               require("lazy.status").updates,
               cond = require("lazy.status").has_updates,
-              color = { fg = "#ff9e64" },
             },
             { "encoding" },
             { "fileformat" },
@@ -26,10 +25,7 @@ return {
   },
   {
     "akinsho/bufferline.nvim",
-    dependencies = {
-      "nvim-tree/nvim-web-devicons",
-      "folke/tokyonight.nvim",
-    },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     version = "*",
     config = function()
       require("bufferline").setup({

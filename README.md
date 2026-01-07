@@ -1,6 +1,6 @@
 # Keybindings Documentation
 
-This document outlines the keybindings configured for Neovim and tmux.
+This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 
 ---
 
@@ -258,6 +258,111 @@ This document outlines the keybindings configured for Neovim and tmux.
 | n    | `<leader>gB` | Git browse (open in browser) |
 | n    | `<leader>un` | Dismiss all notifications    |
 | n    | `<C-/>`      | Toggle terminal              |
+
+---
+
+## Emacs Keybindings
+
+Emacs uses **Evil mode** for Vim-like keybindings, plus Emacs-style bindings for IDE features.
+
+### General
+
+| Keybinding | Description                   |
+| :--------- | :---------------------------- |
+| `C-` `     | Toggle vterm terminal         |
+| `ESC`      | Keyboard escape/quit          |
+| `M-o`      | Switch to other window        |
+| `C-c w`    | Delete window                 |
+| `C-c r`    | Replace string                |
+| `C-.`      | Embark actions menu           |
+| `M-.`      | Embark dwim (do what I mean)  |
+| `C-x C-s`  | Save file                     |
+| `C-x C-f`  | Find file                     |
+| `C-x b`    | Switch buffer (with consult)  |
+| `C-g`      | Cancel/quit current operation |
+
+### File Management & Navigation
+
+| Keybinding | Description                     |
+| :--------- | :------------------------------ |
+| `M-0`      | Select Treemacs window          |
+| `C-x t t`  | Toggle Treemacs file explorer   |
+| `M-s`      | Consult line search             |
+| `M-y`      | Consult yank from kill ring     |
+| `C-c j`    | Avy jump to character (2 chars) |
+
+### Projectile (Project Management)
+
+**Prefix**: `C-c p` opens the projectile command map
+
+| Keybinding | Description              |
+| :--------- | :----------------------- |
+| `C-c p f`  | Find file in project     |
+| `C-c p p`  | Switch project           |
+| `C-c p s`  | Search in project (grep) |
+| `C-c p c`  | Compile project          |
+| `C-c p k`  | Kill all project buffers |
+| `C-c p h`  | Show projectile help     |
+
+### LSP (Eglot)
+
+Active when editing a file with LSP support.
+
+| Keybinding | Description                      |
+| :--------- | :------------------------------- |
+| `C-c l a`  | Code actions                     |
+| `C-c l f`  | Format buffer                    |
+| `C-c l r`  | Rename symbol                    |
+| `C-c l d`  | Find declaration                 |
+| `C-c l i`  | Find implementation              |
+| `C-c l t`  | Find type definition             |
+| `C-c l s`  | Search symbols (consult-eglot)   |
+| `M-.`      | Go to definition (default Emacs) |
+| `M-,`      | Pop back from definition         |
+
+### Git (Magit)
+
+| Keybinding | Description       |
+| :--------- | :---------------- |
+| `C-x g`    | Open Magit status |
+
+**In Magit**: Press `?` to see all commands (staging, committing, pushing, pulling, branching, etc.)
+
+### Debugging (DAP Mode)
+
+| Keybinding | Description      |
+| :--------- | :--------------- |
+| `C-c d b`  | Add breakpoint   |
+| `C-c d d`  | Start debugging  |
+| `C-c d n`  | Next (step over) |
+| `C-c d c`  | Continue         |
+
+### Completion (Vertico & Corfu)
+
+**Vertico** (minibuffer completion):
+
+- `C-n` or `Down` - Next completion
+- `C-p` or `Up` - Previous completion
+- `RET` - Select completion
+- `C-j` - Select without exiting
+
+**Corfu** (in-buffer completion):
+
+- Triggers automatically after 2 characters
+- `C-n` / `C-p` - Navigate completions
+- `RET` - Accept completion
+- `C-g` - Cancel
+
+### Org Mode
+
+| Keybinding | Description |
+| :--------- | :---------- |
+| `C-c a`    | Org agenda  |
+
+### Which-Key
+
+- Press any prefix key (like `C-c`, `C-x`, or `C-c p`) and wait 0.3 seconds
+- A popup will show all available completions for that prefix
 
 ---
 

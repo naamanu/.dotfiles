@@ -8,18 +8,7 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
-
-  ;; Enable transparency (like Neovim)
-  ;; This sets the background to transparent
-  (when (display-graphic-p)
-    (set-frame-parameter nil 'alpha-background 90)
-    (add-to-list 'default-frame-alist '(alpha-background . 90)))
-  
-  ;; For terminal Emacs - make background truly transparent
-  (unless (display-graphic-p)
-    (set-face-background 'default "unspecified-bg" (selected-frame))
-    (set-face-background 'fringe "unspecified-bg" (selected-frame)))
+  (load-theme 'doom-one-light t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)

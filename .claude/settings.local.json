@@ -7,7 +7,8 @@
       "WebSearch",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add modern Neovim configuration from scratch\n\nAdded comprehensive Neovim configuration with:\n- Plugin manager: lazy.nvim with modular structure\n- Theme: Catppuccin \\(mocha flavor\\)\n- LSP support for TypeScript, Rust, Go, C/C++, OCaml, Haskell, Elm, ReScript\n- Auto-completion with nvim-cmp\n- Syntax highlighting with Treesitter\n- Fuzzy finding with Telescope\n- File explorer with nvim-tree\n- Git integration with gitsigns and lazygit\n- UI enhancements: lualine, bufferline, indent guides, which-key\n- Editor features: autopairs, comments, surround\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(defaults read:*)"
     ]
   }
 }

@@ -9,12 +9,12 @@ font-thicken = true
 window-padding-x = 8
 window-padding-y = 8
 window-decoration = true
-window-theme = dark
+window-theme = light
 
 # Theme and colors
-# theme = dark
-background-opacity = 0.80
-unfocused-split-opacity = 0.80
+theme = GitHub Light Default
+background-opacity = 1.0
+unfocused-split-opacity = 1.0
 
 # Shell
 shell-integration = fish
