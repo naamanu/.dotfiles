@@ -6,56 +6,7 @@ return {
     { "antosha417/nvim-lsp-file-operations", config = true },
   },
   config = function()
-    -- Suppress lspconfig deprecation warnings (handled in core/options.lua now)
-    local lspconfig = require("lspconfig")
-
-
     local cmp_nvim_lsp = require("cmp_nvim_lsp")
-    local keymap = vim.keymap
-
-    -- LSP keybindings
-    local on_attach = function(client, bufnr)
-      local opts = { noremap = true, silent = true, buffer = bufnr }
-
-      opts.desc = "Show LSP references"
-      keymap.set("n", "gr", "<cmd>Telescope lsp_references<CR>", opts)
-
-      opts.desc = "Go to declaration"
-      keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-
-      opts.desc = "Show LSP definitions"
-      keymap.set("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts)
-
-      opts.desc = "Show LSP implementations"
-      keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts)
-
-      opts.desc = "Show LSP type definitions"
-      keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts)
-
-      opts.desc = "See available code actions"
-      keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
-
-      opts.desc = "Smart rename"
-      keymap.set("n", "<leader>lr", vim.lsp.buf.rename, opts)
-
-      opts.desc = "Show buffer diagnostics"
-      keymap.set("n", "<leader>ld", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
-
-      opts.desc = "Show line diagnostics"
-      keymap.set("n", "<leader>lD", vim.diagnostic.open_float, opts)
-
-      opts.desc = "Go to previous diagnostic"
-      keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-
-      opts.desc = "Go to next diagnostic"
-      keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
-
-      opts.desc = "Show documentation for what is under cursor"
-      keymap.set("n", "K", vim.lsp.buf.hover, opts)
-
-      opts.desc = "Restart LSP"
-      keymap.set("n", "<leader>ls", "<cmd>LspRestart<CR>", opts)
-    end
 
     -- Capabilities for autocompletion
     local capabilities = cmp_nvim_lsp.default_capabilities()
@@ -67,194 +18,184 @@ return {
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    -- Python (Ruff)
-    lspconfig.ruff.setup({
-      capabilities = capabilities,
-      on_attach = function(client, bufnr)
-        -- Disable hover in favor of Pyright
-        client.server_capabilities.hoverProvider = false
-        on_attach(client, bufnr)
+    -- LSP keybindings via LspAttach autocmd
+    vim.api.nvim_create_autocmd("LspAttach", {
+      group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
+      callback = function(ev)
+        local opts = { buffer = ev.buf, silent = true }
+
+        opts.desc = "Show LSP references"
+        vim.keymap.set("n", "gr", "<cmd>Telescope lsp_references<CR>", opts)
+
+        opts.desc = "Go to declaration"
+        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
+
+        opts.desc = "Show LSP definitions"
+        vim.keymap.set("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts)
+
+        opts.desc = "Show LSP implementations"
+        vim.keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts)
+
+        opts.desc = "Show LSP type definitions"
+        vim.keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts)
+
+        opts.desc = "See available code actions"
+        vim.keymap.set({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action, opts)
+
+        opts.desc = "Smart rename"
+        vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename, opts)
+
+        opts.desc = "Show buffer diagnostics"
+        vim.keymap.set("n", "<leader>ld", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
+
+        opts.desc = "Show line diagnostics"
+        vim.keymap.set("n", "<leader>lD", vim.diagnostic.open_float, opts)
+
+        opts.desc = "Go to previous diagnostic"
+        vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
+
+        opts.desc = "Go to next diagnostic"
+        vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+
+        opts.desc = "Show documentation for what is under cursor"
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+
+        opts.desc = "Restart LSP"
+        vim.keymap.set("n", "<leader>ls", "<cmd>LspRestart<CR>", opts)
+
+        -- Disable hover for ruff in favor of other Python LSPs
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if client and client.name == "ruff" then
+          client.server_capabilities.hoverProvider = false
+        end
       end,
     })
 
-    -- TypeScript/JavaScript
-    lspconfig.ts_ls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
-    })
+    -- Server configurations
+    local servers = {
+      -- Python (Ruff)
+      ruff = {},
 
-    -- Rust
-    lspconfig.rust_analyzer.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        ["rust-analyzer"] = {
-          checkOnSave =true,
-          cargo = {
-            allFeatures = true,
-          },
-        },
+      -- TypeScript/JavaScript
+      ts_ls = {
+        filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
       },
-    })
 
-    -- Go
-    lspconfig.gopls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        gopls = {
-          analyses = {
-            unusedparams = true,
-          },
-          staticcheck = true,
-          gofumpt = true,
-        },
-      },
-    })
-
-    -- C/C++
-    lspconfig.clangd.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      cmd = {
-        "clangd",
-        "--background-index",
-        "--clang-tidy",
-        "--header-insertion=iwyu",
-        "--completion-style=detailed",
-        "--function-arg-placeholders",
-      },
-    })
-
-    -- Lua
-    lspconfig.lua_ls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        Lua = {
-          diagnostics = {
-            globals = { "vim" },
-          },
-          workspace = {
-            library = {
-              [vim.fn.expand("$VIMRUNTIME/lua")] = true,
-              [vim.fn.stdpath("config") .. "/lua"] = true,
+      -- Rust
+      rust_analyzer = {
+        settings = {
+          ["rust-analyzer"] = {
+            checkOnSave = true,
+            cargo = {
+              allFeatures = true,
             },
           },
         },
       },
-    })
 
-    -- Bash
-    lspconfig.bashls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- JSON
-    lspconfig.jsonls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- YAML
-    lspconfig.yamlls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- OCaml
-    lspconfig.ocamllsp.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      filetypes = { "ocaml", "ocaml.menhir", "ocaml.interface", "ocamllex", "reason" },
-    })
-
-    -- Haskell
-    lspconfig.hls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        haskell = {
-          formattingProvider = "ormolu",
-        },
-      },
-    })
-
-    -- Elm
-    lspconfig.elmls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- ReScript
-    lspconfig.rescriptls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      cmd = { "rescript-language-server", "--stdio" },
-    })
-
-    -- PureScript
-    lspconfig.purescriptls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        purescript = {
-          addSpagoSources = true,
-          formatter = "purs-tidy",
-        },
-      },
-    })
-
-    -- Gleam
-    lspconfig.gleam.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- Clojure
-    lspconfig.clojure_lsp.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- Elixir
-    lspconfig.elixirls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      cmd = { "elixir-ls" },
-    })
-
-    -- Erlang
-    lspconfig.erlangls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- Nix
-    lspconfig.nil_ls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = {
-        ["nil"] = {
-          formatting = {
-            command = { "nixpkgs-fmt" },
+      -- Go
+      gopls = {
+        settings = {
+          gopls = {
+            analyses = {
+              unusedparams = true,
+            },
+            staticcheck = true,
+            gofumpt = true,
           },
         },
       },
-    })
 
-    -- Scala (Metals)
-    lspconfig.metals.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
+      -- C/C++
+      clangd = {
+        cmd = {
+          "clangd",
+          "--background-index",
+          "--clang-tidy",
+          "--header-insertion=iwyu",
+          "--completion-style=detailed",
+          "--function-arg-placeholders",
+        },
+      },
 
-    -- Racket (manual setup - not in Mason)
-    lspconfig.racket_langserver.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
+      -- Lua
+      lua_ls = {
+        settings = {
+          Lua = {
+            diagnostics = {
+              globals = { "vim" },
+            },
+            workspace = {
+              library = {
+                [vim.fn.expand("$VIMRUNTIME/lua")] = true,
+                [vim.fn.stdpath("config") .. "/lua"] = true,
+              },
+            },
+          },
+        },
+      },
+
+      -- Bash
+      bashls = {},
+
+      -- JSON
+      jsonls = {},
+
+      -- YAML
+      yamlls = {},
+
+      -- OCaml
+      ocamllsp = {
+        filetypes = { "ocaml", "ocaml.menhir", "ocaml.interface", "ocamllex", "reason" },
+      },
+
+      -- Haskell
+      hls = {
+        settings = {
+          haskell = {
+            formattingProvider = "ormolu",
+          },
+        },
+      },
+
+      -- Elm
+      elmls = {},
+
+      -- ReScript
+      rescriptls = {
+        cmd = { "rescript-language-server", "--stdio" },
+      },
+
+      -- PureScript
+      purescriptls = {
+        settings = {
+          purescript = {
+            addSpagoSources = true,
+            formatter = "purs-tidy",
+          },
+        },
+      },
+
+      -- Clojure
+      clojure_lsp = {},
+
+      -- Elixir
+      elixirls = {
+        cmd = { "elixir-ls" },
+      },
+
+      -- Erlang
+      erlangls = {},
+
+      -- Racket
+      racket_langserver = {},
+    }
+
+    -- Configure and enable all servers using vim.lsp.config
+    for server, config in pairs(servers) do
+      config.capabilities = vim.tbl_deep_extend("force", {}, capabilities, config.capabilities or {})
+      vim.lsp.config(server, config)
+      vim.lsp.enable(server)
+    end
   end,
 }

@@ -1,26 +1,13 @@
 return {
-  "projekt0n/github-nvim-theme",
+  "tanvirtin/monokai.nvim",
   lazy = false,
   priority = 1000,
   config = function()
-    require("github-theme").setup({
-      options = {
-        transparent = false,
-        terminal_colors = true,
-        styles = {
-          comments = "italic",
-          keywords = "italic",
-          functions = "NONE",
-          variables = "NONE",
-        },
-        darken = {
-          sidebars = {
-            list = { "qf", "help", "NvimTree", "terminal", "Trouble" },
-          },
-        },
-      },
+    require("monokai").setup({
+      palette = require("monokai").pro,
+      italics = true,
     })
 
-    vim.cmd.colorscheme("github_light")
+    vim.cmd.colorscheme("monokai_pro")
   end,
 }

@@ -40,15 +40,11 @@ return {
         "elmls",          -- Elm
         "rescriptls",     -- ReScript
         "purescriptls",   -- PureScript
-        "gleam",          -- Gleam
         -- Functional (Lisp family)
         "clojure_lsp",    -- Clojure
         -- Functional (BEAM)
         "elixirls",       -- Elixir
         "erlangls",       -- Erlang
-        -- Functional (Other)
-        "nil_ls",         -- Nix
-        "metals",         -- Scala
       },
       automatic_installation = true,
     })
