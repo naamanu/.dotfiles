@@ -10,6 +10,13 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
+;; Load shell environment variables (important for GUI Emacs)
+(use-package exec-path-from-shell
+  :ensure t
+  :init
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+
 ;;; --- 2. UI & DEFAULTS ---
 
 (setq-default

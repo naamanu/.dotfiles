@@ -2,13 +2,29 @@
 (use-package nerd-icons
   :if (display-graphic-p))
 
+;; Modus themes - high-quality, accessible light/dark themes (built-in to Emacs 28+)
+;; Configure modus theme settings
+(setq modus-themes-bold-constructs t
+      modus-themes-italic-constructs t
+      modus-themes-mixed-fonts t
+      modus-themes-variable-pitch-ui nil
+      ;; Syntax highlighting customization
+      modus-themes-org-blocks 'gray-background
+      modus-themes-headings '((1 . (1.3))
+                              (2 . (1.2))
+                              (t . (1.1))))
+
+;; Load the light theme directly
+(load-theme 'modus-operandi t)
+
+;; Keep doom-themes available for fallback or switching
 (use-package doom-themes
   :ensure t
   :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-monokai-pro t)
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+  ;; Optionally load a light doom theme instead:
+  ;; (load-theme 'doom-one-light t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -27,8 +43,8 @@
   (doom-modeline-major-mode-color-icon t)
   (doom-modeline-buffer-state-icon t)
   (doom-modeline-buffer-modification-icon t)
-  (doom-modeline-project-root-dir (replace-regexp-in-string (getenv "HOME") "~" (doom-project-root)))
-  )
+  (doom-modeline-buffer-file-name-style 'truncate-upto-project)
+  (doom-modeline-project-detection 'auto))
 
 (use-package all-the-icons-dired
   :ensure t

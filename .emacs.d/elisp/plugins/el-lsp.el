@@ -1,9 +1,13 @@
 ;;; --- 7. LSP (EGLOT) ---
 ;; NOTE: You need to install the language servers for eglot to work.
 ;; For example, for rust, you would run: rustup component add rust-analyzer
+;; To enable LSP for a specific mode, use M-x eglot or add hooks for specific modes
 (use-package eglot
   :ensure nil ; Built-in
-  :hook (prog-mode . eglot-ensure)
+  :commands (eglot eglot-ensure)
+  ;; Optional: uncomment specific hooks for modes you actively use
+  ;; :hook ((rust-mode rust-ts-mode) . eglot-ensure)
+  ;; :hook ((python-mode python-ts-mode) . eglot-ensure)
   :config
   (add-to-list 'eglot-server-programs '(elixir-mode . ("elixir-ls")))
   (add-to-list 'eglot-server-programs '(ruby-mode . ("solargraph" "stdio")))
@@ -24,6 +28,12 @@
   (add-to-list 'eglot-server-programs '(tuareg-ts-mode . ("ocaml-lsp-server")))
   (add-to-list 'eglot-server-programs '(sql-mode . ("sqls")))
   (add-to-list 'eglot-server-programs '(graphql-mode . ("graphql-language-server" "--stdio")))
+
+  ;; Web/Data languages
+  (add-to-list 'eglot-server-programs '(css-mode . ("vscode-css-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(yaml-mode . ("yaml-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(python-mode . ("pyright-langserver" "--stdio")))
+  (add-to-list 'eglot-server-programs '(python-ts-mode . ("pyright-langserver" "--stdio")))
   
   ;; Functional languages - ML family
   (add-to-list 'eglot-server-programs '(gleam-mode . ("gleam" "lsp")))

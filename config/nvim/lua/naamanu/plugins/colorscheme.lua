@@ -5,9 +5,9 @@ return {
   config = function()
     require("monokai").setup({
       palette = require("monokai").pro,
-      italics = true,
+      custom_hlgroups = {},
     })
 
-    vim.cmd.colorscheme("monokai_pro")
+    vim.cmd.colorscheme("monokai")
   end,
 }

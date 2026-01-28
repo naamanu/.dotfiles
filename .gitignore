@@ -2,5 +2,10 @@
 .emacs.d/tree-sitter
 .emacs.d/recentf
 .emacs.d/places
+.emacs.d/history
+.emacs.d/projectile-bookmarks.eld
+.emacs.d/custom.el
+.emacs.d/desktop/
+.emacs.d/undo/
 .DS_Store
 

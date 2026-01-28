@@ -22,12 +22,6 @@ set -gx PATH $HOME/.cabal/bin $HOME/.ghcup/bin $PATH
 # Shell Integrations
 # ======================
 
-# Starship prompt
-if command -v starship &> /dev/null
-    set -gx STARSHIP_CONFIG ~/.config/starship.toml
-    starship init fish | source
-end
-
 # Zoxide - smart directory jumper
 if command -v zoxide &> /dev/null
     zoxide init fish | source

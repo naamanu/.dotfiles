@@ -54,6 +54,9 @@ return {
         "prettier", -- prettier formatter
         "stylua", -- lua formatter
         "eslint_d", -- js linter
+        "gofumpt", -- go formatter
+        "goimports", -- go imports formatter
+        "golangci-lint", -- go linter
       },
     })
   end,

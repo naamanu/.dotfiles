@@ -3,11 +3,45 @@
   :ensure t
   :mode (("\.html?\'" . web-mode)
          ("\.jsx\\'" . web-mode)))
+
 (use-package astro-mode
   :ensure nil
   :mode ("\.astro\\'" . astro-mode)
   :config
   (define-derived-mode astro-mode web-mode "astro"))
+
+;; TypeScript and JavaScript
+(use-package typescript-mode
+  :ensure t
+  :mode (("\\.ts\\'" . typescript-mode)
+         ("\\.tsx\\'" . tsx-ts-mode))
+  :hook ((typescript-mode . eglot-ensure)
+         (tsx-ts-mode . eglot-ensure)))
+
+;; Use tree-sitter modes for JS/TS when available
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.mjs\\'" . js-ts-mode))
+(add-hook 'js-ts-mode-hook #'eglot-ensure)
+
+;; Python
+(use-package python
+  :ensure nil ; Built-in
+  :mode ("\\.py\\'" . python-ts-mode)
+  :hook (python-ts-mode . eglot-ensure)
+  :config
+  (setq python-indent-offset 4))
+
+;; CSS
+(use-package css-mode
+  :ensure nil ; Built-in
+  :mode "\\.css\\'"
+  :hook (css-mode . eglot-ensure))
+
+;; YAML
+(use-package yaml-mode
+  :ensure t
+  :mode "\\.ya?ml\\'"
+  :hook (yaml-mode . eglot-ensure))
 
 (use-package graphql-mode
   :ensure t
@@ -35,7 +69,27 @@
 
 (use-package go-mode
   :ensure t
-  :mode "\.go\'")
+  :mode "\\.go\\'"
+  :hook (go-mode . eglot-ensure)
+  :config
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook #'gofmt-before-save))
+
+;; C/C++ with tree-sitter
+(use-package c-ts-mode
+  :ensure nil ; Built-in
+  :mode (("\\.c\\'" . c-ts-mode)
+         ("\\.h\\'" . c-ts-mode)
+         ("\\.cpp\\'" . c++-ts-mode)
+         ("\\.cc\\'" . c++-ts-mode)
+         ("\\.cxx\\'" . c++-ts-mode)
+         ("\\.hpp\\'" . c++-ts-mode)
+         ("\\.hxx\\'" . c++-ts-mode))
+  :hook ((c-ts-mode . eglot-ensure)
+         (c++-ts-mode . eglot-ensure))
+  :config
+  (setq c-ts-mode-indent-offset 4
+        c-ts-mode-indent-style 'linux))
 
 ;; Functional languages - ML family
 
@@ -166,12 +220,8 @@
 
 ;;; --- 8. OCAML CONFIGURATION ---
 (use-package tuareg
-  :mode ("\.ml[ily]?\\'" . tuareg-mode))
-
-;; Ensure Opam environment is loaded into Emacs
-(use-package exec-path-from-shell
-  :config
-  (exec-path-from-shell-initialize))
+  :mode ("\\.ml[ily]?\\'" . tuareg-mode)
+  :hook (tuareg-mode . eglot-ensure))
 
 ;; Use your existing opam-user-setup if needed
 (let ((opam-share (ignore-errors (car (process-lines "opam" "var" "share")))))
