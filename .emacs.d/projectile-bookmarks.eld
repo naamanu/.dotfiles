@@ -1,1 +1,0 @@
-("~/workspace/work/ted/" "~/dotfiles/" "~/workspace/skillup/" "~/workspace/learn/rust/threading/" "~/.dotfiles/" "~/workspace/projects/pipeviewer/" "~/workspace/projects/ocaml-todo/" "~/workspace/projects/rcv/" "~/workspace/learn/elm/first-app/" "~/")

@@ -9,3 +9,9 @@
 .emacs.d/undo/
 .DS_Store
 
+# Fish shell
+config/fish/fish_variables
+
+# Backup files
+*.bak
+
