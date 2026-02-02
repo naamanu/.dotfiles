@@ -2,6 +2,11 @@
 ;; NOTE: You need to install the language servers for eglot to work.
 ;; For example, for rust, you would run: rustup component add rust-analyzer
 ;; To enable LSP for a specific mode, use M-x eglot or add hooks for specific modes
+
+(use-package consult-eglot
+  :ensure t
+  :after (consult eglot))
+
 (use-package eglot
   :ensure nil ; Built-in
   :commands (eglot eglot-ensure)

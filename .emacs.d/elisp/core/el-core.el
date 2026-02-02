@@ -2,8 +2,14 @@
 (setq gc-cons-threshold (* 50 1024 1024)) ; 50MB during startup
 
 (add-hook 'emacs-startup-hook
-          (lambda () 
-            (setq gc-cons-threshold (* 16 1024 1024)))) ; 2MB for normal use
+          (lambda ()
+            (setq gc-cons-threshold (* 16 1024 1024)))) ; 16MB for normal use
+
+;; Native compilation settings (Emacs 29+)
+(when (featurep 'native-compile)
+  (setq native-comp-async-report-warnings-errors nil) ; Silence warnings
+  (setq native-comp-deferred-compilation t)           ; Compile in background
+  (setq native-comp-speed 2))                         ; Max optimization
 
 ;; Set custom file to a separate location to keep init.el clean
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -32,7 +38,10 @@
  sentence-end-double-space nil
  line-move-visual t
  visible-bell t
- show-trailing-whitespace t)
+ show-trailing-whitespace nil) ; Enable per-mode instead
+
+;; Show trailing whitespace only in prog-mode
+(add-hook 'prog-mode-hook (lambda () (setq show-trailing-whitespace t)))
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)

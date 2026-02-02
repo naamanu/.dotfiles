@@ -35,6 +35,14 @@
   :after (corfu nerd-icons)
   :init (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
+;; Documentation popup for completions (like nvim-cmp)
+(use-package corfu-popupinfo
+  :ensure nil ; Part of corfu
+  :after corfu
+  :hook (corfu-mode . corfu-popupinfo-mode)
+  :custom
+  (corfu-popupinfo-delay '(0.5 . 0.2)))
+
 (use-package cape
   :init
   (add-to-list 'completion-at-point-functions #'cape-file)

@@ -7,20 +7,15 @@
   :ensure t
   :after magit)
 
-;; Git gutter - inline change indicators (like Neovim's gitsigns)
-(use-package git-gutter
+;; Diff-hl - inline change indicators (like Neovim's gitsigns)
+(use-package diff-hl
   :ensure t
-  :hook (prog-mode . git-gutter-mode)
+  :hook ((prog-mode . diff-hl-mode)
+         (dired-mode . diff-hl-dired-mode)
+         (magit-pre-refresh . diff-hl-magit-pre-refresh)
+         (magit-post-refresh . diff-hl-magit-post-refresh))
   :config
-  (setq git-gutter:update-interval 0.02))
-
-(use-package git-gutter-fringe
-  :ensure t
-  :after git-gutter
-  :config
-  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+  (diff-hl-flydiff-mode 1))
 
 (use-package projectile
   :init (projectile-mode 1)

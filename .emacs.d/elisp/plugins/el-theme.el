@@ -36,14 +36,14 @@
   (doom-modeline-buffer-file-name-style 'truncate-upto-project)
   (doom-modeline-project-detection 'auto))
 
-(use-package all-the-icons-dired
+(use-package nerd-icons-dired
   :ensure t
-  :hook (dired-mode . all-the-icons-dired-mode))
+  :hook (dired-mode . nerd-icons-dired-mode))
 
 (use-package rainbow-delimiters
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(set-face-attribute 'default nil :font "Inconsolata" :height 165)
+(set-face-attribute 'default nil :font "Inconsolata Nerd Font" :height 140)
 
 (provide 'el-theme)
