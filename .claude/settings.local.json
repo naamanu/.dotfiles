@@ -10,7 +10,9 @@
       "Bash(git commit:*)",
       "Bash(defaults read:*)",
       "Bash(git rm:*)",
-      "Bash(GIT_EDITOR=true git rebase:*)"
+      "Bash(GIT_EDITOR=true git rebase:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

@@ -9,6 +9,7 @@
 .emacs.d/undo/
 .emacs.d/eln-cache/
 .emacs.d/auto-save-list/
+.emacs.d/opam-user-setup.el
 .DS_Store
 
 # Fish shell

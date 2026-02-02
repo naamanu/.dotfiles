@@ -44,6 +44,8 @@
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(set-face-attribute 'default nil :font "Inconsolata Nerd Font" :height 140)
+;; Font configuration - adjust height per platform
+(let ((font-height (if (eq system-type 'darwin) 165 140)))
+  (set-face-attribute 'default nil :font "Inconsolata Nerd Font" :height font-height))
 
 (provide 'el-theme)

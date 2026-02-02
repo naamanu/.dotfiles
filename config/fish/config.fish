@@ -102,12 +102,19 @@ alias v='nvim'
 test -r "$HOME/.opam/opam-init/init.fish" && source "$HOME/.opam/opam-init/init.fish" > /dev/null 2> /dev/null; or true
 # END opam configuration
 
-# Added by Antigravity
-fish_add_path /Users/nanaadjeimanu/.antigravity/antigravity/bin
-
-# >>> coursier install directory >>>
-set -gx PATH "$PATH:/Users/nanaadjeimanu/Library/Application Support/Coursier/bin"
-# <<< coursier install directory <<<
+# ======================
+# Platform-specific paths
+# ======================
+switch (uname)
+    case Darwin
+        # Antigravity (macOS only)
+        test -d "$HOME/.antigravity/antigravity/bin" && fish_add_path "$HOME/.antigravity/antigravity/bin"
+        # Coursier (Scala) - macOS location
+        test -d "$HOME/Library/Application Support/Coursier/bin" && set -gx PATH "$PATH:$HOME/Library/Application Support/Coursier/bin"
+    case Linux
+        # Coursier (Scala) - Linux location
+        test -d "$HOME/.local/share/coursier/bin" && set -gx PATH "$PATH:$HOME/.local/share/coursier/bin"
+end
 
 # Starship prompt
 starship init fish | source
