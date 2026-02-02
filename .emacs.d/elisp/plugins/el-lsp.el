@@ -22,6 +22,7 @@
   (add-to-list 'eglot-server-programs '(typescript-mode . ("typescript-language-server" "--stdio")))
   (add-to-list 'eglot-server-programs '(typescript-ts-mode . ("typescript-language-server" "--stdio")))
   (add-to-list 'eglot-server-programs '(tsx-ts-mode . ("typescript-language-server" "--stdio")))
+  (add-to-list 'eglot-server-programs '(web-mode . ("typescript-language-server" "--stdio")))
   (add-to-list 'eglot-server-programs '((c-mode c++-mode) . ("clangd")))
   (add-to-list 'eglot-server-programs '((c-ts-mode c++-ts-mode) . ("clangd")))
   (add-to-list 'eglot-server-programs '(tuareg-mode . ("ocaml-lsp-server")))

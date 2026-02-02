@@ -7,6 +7,8 @@
  '(custom-safe-themes
    '("c9d837f562685309358d8dc7fccb371ed507c0ae19cf3c9ae67875db0c038632"
      "9e5e0ff3a81344c9b1e6bfc9b3dcf9b96d5ec6a60d8de6d4c762ee9e2121dfb2" default))
+ '(org-agenda-files
+   '("/Users/nanaadjeimanu/workspace/notes/emacs/org/1.org" "/Users/nanaadjeimanu/org"))
  '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

@@ -2,7 +2,21 @@
 (use-package web-mode
   :ensure t
   :mode (("\.html?\'" . web-mode)
-         ("\.jsx\\'" . web-mode)))
+         ("\\.jsx\\'" . web-mode)
+         ("\\.tsx\\'" . web-mode))
+  :config
+  (setq web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2
+        web-mode-enable-auto-pairing t
+        web-mode-enable-css-colorization t
+        web-mode-enable-current-element-highlight t
+        web-mode-enable-current-column-highlight t)
+  ;; Enable JSX/TSX content types
+  (setq web-mode-content-types-alist
+        '(("jsx" . "\\.jsx?\\'")
+          ("tsx" . "\\.tsx?\\'")))
+  :hook ((web-mode . eglot-ensure)))
 
 (use-package astro-mode
   :ensure nil
@@ -14,14 +28,37 @@
 (use-package typescript-mode
   :ensure t
   :mode (("\\.ts\\'" . typescript-mode)
-         ("\\.tsx\\'" . tsx-ts-mode))
-  :hook ((typescript-mode . eglot-ensure)
-         (tsx-ts-mode . eglot-ensure)))
+         ("\\.mts\\'" . typescript-mode))
+  :hook (typescript-mode . eglot-ensure)
+  :config
+  (setq typescript-indent-level 2))
 
 ;; Use tree-sitter modes for JS/TS when available
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.mjs\\'" . js-ts-mode))
 (add-hook 'js-ts-mode-hook #'eglot-ensure)
+(setq js-indent-level 2)
+
+;; Emmet mode for HTML/JSX expansion
+(use-package emmet-mode
+  :ensure t
+  :hook ((web-mode . emmet-mode)
+         (css-mode . emmet-mode)
+         (typescript-mode . emmet-mode)
+         (js-ts-mode . emmet-mode))
+  :config
+  (setq emmet-expand-jsx-className? t)
+  (setq emmet-self-closing-tag-style " /"))
+
+;; Prettier integration for code formatting
+(use-package prettier-js
+  :ensure t
+  :hook ((web-mode . prettier-js-mode)
+         (typescript-mode . prettier-js-mode)
+         (js-ts-mode . prettier-js-mode)
+         (css-mode . prettier-js-mode))
+  :config
+  (setq prettier-js-args '("--single-quote" "--jsx-single-quote")))
 
 ;; Python
 (use-package python

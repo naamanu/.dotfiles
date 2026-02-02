@@ -2,32 +2,22 @@
 (use-package nerd-icons
   :if (display-graphic-p))
 
-;; Modus themes - high-quality, accessible light/dark themes (built-in to Emacs 28+)
-;; Configure modus theme settings
-(setq modus-themes-bold-constructs t
-      modus-themes-italic-constructs t
-      modus-themes-mixed-fonts t
-      modus-themes-variable-pitch-ui nil
-      ;; Syntax highlighting customization
-      modus-themes-org-blocks 'gray-background
-      modus-themes-headings '((1 . (1.3))
-                              (2 . (1.2))
-                              (t . (1.1))))
-
-;; Load the light theme directly
-(load-theme 'modus-operandi t)
-
-;; Keep doom-themes available for fallback or switching
+;; Monokai theme with doom-themes
 (use-package doom-themes
   :ensure t
   :config
   (setq doom-themes-enable-bold t
-        doom-themes-enable-italic t)
-  ;; Optionally load a light doom theme instead:
-  ;; (load-theme 'doom-one-light t)
+        doom-themes-enable-italic t
+        doom-themes-padded-modeline t)
+
+  ;; Load Monokai Pro theme
+  (load-theme 'doom-monokai-pro t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
+
+  ;; Enable custom treemacs theme
+  (doom-themes-treemacs-config)
 
   ;; Enable custom keywords
   (doom-themes-org-config))
