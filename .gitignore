@@ -7,6 +7,8 @@
 .emacs.d/custom.el
 .emacs.d/desktop/
 .emacs.d/undo/
+.emacs.d/eln-cache/
+.emacs.d/auto-save-list/
 .DS_Store
 
 # Fish shell
