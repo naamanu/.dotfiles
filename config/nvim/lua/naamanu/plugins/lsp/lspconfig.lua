@@ -11,12 +11,17 @@ return {
     -- Capabilities for autocompletion
     local capabilities = cmp_nvim_lsp.default_capabilities()
 
-    -- Configure diagnostic signs
-    local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
-    for type, icon in pairs(signs) do
-      local hl = "DiagnosticSign" .. type
-      vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
-    end
+    -- Configure diagnostics
+    vim.diagnostic.config({
+      signs = {
+        text = {
+          [vim.diagnostic.severity.ERROR] = " ",
+          [vim.diagnostic.severity.WARN] = " ",
+          [vim.diagnostic.severity.HINT] = "󰠠 ",
+          [vim.diagnostic.severity.INFO] = " ",
+        },
+      },
+    })
 
     -- LSP keybindings via LspAttach autocmd
     vim.api.nvim_create_autocmd("LspAttach", {
@@ -73,7 +78,16 @@ return {
 
     -- Server configurations
     local servers = {
-      -- Python (Ruff)
+      -- Python
+      pyright = {
+        settings = {
+          python = {
+            analysis = {
+              typeCheckingMode = "basic",
+            },
+          },
+        },
+      },
       ruff = {},
 
       -- TypeScript/JavaScript
@@ -85,7 +99,9 @@ return {
       rust_analyzer = {
         settings = {
           ["rust-analyzer"] = {
-            checkOnSave = true,
+            check = {
+              command = "clippy",
+            },
             cargo = {
               allFeatures = true,
             },
@@ -164,6 +180,7 @@ return {
       -- ReScript
       rescriptls = {
         cmd = { "rescript-language-server", "--stdio" },
+        filetypes = { "rescript" },
       },
 
       -- PureScript
@@ -175,6 +192,9 @@ return {
           },
         },
       },
+
+      -- Gleam
+      gleam = {},
 
       -- Clojure
       clojure_lsp = {},

@@ -26,4 +26,13 @@ return {
       { "<leader>gdf", "<cmd>DiffviewToggleFiles<cr>", desc = "Toggle Files Panel" },
     },
   },
+  {
+    "akinsho/git-conflict.nvim",
+    version = "*",
+    event = "BufReadPost",
+    opts = {
+      default_mappings = true,
+      disable_diagnostics = true,
+    },
+  },
 }

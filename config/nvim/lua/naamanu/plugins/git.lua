@@ -31,10 +31,7 @@ return {
           keymap.set("n", "<leader>gu", gs.undo_stage_hunk, { buffer = bufnr, desc = "Undo stage hunk" })
           keymap.set("n", "<leader>gR", gs.reset_buffer, { buffer = bufnr, desc = "Reset buffer" })
           keymap.set("n", "<leader>gp", gs.preview_hunk, { buffer = bufnr, desc = "Preview hunk" })
-          keymap.set("n", "<leader>gb", function()
-            gs.blame_line({ full = true })
-          end, { buffer = bufnr, desc = "Blame line" })
-          keymap.set("n", "<leader>gd", gs.diffthis, { buffer = bufnr, desc = "Diff this" })
+          keymap.set("n", "<leader>gD", gs.diffthis, { buffer = bufnr, desc = "Diff this" })
         end,
       })
     end,

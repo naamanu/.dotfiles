@@ -20,7 +20,7 @@ keymap.set("n", "<C-Right>", "<cmd>vertical resize +2<CR>", { desc = "Increase w
 -- Buffer navigation
 keymap.set("n", "<leader>bn", "<cmd>bnext<CR>", { desc = "Next buffer" })
 keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
-keymap.set("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete buffer" })
+-- Note: <leader>bd is handled by Snacks.bufdelete() in modern.lua
 
 -- Better indenting
 keymap.set("v", "<", "<gv", { desc = "Indent left" })

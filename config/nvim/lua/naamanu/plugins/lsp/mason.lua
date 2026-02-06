@@ -31,6 +31,7 @@ return {
         -- Scripting
         "lua_ls",         -- Lua
         "bashls",         -- Bash
+        "pyright",        -- Python
         -- Data
         "jsonls",         -- JSON
         "yamlls",         -- YAML
@@ -57,6 +58,11 @@ return {
         "gofumpt", -- go formatter
         "goimports", -- go imports formatter
         "golangci-lint", -- go linter
+        "ocamlformat", -- ocaml formatter
+        "elm-format", -- elm formatter
+        "shellcheck", -- shell linter
+        "shfmt", -- shell formatter
+        "stylelint", -- css linter
       },
     })
   end,

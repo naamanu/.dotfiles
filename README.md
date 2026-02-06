@@ -23,7 +23,7 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | n    | `<C-Right>`  | Increase window width     |
 | n    | `<leader>bn` | Next buffer               |
 | n    | `<leader>bp` | Previous buffer           |
-| n    | `<leader>bd` | Delete buffer             |
+| n    | `<leader>bd` | Delete buffer (Snacks)    |
 | v    | `<`          | Indent left               |
 | v    | `>`          | Indent right              |
 | v    | `J`          | Move text down            |
@@ -54,18 +54,25 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | i, s | `<Tab>`     | Select next item or expand/jump snippet      |
 | i, s | `<S-Tab>`   | Select previous item or jump back in snippet |
 
-### Editor (Comment.nvim & nvim-autopairs)
+### Editor (Comment.nvim, nvim-autopairs, vim-illuminate, undotree, refactoring.nvim)
 
-| Mode | Keybinding | Plugin         | Description                    |
-| :--- | :--------- | :------------- | :----------------------------- |
-| n    | `gcc`      | Comment.nvim   | Toggle comment on current line |
-| v    | `gbc`      | Comment.nvim   | Toggle block comment           |
-| n    | `gc`       | Comment.nvim   | Comment line                   |
-| v    | `gb`       | Comment.nvim   | Block comment                  |
-| n    | `gcO`      | Comment.nvim   | Comment above                  |
-| n    | `gco`      | Comment.nvim   | Comment below                  |
-| n    | `gcA`      | Comment.nvim   | Comment to end of line         |
-| i    | `<M-e>`    | nvim-autopairs | Fast wrap                      |
+| Mode | Keybinding   | Plugin          | Description                    |
+| :--- | :----------- | :-------------- | :----------------------------- |
+| n    | `gcc`        | Comment.nvim    | Toggle comment on current line |
+| v    | `gbc`        | Comment.nvim    | Toggle block comment           |
+| n    | `gc`         | Comment.nvim    | Comment line                   |
+| v    | `gb`         | Comment.nvim    | Block comment                  |
+| n    | `gcO`        | Comment.nvim    | Comment above                  |
+| n    | `gco`        | Comment.nvim    | Comment below                  |
+| n    | `gcA`        | Comment.nvim    | Comment to end of line         |
+| i    | `<M-e>`      | nvim-autopairs  | Fast wrap                      |
+| n    | `]]`         | vim-illuminate  | Next reference                 |
+| n    | `[[`         | vim-illuminate  | Prev reference                 |
+| n    | `<leader>u`  | undotree        | Toggle Undotree                |
+| v    | `<leader>re` | refactoring.nvim | Extract Function              |
+| v    | `<leader>rf` | refactoring.nvim | Extract Function To File      |
+| v    | `<leader>rv` | refactoring.nvim | Extract Variable              |
+| n, v | `<leader>ri` | refactoring.nvim | Inline Variable               |
 
 ### Git (gitsigns.nvim & lazygit.nvim)
 
@@ -79,18 +86,24 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | n    | `<leader>gu` | gitsigns     | Undo stage hunk   |
 | n    | `<leader>gR` | gitsigns     | Reset buffer      |
 | n    | `<leader>gp` | gitsigns     | Preview hunk      |
-| n    | `<leader>gb` | gitsigns     | Blame line        |
+| n    | `<leader>gD` | gitsigns     | Diff this         |
 | n    | `<leader>gg` | lazygit.nvim | Open LazyGit      |
 
-### Git Advanced (diffview.nvim)
+### Git Advanced (diffview.nvim & git-conflict.nvim)
 
-| Mode | Keybinding    | Description            |
-| :--- | :------------ | :--------------------- |
-| n    | `<leader>gdo` | Open Diffview          |
-| n    | `<leader>gdc` | Close Diffview         |
-| n    | `<leader>gdh` | File History (current) |
-| n    | `<leader>gdH` | File History (all)     |
-| n    | `<leader>gdf` | Toggle Files Panel     |
+| Mode | Keybinding    | Plugin           | Description            |
+| :--- | :------------ | :--------------- | :--------------------- |
+| n    | `<leader>gdo` | diffview.nvim    | Open Diffview          |
+| n    | `<leader>gdc` | diffview.nvim    | Close Diffview         |
+| n    | `<leader>gdh` | diffview.nvim    | File History (current) |
+| n    | `<leader>gdH` | diffview.nvim    | File History (all)     |
+| n    | `<leader>gdf` | diffview.nvim    | Toggle Files Panel     |
+| n    | `co`          | git-conflict.nvim | Choose ours           |
+| n    | `ct`          | git-conflict.nvim | Choose theirs         |
+| n    | `cb`          | git-conflict.nvim | Choose both           |
+| n    | `c0`          | git-conflict.nvim | Choose none           |
+| n    | `]x`          | git-conflict.nvim | Next conflict         |
+| n    | `[x`          | git-conflict.nvim | Prev conflict         |
 
 ### NvimTree & Oil
 
@@ -195,7 +208,7 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | Mode | Keybinding   | Description              |
 | :--- | :----------- | :----------------------- |
 | n, v | `<leader>mp` | Format file or selection |
-| n    | `<leader>l`  | Trigger linting          |
+| n    | `<leader>ll` | Trigger linting          |
 
 ### Trouble (Diagnostics)
 
@@ -248,6 +261,32 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | n    | `<leader>dg` | Go to line (no execute) |
 | n    | `<leader>ds` | Session                 |
 
+### Testing (neotest)
+
+| Mode | Keybinding   | Description          |
+| :--- | :----------- | :------------------- |
+| n    | `<leader>tt` | Run Nearest Test     |
+| n    | `<leader>tf` | Run File Tests       |
+| n    | `<leader>ts` | Toggle Test Summary  |
+| n    | `<leader>to` | Show Test Output     |
+| n    | `<leader>tp` | Toggle Output Panel  |
+| n    | `<leader>td` | Debug Nearest Test   |
+| n    | `<leader>tS` | Stop Test            |
+
+### Zen Mode
+
+| Mode | Keybinding  | Description      |
+| :--- | :---------- | :--------------- |
+| n    | `<leader>z` | Toggle Zen Mode  |
+
+### Markdown Preview
+
+| Command                  | Description                  |
+| :----------------------- | :--------------------------- |
+| `:MarkdownPreview`       | Open preview in browser      |
+| `:MarkdownPreviewStop`   | Stop preview                 |
+| `:MarkdownPreviewToggle` | Toggle preview               |
+
 ### Snacks (Utilities)
 
 | Mode | Keybinding   | Description                  |
@@ -255,6 +294,8 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | n    | `<leader>.`  | Toggle scratch buffer        |
 | n    | `<leader>S`  | Select scratch buffer        |
 | n    | `<leader>n`  | Notification history         |
+| n    | `<leader>bd` | Delete buffer                |
+| n    | `<leader>gb` | Git blame line               |
 | n    | `<leader>gB` | Git browse (open in browser) |
 | n    | `<leader>un` | Dismiss all notifications    |
 | n    | `<C-/>`      | Toggle terminal              |

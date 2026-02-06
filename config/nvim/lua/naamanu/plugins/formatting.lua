@@ -22,6 +22,24 @@ return {
         python = { "ruff_fix", "ruff_format" },
         go = { "gofumpt", "goimports" },
         rust = { "rustfmt" },
+        ocaml = { "ocamlformat" },
+        ocaml_interface = { "ocamlformat" },
+        elm = { "elm_format" },
+        sh = { "shfmt" },
+        elixir = { "mix" },
+        erlang = { "erlfmt" },
+        clojure = { "zprint" },
+      },
+      formatters = {
+        ocamlformat = {
+          prepend_args = function()
+            local ext = vim.fn.expand("%:e")
+            if ext == "mli" then
+              return { "--intf" }
+            end
+            return { "--impl" }
+          end,
+        },
       },
       format_on_save = {
         lsp_fallback = true,

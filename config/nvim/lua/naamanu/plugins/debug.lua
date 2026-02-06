@@ -44,7 +44,6 @@ return {
             "delve", -- Go
             "codelldb", -- Rust/C/C++
             "js-debug-adapter", -- JavaScript/TypeScript
-            "debugpy", -- Python
           },
         },
       },

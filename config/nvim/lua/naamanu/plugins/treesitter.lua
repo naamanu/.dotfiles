@@ -38,6 +38,7 @@ return {
         -- Functional (ML family)
         "ocaml",
         "ocaml_interface",
+        "rescript",
         "haskell",
         "elm",
         "gleam",
