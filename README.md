@@ -13,14 +13,6 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | Mode | Keybinding   | Description               |
 | :--- | :----------- | :------------------------ |
 | n    | `<Esc>`      | Clear search highlights   |
-| n    | `<C-h>`      | Move to left window       |
-| n    | `<C-j>`      | Move to bottom window     |
-| n    | `<C-k>`      | Move to top window        |
-| n    | `<C-l>`      | Move to right window      |
-| n    | `<C-Up>`     | Increase window height    |
-| n    | `<C-Down>`   | Decrease window height    |
-| n    | `<C-Left>`   | Decrease window width     |
-| n    | `<C-Right>`  | Increase window width     |
 | n    | `<leader>bn` | Next buffer               |
 | n    | `<leader>bp` | Previous buffer           |
 | n    | `<leader>bd` | Delete buffer (Snacks)    |
@@ -39,6 +31,25 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | n    | `<leader>sh` | Split window horizontally |
 | n    | `<leader>se` | Make splits equal size    |
 | n    | `<leader>sx` | Close current split       |
+
+### Smart Splits (Neovim + tmux Navigation & Resizing)
+
+| Mode | Keybinding          | Description                       |
+| :--- | :------------------ | :-------------------------------- |
+| n    | `<C-h>`             | Move to left split/pane           |
+| n    | `<C-j>`             | Move to below split/pane          |
+| n    | `<C-k>`             | Move to above split/pane          |
+| n    | `<C-l>`             | Move to right split/pane          |
+| n    | `<A-h>`             | Resize split/pane left            |
+| n    | `<A-j>`             | Resize split/pane down            |
+| n    | `<A-k>`             | Resize split/pane up              |
+| n    | `<A-l>`             | Resize split/pane right           |
+| n    | `<leader><leader>h` | Swap buffer left                  |
+| n    | `<leader><leader>j` | Swap buffer down                  |
+| n    | `<leader><leader>k` | Swap buffer up                    |
+| n    | `<leader><leader>l` | Swap buffer right                 |
+
+These keybindings work seamlessly across both Neovim splits and tmux panes.
 
 ### Completion (nvim-cmp & luasnip)
 
@@ -123,7 +134,8 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | i    | `<C-k>`      | Move selection previous (in Telescope)                 |
 | i    | `<C-j>`      | Move selection next (in Telescope)                     |
 | i    | `<C-q>`      | Send selected to quickfix list and open (in Telescope) |
-| n    | `<leader>ff` | Find files (Telescope)                                 |
+| n    | `<leader>ff` | Find files by frecency (Telescope)                     |
+| n    | `<leader>fF` | Find all files (Telescope)                             |
 | n    | `<leader>fr` | Find recent files (Telescope)                          |
 | n    | `<leader>fg` | Live grep (Telescope)                                  |
 | n    | `<leader>fc` | Find string under cursor (Telescope)                   |
@@ -131,6 +143,9 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | n    | `<leader>fh` | Find help (Telescope)                                  |
 | n    | `<leader>fk` | Find keymaps (Telescope)                               |
 | n    | `<leader>ft` | Find colorschemes (Telescope)                          |
+| n    | `<leader>fu` | Undo tree browser (Telescope)                          |
+
+**Extensions:** `telescope-ui-select` replaces all `vim.ui.select` prompts (code actions, etc.) with Telescope dropdown UI.
 
 ### Harpoon (Quick File Navigation)
 
@@ -155,6 +170,22 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | o       | `r`        | Remote Flash        |
 | o, x    | `R`        | Treesitter Search   |
 | c       | `<C-s>`    | Toggle Flash Search |
+
+### Marks (Visual Marks in Gutter)
+
+| Mode | Keybinding | Description                       |
+| :--- | :--------- | :-------------------------------- |
+| n    | `m{a-z}`   | Set mark (standard Vim)           |
+| n    | `m,`       | Set next available lowercase mark |
+| n    | `m;`       | Toggle next available mark        |
+| n    | `m:`       | Preview mark                      |
+| n    | `m]`       | Jump to next mark                 |
+| n    | `m[`       | Jump to previous mark             |
+| n    | `dm{a-z}`  | Delete a specific mark            |
+| n    | `dm-`      | Delete marks on current line      |
+| n    | `dm<space>`| Delete all marks in buffer        |
+
+Marks appear as icons in the sign column (gutter) for visual feedback.
 
 ### Treesitter
 
@@ -411,21 +442,35 @@ Active when editing a file with LSP support.
 
 **Prefix Key:** The tmux prefix key is set to `C-a`.
 
-| Keybinding      | Description                               |
-| :-------------- | :---------------------------------------- | ------------------------- |
-| `C-a + R`       | Reload tmux configuration                 |
-| `C-a +          | `                                         | Split window horizontally |
-| `C-a + -`       | Split window vertically                   |
-| `C-a + h/j/k/l` | Select left/down/up/right pane (vim-like) |
-| `C-a + H/J/K/L` | Resize left/down/up/right pane            |
-| `C-a + m`       | Maximize pane (toggle zoom)               |
-| `C-a + p`       | Previous window                           |
-| `C-a + n`       | Next window                               |
-| `C-a + [`       | Enter copy mode                           |
-| `v`             | Begin selection (in copy mode)            |
-| `C-v`           | Rectangle selection (in copy mode)        |
-| `y`             | Copy selection and exit (in copy mode)    |
-| `C-a + I`       | Install plugins (TPM)                     |
-| `C-a + U`       | Update plugins (TPM)                      |
-| `C-a + C-s`     | Save session (resurrect)                  |
-| `C-a + C-r`     | Restore session (resurrect)               |
+| Keybinding       | Description                                    |
+| :--------------- | :--------------------------------------------- |
+| `C-a + R`        | Reload tmux configuration                      |
+| `C-a + \|`       | Split window horizontally                      |
+| `C-a + -`        | Split window vertically                        |
+| `C-a + h/j/k/l`  | Select left/down/up/right pane (vim-like)      |
+| `C-a + H/J/K/L`  | Resize left/down/up/right pane                 |
+| `C-a + m`        | Maximize pane (toggle zoom)                    |
+| `C-a + p`        | Previous window                                |
+| `C-a + n`        | Next window                                    |
+| `C-a + T`        | Open sesh session picker (fuzzy)               |
+| `C-h/j/k/l`     | Seamless Neovim/tmux pane navigation           |
+| `A-h/j/k/l`     | Seamless Neovim/tmux pane resizing             |
+| `C-a + [`        | Enter copy mode                                |
+| `v`              | Begin selection (in copy mode)                 |
+| `C-v`            | Rectangle selection (in copy mode)             |
+| `y`              | Copy selection and exit (in copy mode)         |
+| `C-a + I`        | Install plugins (TPM)                          |
+| `C-a + U`        | Update plugins (TPM)                           |
+| `C-a + C-s`      | Save session (resurrect)                       |
+| `C-a + C-r`      | Restore session (resurrect)                    |
+
+### Sesh Session Picker (`C-a + T`)
+
+| Keybinding | Description                    |
+| :--------- | :----------------------------- |
+| `C-a`      | Show all sessions              |
+| `C-t`      | Filter to tmux sessions        |
+| `C-g`      | Filter to config sessions      |
+| `C-x`      | Filter to zoxide directories   |
+| `C-f`      | Find directories               |
+| `C-d`      | Kill selected tmux session     |
