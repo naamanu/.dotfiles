@@ -26,6 +26,15 @@ local function apply_code_action(kind)
 	})
 end
 
+-- blink.cmp registers its completion capabilities on `*` from its own
+-- plugin/ file, but it loads on InsertEnter -- after the first buffer's
+-- servers have already sent `initialize`. Set them here so the first client
+-- gets the same resolveSupport (detail, data) and itemDefaults as the rest.
+-- Requiring blink this early costs about a millisecond.
+lsp.config("*", {
+	capabilities = require("blink.cmp").get_lsp_capabilities(),
+})
+
 -- Diagnostic config
 vim.diagnostic.config({
 	virtual_text = { spacing = 4, prefix = "●" },
@@ -215,11 +224,6 @@ lsp.config("ocamllsp", {
 	cmd = shared_cmd("ocamllsp"),
 	filetypes = {
 		"ocaml",
-		"ocaml.interface",
-		"ocaml.menhir",
-		"ocaml.cram",
-		"ocaml.ocamllex",
-		"ocaml.ocamlyacc",
 		"reason",
 	},
 	root_markers = { "dune-project", "dune-workspace", "dune", ".git" },
@@ -227,7 +231,7 @@ lsp.config("ocamllsp", {
 
 lsp.config("gopls", {
 	cmd = shared_cmd("gopls"),
-	filetypes = { "go", "gomod", "gowork", "gotmpl" },
+	filetypes = { "go", "gomod", "gowork" },
 	root_markers = { "go.work", "go.mod", ".git" },
 	settings = { gopls = { gofumpt = true, staticcheck = true, usePlaceholders = true } },
 })
@@ -260,10 +264,8 @@ lsp.config("vtsls", {
 	filetypes = {
 		"javascript",
 		"javascriptreact",
-		"javascript.jsx",
 		"typescript",
 		"typescriptreact",
-		"typescript.tsx",
 	},
 	root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
 	settings = {
@@ -306,10 +308,8 @@ lsp.config("eslint", {
 	filetypes = {
 		"javascript",
 		"javascriptreact",
-		"javascript.jsx",
 		"typescript",
 		"typescriptreact",
-		"typescript.tsx",
 		"vue",
 	},
 	root_markers = {
@@ -385,7 +385,7 @@ lsp.config("jsonls", {
 
 lsp.config("yamlls", {
 	cmd = shared_cmd("yaml-language-server", { "--stdio" }),
-	filetypes = { "yaml", "yaml.docker-compose", "yaml.gitlab" },
+	filetypes = { "yaml" },
 	settings = {
 		yaml = {
 			schemaStore = { enable = false, url = "" },

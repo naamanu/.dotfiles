@@ -27,7 +27,10 @@ return {
 			go = { "goimports", "gofmt" },
 			rust = { "rustfmt" },
 			ocaml = { "ocamlformat" },
-			python = { "ruff_fix", "ruff_format" },
+			-- Sorting imports and formatting are idempotent; ruff_fix is not --
+			-- on save it deleted an import you had just typed but not yet used.
+			-- Fixes stay behind <leader>cF (ruff LSP source.fixAll).
+			python = { "ruff_organize_imports", "ruff_format" },
 			haskell = { "ormolu" },
 			lua = { "stylua" },
 			sh = { "shfmt" },
