@@ -39,7 +39,12 @@ return {
 	{
 		"nvim-treesitter/nvim-treesitter",
 		branch = "main",
-		build = ":TSUpdate",
+		-- `:TSUpdate` is asynchronous on the main branch, so a headless
+		-- `Lazy! sync` quits before any parser finishes compiling and they
+		-- silently fall behind the plugin's grammar revisions. Block on it.
+		build = function()
+			require("nvim-treesitter").update(nil, { summary = true }):wait(300000)
+		end,
 		event = { "BufReadPre", "BufNewFile" },
 		config = function()
 			local ts = require("nvim-treesitter")
@@ -99,15 +104,34 @@ return {
 			vim.keymap.set({ "n", "x", "o" }, "]f", function()
 				require("nvim-treesitter-textobjects.move").goto_next_start("@function.outer", "textobjects")
 			end)
-			vim.keymap.set({ "n", "x", "o" }, "]c", function()
-				require("nvim-treesitter-textobjects.move").goto_next_start("@class.outer", "textobjects")
-			end)
 			vim.keymap.set({ "n", "x", "o" }, "[f", function()
 				require("nvim-treesitter-textobjects.move").goto_previous_start("@function.outer", "textobjects")
 			end)
-			vim.keymap.set({ "n", "x", "o" }, "[c", function()
-				require("nvim-treesitter-textobjects.move").goto_previous_start("@class.outer", "textobjects")
-			end)
+
+			-- ]c / [c are Vim's own next/previous-change motions in diff mode
+			-- (gitsigns diffthis, Diffview). Keep the class motion everywhere
+			-- else, but hand the key back to the builtin in a diff window.
+			local function class_motion(direction)
+				return function()
+					if vim.wo.diff then
+						vim.cmd("normal! " .. vim.v.count1 .. direction .. "c")
+						return
+					end
+					local move = require("nvim-treesitter-textobjects.move")
+					if direction == "]" then
+						move.goto_next_start("@class.outer", "textobjects")
+					else
+						move.goto_previous_start("@class.outer", "textobjects")
+					end
+				end
+			end
+			vim.keymap.set({ "n", "x", "o" }, "]c", class_motion("]"), { desc = "Next class (diff: next change)" })
+			vim.keymap.set(
+				{ "n", "x", "o" },
+				"[c",
+				class_motion("["),
+				{ desc = "Previous class (diff: previous change)" }
+			)
 		end,
 	},
 

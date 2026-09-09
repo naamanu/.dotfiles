@@ -322,6 +322,10 @@ lsp.config("eslint", {
 		".eslintrc.cjs",
 		".eslintrc.json",
 	},
+	-- Without a config file there is nothing for the server to do; the
+	-- native default (workspace_required = false) would still spawn it with
+	-- root_dir = nil in every JS/TS project that lacks ESLint.
+	workspace_required = true,
 	settings = {
 		run = "onSave",
 		quiet = true,
@@ -336,6 +340,19 @@ lsp.config("eslint", {
 
 lsp.config("tailwindcss", {
 	cmd = shared_cmd("tailwindcss-language-server", { "--stdio" }),
+	-- Only start where Tailwind is actually configured: v3 keeps a
+	-- tailwind.config.*, v4 is imported from CSS via postcss/@tailwindcss.
+	root_markers = {
+		"tailwind.config.js",
+		"tailwind.config.cjs",
+		"tailwind.config.mjs",
+		"tailwind.config.ts",
+		"postcss.config.js",
+		"postcss.config.cjs",
+		"postcss.config.mjs",
+		"postcss.config.ts",
+	},
+	workspace_required = true,
 	filetypes = {
 		"html",
 		"css",

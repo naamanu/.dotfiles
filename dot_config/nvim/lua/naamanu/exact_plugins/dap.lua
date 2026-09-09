@@ -19,10 +19,37 @@ return {
     dap.listeners.before.event_terminated.dotfiles = function() require("dapui").close() end
     dap.listeners.before.event_exited.dotfiles = function() require("dapui").close() end
 
-    if vim.fn.executable("python") == 1 then
-      dap.adapters.python = { type = "executable", command = "python", args = { "-m", "debugpy.adapter" } }
-      dap.configurations.python = {{ type = "python", request = "launch", name = "Current file", program = "${file}", cwd = "${workspaceFolder}" }}
+    -- Python: resolve the interpreter per launch, the same way core/lsp.lua
+    -- does for basedpyright, so the debuggee runs inside the project venv
+    -- and can import its dependencies. debugpy has to live in that venv too
+    -- (`uv add --dev debugpy`); a global `python` was never the right one.
+    local function project_python()
+      return require("naamanu.core.tasks").python_executable()
     end
+    dap.adapters.python = function(callback)
+      local python = project_python()
+      local probe = vim.system({ python, "-c", "import debugpy" }):wait()
+      if probe.code ~= 0 then
+        vim.notify(
+          ("debugpy is not installed for %s\nInstall it into the project: uv add --dev debugpy"):format(python),
+          vim.log.levels.ERROR,
+          { title = "nvim-dap" }
+        )
+        return
+      end
+      callback({ type = "executable", command = python, args = { "-m", "debugpy.adapter" } })
+    end
+    dap.configurations.python = {
+      {
+        type = "python",
+        request = "launch",
+        name = "Current file",
+        program = "${file}",
+        cwd = "${workspaceFolder}",
+        pythonPath = project_python,
+      },
+    }
+
     if vim.fn.executable("lldb-dap") == 1 then
       dap.adapters.lldb = { type = "executable", command = "lldb-dap", name = "lldb" }
       local native = {{ type = "lldb", request = "launch", name = "Launch executable", program = function() return vim.fn.input("Executable: ", vim.fn.getcwd() .. "/", "file") end, cwd = "${workspaceFolder}", stopOnEntry = false }}
@@ -30,12 +57,17 @@ return {
       dap.configurations.cpp = native
       dap.configurations.rust = native
     end
+
+    -- Go: let nvim-dap own the dlv process. "${port}" is allocated fresh per
+    -- session and the server is waited on and torn down with the session,
+    -- unlike a detached jobstart on a fixed port, which leaked dlv across
+    -- sessions and raced a 100ms timer against its startup.
     if vim.fn.executable("dlv") == 1 then
-      dap.adapters.go = function(callback)
-        local port = 38697
-        vim.fn.jobstart({ "dlv", "dap", "-l", "127.0.0.1:" .. port }, { detach = true })
-        vim.defer_fn(function() callback({ type = "server", host = "127.0.0.1", port = port }) end, 100)
-      end
+      dap.adapters.go = {
+        type = "server",
+        port = "${port}",
+        executable = { command = "dlv", args = { "dap", "-l", "127.0.0.1:${port}" } },
+      }
       dap.configurations.go = {{ type = "go", name = "Debug package", request = "launch", program = "${fileDirname}" }}
     end
   end,
