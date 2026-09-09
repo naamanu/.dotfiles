@@ -80,18 +80,126 @@ lsp.config("lua_ls", {
 	},
 })
 
+-- Python interpreter resolution.
+--
+-- basedpyright only auto-detects a `.venv` relative to its own process cwd,
+-- and Neovim launches servers with `cmd_cwd` defaulting to Neovim's cwd --
+-- "not related to root_dir" (:h vim.lsp.ClientConfig).  Start Neovim anywhere
+-- but the project root and every third-party import (fastapi, django, ...)
+-- goes unresolved.  Resolve the interpreter here and hand it to the server as
+-- `python.pythonPath` so the result no longer depends on where Neovim started.
+local VENV_DIRS = { ".venv", "venv", ".env" }
+
+local function venv_python(dir)
+	for _, name in ipairs(VENV_DIRS) do
+		local candidate = dir .. "/" .. name .. "/bin/python"
+		if vim.fn.executable(candidate) == 1 then
+			return candidate
+		end
+	end
+	return nil
+end
+
+-- Search the workspace root and its ancestors, stopping at $HOME: uv
+-- workspaces and monorepos keep a single venv above the directory that owns
+-- pyproject.toml, so the nearest one upward is the right one.
+local function python_path(root)
+	local home = vim.env.HOME
+	local dir = root
+	while dir and dir ~= "" and dir ~= home and dir ~= "/" do
+		local found = venv_python(dir)
+		if found then
+			return found
+		end
+		local parent = vim.fs.dirname(dir)
+		if parent == dir then
+			break
+		end
+		dir = parent
+	end
+
+	-- A venv activated in the shell before Neovim started.
+	local active = vim.env.VIRTUAL_ENV
+	if active and vim.fn.executable(active .. "/bin/python") == 1 then
+		return active .. "/bin/python"
+	end
+
+	local fallback = vim.fn.exepath("python3")
+	return fallback ~= "" and fallback or nil
+end
+
 lsp.config("ruff", {
 	cmd = shared_cmd("ruff", { "server" }),
 	filetypes = { "python" },
-	root_markers = { "pyproject.toml", "ruff.toml", ".ruff.toml", "uv.lock", "requirements.txt", ".git" },
+	root_markers = {
+		{ "pyproject.toml", "ruff.toml", ".ruff.toml", "uv.lock", "requirements.txt", "manage.py" },
+		".git",
+	},
 })
+
+-- `:PythonEnv` answers "why is this import unresolved?" in one place: an
+-- interpreter outside the project (or a `.venv` that was never populated) is
+-- the usual cause.
+vim.api.nvim_create_user_command("PythonEnv", function()
+	local clients = vim.lsp.get_clients({ bufnr = 0, name = "basedpyright" })
+	local client = clients[1]
+	local root = client and client.root_dir or vim.fn.getcwd()
+	local interpreter = client and vim.tbl_get(client.settings or {}, "python", "pythonPath") or python_path(root)
+
+	local lines = {
+		"root_dir    : " .. tostring(root),
+		"interpreter : " .. tostring(interpreter),
+		"attached    : " .. (client and "basedpyright" or "no basedpyright client"),
+	}
+
+	if interpreter and vim.fn.executable(interpreter) == 1 then
+		local version = vim.system({ interpreter, "--version" }, { text = true }):wait()
+		lines[#lines + 1] = "version     : " .. vim.trim(version.stdout .. version.stderr)
+		local inside = vim.startswith(interpreter, root .. "/")
+		lines[#lines + 1] = "in project  : " .. (inside and "yes" or "NO -- project deps will not resolve")
+	else
+		lines[#lines + 1] = "version     : interpreter not executable"
+	end
+
+	vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "Python environment" })
+end, { desc = "Report the Python interpreter the LSP is using" })
 
 -- basedpyright matches the Emacs setup, so both editors report the same
 -- Python diagnostics.  ruff owns imports and formatting.
 lsp.config("basedpyright", {
 	cmd = shared_cmd("basedpyright-langserver", { "--stdio" }),
 	filetypes = { "python" },
-	root_markers = { "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "uv.lock", ".git" },
+	-- Nested = equal priority, so the *nearest* Python marker wins rather than
+	-- a distant pyproject.toml outranking the manage.py next to the buffer.
+	root_markers = {
+		{
+			"pyproject.toml",
+			"setup.py",
+			"setup.cfg",
+			"requirements.txt",
+			"uv.lock",
+			"Pipfile",
+			"manage.py",
+		},
+		".git",
+	},
+	on_init = function(client)
+		local interpreter = python_path(client.root_dir)
+		if not interpreter then
+			return
+		end
+		-- Deep-copy first: `vim.lsp.config` hands the same resolved `settings`
+		-- table to every client, and two Python projects open at once each
+		-- need their own interpreter.
+		client.settings = vim.tbl_deep_extend("force", vim.deepcopy(client.settings or {}), {
+			python = { pythonPath = interpreter },
+		})
+		-- Nvim's automatic didChangeConfiguration fires just before on_init,
+		-- so the interpreter has to be pushed again here.  basedpyright also
+		-- pulls it back via workspace/configuration, which reads the same
+		-- per-client table.
+		client:notify("workspace/didChangeConfiguration", { settings = client.settings })
+	end,
 	settings = {
 		basedpyright = {
 			disableOrganizeImports = true,
