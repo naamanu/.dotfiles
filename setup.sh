@@ -44,6 +44,22 @@ case "$OS" in
 esac
 echo "Detected platform: $PLATFORM"
 
+# Architecture, spelled the way each upstream names its release assets.
+case "$(uname -m)" in
+    aarch64|arm64) ARCH=arm64;  ARCH_UNAME=aarch64; DEB_ARCH=arm64; NODE_ARCH=arm64 ;;
+    *)             ARCH=x86_64; ARCH_UNAME=x86_64;  DEB_ARCH=amd64; NODE_ARCH=x64 ;;
+esac
+
+# Pinned versions, all in one place so staleness is visible. Everything else
+# resolves "latest" at run time.
+NERD_FONTS_VERSION="v3.1.1"
+IOSEVKA_COMFY_VERSION="2.1.0"
+LUA_LS_VERSION="${LUA_LS_VERSION:-3.18.2}"
+BIBATA_VERSION="v2.0.7"
+POSTGRES_FORMULA="postgresql@16"
+
+# Ensure the install target is on PATH even if chezmoi is already present,
+# so a chezmoi installed by a previous run is found in a fresh shell.
 export PATH="$HOME/.local/bin:$PATH"
 
 if [ "$CHECK_ONLY" -eq 1 ]; then
@@ -64,10 +80,6 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
 fi
 
 # ── 2. Install chezmoi ────────────────────────────────────────
-
-# Ensure the install target is on PATH even if chezmoi is already present,
-# so a chezmoi installed by a previous run is found in a fresh shell.
-export PATH="$HOME/.local/bin:$PATH"
 
 if ! command -v chezmoi &> /dev/null; then
     echo ""
@@ -172,7 +184,7 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing shell and terminal tools..."
-    brew_install fish tmux starship zoxide direnv fnm sesh
+    brew_install fish tmux starship zoxide direnv fnm
     # GNU coreutils (as g-prefixed binaries): Emacs Dired uses `gls' for
     # --group-directories-first, which BSD ls lacks.
     brew_install coreutils
@@ -196,7 +208,7 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing modern CLI utilities..."
-    brew_install neovim ripgrep fd fzf bat eza jq yq htop btop tree tldr diff-so-fancy
+    brew_install neovim ripgrep fd fzf bat eza jq yq htop btop tldr
     # nvim-treesitter (main branch) compiles parsers via the tree-sitter CLI
     brew_install tree-sitter-cli
     brew_install yazi atuin glow dust procs hyperfine tokei
@@ -210,7 +222,10 @@ if [ "$PLATFORM" = "mac" ]; then
     # brew's haskell-language-server is built against brew's ghc, so keep the
     # two in step (both from brew, upgraded together) rather than mixing in
     # ghcup.
-    brew_install go rust rust-analyzer lua uv ghc cabal-install haskell-language-server ormolu
+    # Rust comes from rustup (shared post-install section) so rust-analyzer,
+    # clippy and rustfmt are components of the same toolchain; brew's rust
+    # would shadow it.
+    brew_install go lua uv ghc cabal-install haskell-language-server ormolu
 
     echo ""
     echo "Installing C/C++, OCaml, FP and Lisp toolchains..."
@@ -244,7 +259,7 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing language servers and formatters..."
-    brew_install lua-language-server stylua ruff shfmt shellcheck
+    brew_install lua-language-server stylua ruff shfmt shellcheck texlab
     # Emacs pdf-tools compiles its epdfinfo server against these on first use.
     brew_install poppler automake
     # Spellchecking backend for Emacs jinx.
@@ -252,7 +267,7 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing database tools..."
-    brew_install postgresql@16 sqlite redis
+    brew_install "$POSTGRES_FORMULA" sqlite redis
 
     echo ""
     if [ "$INSTALL_DOCKER" = "1" ]; then
@@ -269,7 +284,8 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing ML/AI & scientific tools..."
-    brew_install jupyterlab ipython pandoc typst ollama
+    # jupyterlab and ipython are uv tools (shared section), not brew formulae.
+    brew_install pandoc typst ollama
     # Org LaTeX previews render through dvisvgm; core.el points it at the
     # texlive formula's TEXMF tree.
     brew_install dvisvgm
@@ -290,9 +306,8 @@ if [ "$PLATFORM" = "mac" ]; then
     # Nerd Font (core.el routes the private-use ranges to it).
     brew_cask_install font-symbols-only-nerd-font
 
-    echo ""
-    echo "Setting up fzf key bindings..."
-    "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc || true
+    # fzf key bindings come from functions/fish_user_key_bindings.fish
+    # (`fzf --fish`); the legacy install script would write an unmanaged copy.
 
 elif [ "$PLATFORM" = "linux" ]; then
 
@@ -411,7 +426,7 @@ elif [ "$PLATFORM" = "linux" ]; then
     echo ""
     echo "Installing modern CLI utilities..."
     if [ "$PKG_MGR" = "apt" ]; then
-        install_pkg ripgrep fd-find fzf bat htop tree jq
+        install_pkg ripgrep fd-find fzf bat htop jq
         mkdir -p ~/.local/bin
         ln -sf /usr/bin/batcat ~/.local/bin/bat 2>/dev/null || true
         ln -sf /usr/bin/fdfind ~/.local/bin/fd 2>/dev/null || true
@@ -419,21 +434,21 @@ elif [ "$PLATFORM" = "linux" ]; then
         # the nvim config needs >= 0.10 (vim.uv). Install the official
         # release tarball under ~/.local instead; ~/.local/bin shadows any
         # apt-installed /usr/bin/nvim.
-        NVIM_ARCH=x86_64
-        [ "$(uname -m)" = "aarch64" ] && NVIM_ARCH=arm64
-        if curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${NVIM_ARCH}.tar.gz" -o /tmp/nvim.tar.gz; then
-            rm -rf ~/.local/opt/nvim "/tmp/nvim-linux-${NVIM_ARCH}"
+        nvim_tmp="$(mktemp -d)"
+        if curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH}.tar.gz" -o "$nvim_tmp/nvim.tar.gz" \
+            && tar xzf "$nvim_tmp/nvim.tar.gz" -C "$nvim_tmp"; then
+            rm -rf ~/.local/opt/nvim
             mkdir -p ~/.local/opt
-            tar xzf /tmp/nvim.tar.gz -C /tmp
-            mv "/tmp/nvim-linux-${NVIM_ARCH}" ~/.local/opt/nvim
+            mv "$nvim_tmp/nvim-linux-${ARCH}" ~/.local/opt/nvim
             ln -sf ~/.local/opt/nvim/bin/nvim ~/.local/bin/nvim
         else
             FAILED_PACKAGES+=(neovim)
         fi
+        rm -rf "$nvim_tmp"
     elif [ "$PKG_MGR" = "dnf" ]; then
-        install_pkg neovim ripgrep fd-find fzf bat htop tree jq
+        install_pkg neovim ripgrep fd-find fzf bat htop jq
     elif [ "$PKG_MGR" = "pacman" ]; then
-        install_pkg neovim ripgrep fd fzf bat htop tree jq
+        install_pkg neovim ripgrep fd fzf bat htop jq
     fi
 
     # nvim-treesitter (main branch) compiles parsers via `tree-sitter build`,
@@ -447,12 +462,12 @@ elif [ "$PLATFORM" = "linux" ]; then
         [ "$(printf '%s\n' 0.22.0 "$v" | sort -V | head -1)" = "0.22.0" ]
     }
     if ! tree_sitter_ok; then
-        TS_ARCH=x64
-        [ "$(uname -m)" = "aarch64" ] && TS_ARCH=arm64
-        if curl -fsSL "https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-${TS_ARCH}.gz" -o /tmp/tree-sitter.gz; then
-            gunzip -f /tmp/tree-sitter.gz
+        ts_tmp="$(mktemp -d)"
+        if curl -fsSL "https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-${NODE_ARCH}.gz" -o "$ts_tmp/tree-sitter.gz" \
+            && gunzip -f "$ts_tmp/tree-sitter.gz"; then
             mkdir -p ~/.local/bin
-            install -m 755 /tmp/tree-sitter ~/.local/bin/tree-sitter
+            install -m 755 "$ts_tmp/tree-sitter" ~/.local/bin/tree-sitter
+            rm -rf "$ts_tmp"
         elif command -v cargo &> /dev/null; then
             cargo install tree-sitter-cli
         else
@@ -463,6 +478,7 @@ elif [ "$PLATFORM" = "linux" ]; then
     if ! command -v eza &> /dev/null; then
         echo "Installing eza..."
         if [ "$PKG_MGR" = "apt" ]; then
+            sudo install -m 0755 -d /etc/apt/keyrings
             wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
             sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
@@ -518,19 +534,27 @@ elif [ "$PLATFORM" = "linux" ]; then
     if ! command -v lazygit &> /dev/null; then
         echo "Installing lazygit..."
         LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-        curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-        tar xf lazygit.tar.gz lazygit
-        sudo install lazygit /usr/local/bin
-        rm lazygit lazygit.tar.gz
+        lazygit_tmp="$(mktemp -d)"
+        if curl -fsSLo "$lazygit_tmp/lazygit.tar.gz" "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_${ARCH}.tar.gz" \
+            && tar xf "$lazygit_tmp/lazygit.tar.gz" -C "$lazygit_tmp" lazygit; then
+            install -m 755 "$lazygit_tmp/lazygit" ~/.local/bin/lazygit
+        else
+            FAILED_PACKAGES+=(lazygit)
+        fi
+        rm -rf "$lazygit_tmp"
     fi
 
     if ! command -v delta &> /dev/null; then
         echo "Installing git-delta..."
         if [ "$PKG_MGR" = "apt" ]; then
             DELTA_VERSION=$(curl -s "https://api.github.com/repos/dandavison/delta/releases/latest" | grep -Po '"tag_name": "\K[^"]*')
-            curl -Lo delta.deb "https://github.com/dandavison/delta/releases/latest/download/git-delta_${DELTA_VERSION}_amd64.deb"
-            sudo dpkg -i delta.deb || FAILED_PACKAGES+=(git-delta)
-            rm -f delta.deb
+            delta_tmp="$(mktemp -d)"
+            if curl -fsSLo "$delta_tmp/delta.deb" "https://github.com/dandavison/delta/releases/latest/download/git-delta_${DELTA_VERSION}_${DEB_ARCH}.deb"; then
+                sudo dpkg -i "$delta_tmp/delta.deb" || FAILED_PACKAGES+=(git-delta)
+            else
+                FAILED_PACKAGES+=(git-delta)
+            fi
+            rm -rf "$delta_tmp"
         else
             install_pkg git-delta
         fi
@@ -539,12 +563,21 @@ elif [ "$PLATFORM" = "linux" ]; then
     echo ""
     echo "Installing programming languages and runtimes..."
 
-    if ! command -v node &> /dev/null; then
-        echo "Installing Node.js via nvm..."
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        nvm install --lts
+    # fnm is the one Node version manager (the fish config hooks it); Node
+    # itself is installed in the shared post-install section.
+    if ! command -v fnm &> /dev/null; then
+        echo "Installing fnm (Node version manager)..."
+        fnm_tmp="$(mktemp -d)"
+        FNM_ASSET=fnm-linux.zip
+        [ "$ARCH" = arm64 ] && FNM_ASSET=fnm-arm64.zip
+        if curl -fsSLo "$fnm_tmp/fnm.zip" "https://github.com/Schniz/fnm/releases/latest/download/$FNM_ASSET" \
+            && unzip -oq "$fnm_tmp/fnm.zip" -d "$fnm_tmp"; then
+            mkdir -p ~/.local/bin
+            install -m 755 "$fnm_tmp/fnm" ~/.local/bin/fnm
+        else
+            FAILED_PACKAGES+=(fnm)
+        fi
+        rm -rf "$fnm_tmp"
     fi
 
     if ! command -v uv &> /dev/null; then
@@ -561,10 +594,14 @@ elif [ "$PLATFORM" = "linux" ]; then
     if ! command -v go &> /dev/null; then
         echo "Installing Go..."
         GO_VERSION=$(curl -s 'https://go.dev/VERSION?m=text' | head -1 | sed 's/go//')
-        wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
-        sudo rm -rf /usr/local/go
-        sudo tar -C /usr/local -xzf "go${GO_VERSION}.linux-amd64.tar.gz"
-        rm "go${GO_VERSION}.linux-amd64.tar.gz"
+        go_tmp="$(mktemp -d)"
+        if curl -fsSLo "$go_tmp/go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-${DEB_ARCH}.tar.gz"; then
+            sudo rm -rf /usr/local/go
+            sudo tar -C /usr/local -xzf "$go_tmp/go.tar.gz"
+        else
+            FAILED_PACKAGES+=(go)
+        fi
+        rm -rf "$go_tmp"
         echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
     fi
 
@@ -602,29 +639,15 @@ elif [ "$PLATFORM" = "linux" ]; then
 
     echo ""
     echo "Installing language servers and formatters..."
-    if command -v npm &> /dev/null; then
-        npm install -g --prefix "$HOME/.local" \
-            typescript prettier eslint @vtsls/language-server \
-            vscode-langservers-extracted yaml-language-server \
-            dockerfile-language-server-nodejs bash-language-server \
-            sql-formatter || FAILED_PACKAGES+=(node-editor-tools)
-    fi
-
-    if command -v cargo &> /dev/null; then
-        cargo install stylua || true
-        cargo install millet-ls || true
-        rustup component add rust-analyzer rustfmt clippy 2>/dev/null || true
+    # npm servers, stylua, rustup components and the Go tools are installed
+    # in the shared post-install section below; only the Linux-specific
+    # pieces are here.
+    if command -v cargo &> /dev/null && ! command -v millet &> /dev/null; then
+        cargo install millet-ls || FAILED_PACKAGES+=(millet)
     fi
 
     install_pkg shellcheck
     install_optional_pkg shfmt
-
-    if command -v go &> /dev/null; then
-        GOBIN="$HOME/.local/bin" go install golang.org/x/tools/gopls@latest || FAILED_PACKAGES+=(gopls)
-        GOBIN="$HOME/.local/bin" go install github.com/go-delve/delve/cmd/dlv@latest || FAILED_PACKAGES+=(delve)
-        GOBIN="$HOME/.local/bin" go install golang.org/x/tools/cmd/goimports@latest || FAILED_PACKAGES+=(goimports)
-    fi
-
 
     # Emacs pdf-tools compiles its epdfinfo server against these on first use.
     if [ "$PKG_MGR" = "apt" ]; then
@@ -682,7 +705,8 @@ elif [ "$PLATFORM" = "linux" ]; then
     echo "Installing ML/AI & scientific tools..."
     install_pkg pandoc
     if [ "$PKG_MGR" = "apt" ]; then
-        install_pkg texlive-full
+        # texlive-full is several GB; this covers org/LaTeX previews and papers.
+        install_pkg texlive-latex-extra texlive-fonts-recommended texlive-extra-utils texlive-bibtex-extra biber
     elif [ "$PKG_MGR" = "dnf" ]; then
         install_pkg texlive-scheme-full
     elif [ "$PKG_MGR" = "pacman" ]; then
@@ -714,8 +738,6 @@ elif [ "$PLATFORM" = "linux" ]; then
     echo ""
     echo "Installing fonts..."
     mkdir -p ~/.local/share/fonts
-
-    NERD_FONTS_VERSION="v3.1.1"
 
     # $1 = release asset basename, $2 = installed-filename prefix used to
     # detect an existing install. Downloads into a temp dir so a failed or
@@ -753,7 +775,6 @@ elif [ "$PLATFORM" = "linux" ]; then
     # Iosevka Comfy publishes no release archive, so the Homebrew cask builds
     # from the tag tarball and installs every */TTF/*.ttf. Mirror that. It is
     # ~1 GB unpacked across 126 files, so it is skipped when already present.
-    IOSEVKA_COMFY_VERSION="2.1.0"
     if ! compgen -G "$HOME/.local/share/fonts/iosevka-comfy*" > /dev/null; then
         echo "Installing Iosevka Comfy (large download, ~1 GB unpacked)..."
         iosevka_tmp="$(mktemp -d)"
@@ -782,7 +803,7 @@ elif [ "$PLATFORM" = "linux" ]; then
         echo "Installing yazi (terminal file manager)..."
         yazi_tmp="$(mktemp -d)"
         if curl -fsSL -o "$yazi_tmp/yazi.zip" \
-            "https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip" \
+            "https://github.com/sxyazi/yazi/releases/latest/download/yazi-${ARCH_UNAME}-unknown-linux-gnu.zip" \
             && unzip -oq "$yazi_tmp/yazi.zip" -d "$yazi_tmp"; then
             find "$yazi_tmp" -type f \( -name yazi -o -name ya \) \
                 -exec install -m 755 {} "$HOME/.local/bin/" \;
@@ -796,7 +817,7 @@ elif [ "$PLATFORM" = "linux" ]; then
         echo "Installing fastfetch..."
         ff_tmp="$(mktemp -d)"
         if curl -fsSL -o "$ff_tmp/fastfetch.deb" \
-            "https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb"; then
+            "https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-${ARCH_UNAME/x86_64/amd64}.deb"; then
             sudo dpkg -i "$ff_tmp/fastfetch.deb" &> /dev/null || FAILED_PACKAGES+=(fastfetch)
         else
             FAILED_PACKAGES+=(fastfetch)
@@ -866,7 +887,6 @@ elif [ "$PLATFORM" = "linux" ]; then
 
         # Cursor theme: Bibata Modern Classic -- a black arrow with a white
         # outline, the shape macOS uses, drawn for modern GNOME sizes.
-        BIBATA_VERSION="v2.0.7"
         if [ ! -d "$HOME/.local/share/icons/Bibata-Modern-Classic" ]; then
             echo "Installing Bibata cursor theme..."
             bibata_tmp="$(mktemp -d)"
@@ -893,13 +913,13 @@ echo "Running post-install setup..."
 # user-scoped PATH location, so no sudo access is required.
 if ! command -v slack &> /dev/null; then
     echo "Installing Slack CLI..."
-    SLACK_CLI_INSTALLER="/tmp/slack-cli-install.sh"
-    if curl -fsSL https://downloads.slack-edge.com/slack-cli/install.sh -o "$SLACK_CLI_INSTALLER"; then
-        bash "$SLACK_CLI_INSTALLER" || FAILED_PACKAGES+=(slack-cli)
-        rm -f "$SLACK_CLI_INSTALLER"
+    slack_tmp="$(mktemp -d)"
+    if curl -fsSL https://downloads.slack-edge.com/slack-cli/install.sh -o "$slack_tmp/install.sh"; then
+        bash "$slack_tmp/install.sh" || FAILED_PACKAGES+=(slack-cli)
     else
         FAILED_PACKAGES+=(slack-cli)
     fi
+    rm -rf "$slack_tmp"
 else
     echo "Slack CLI already installed."
 fi
@@ -940,11 +960,12 @@ for repo in elisp/fp-repl elisp/dune-transient elisp/mli-lens nvim/lectern.nvim;
     fi
 done
 
-# Set up Neovim Python provider
+# Neovim Python provider. Pin the interpreter: without --python, uv picks the
+# system python (3.9 on macOS), which is too old for jupyter_client.
 if command -v uv &> /dev/null; then
     echo "Setting up Neovim Python provider..."
-    uv venv ~/.local/share/nvim/venv
-    ~/.local/share/nvim/venv/bin/pip install pynvim
+    uv venv --python 3.12 ~/.local/share/nvim/venv || FAILED_PACKAGES+=(nvim-venv)
+    uv pip install --python ~/.local/share/nvim/venv/bin/python pynvim jupyter_client || FAILED_PACKAGES+=(pynvim)
 fi
 
 # ML/AI & Scientific Python tools (global uv tools)
@@ -963,12 +984,17 @@ fi
 if command -v uv &> /dev/null; then
     uv tool install basedpyright || FAILED_PACKAGES+=(basedpyright)
     uv tool install jupytext || FAILED_PACKAGES+=(jupytext)
+    # CMake language server for the systems track (both editors gate on it).
+    uv tool install cmake-language-server || FAILED_PACKAGES+=(cmake-language-server)
 fi
 
 # Install Node.js LTS via fnm
 if command -v fnm &> /dev/null; then
     echo "Installing Node.js LTS via fnm..."
-    fnm install --lts
+    fnm install --lts || FAILED_PACKAGES+=(node)
+    fnm default lts-latest 2>/dev/null || true
+    # Put node/npm on this script's PATH so the npm tools below install.
+    eval "$(fnm env --shell bash)" || true
 fi
 
 # User-scoped fallbacks keep Ubuntu usable when optional distro packages are
@@ -981,16 +1007,21 @@ if ! command -v shfmt &> /dev/null && command -v go &> /dev/null; then
 fi
 
 if ! command -v rustup &> /dev/null; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh
-    sh /tmp/rustup-init.sh -y --profile minimal || FAILED_PACKAGES+=(rustup)
+    rustup_tmp="$(mktemp -d)"
+    if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "$rustup_tmp/rustup-init.sh"; then
+        sh "$rustup_tmp/rustup-init.sh" -y --profile minimal || FAILED_PACKAGES+=(rustup)
+    else
+        FAILED_PACKAGES+=(rustup)
+    fi
+    rm -rf "$rustup_tmp"
 fi
 export PATH="$HOME/.cargo/bin:$PATH"
 
 if [ "$PLATFORM" = linux ] && ! command -v lua-language-server &> /dev/null; then
-    LUA_LS_VERSION="${LUA_LS_VERSION:-3.18.2}"
     mkdir -p "$HOME/.local/opt/lua-language-server"
-    if curl -fsSL "https://github.com/LuaLS/lua-language-server/releases/download/$LUA_LS_VERSION/lua-language-server-$LUA_LS_VERSION-linux-x64.tar.gz" -o /tmp/lua-language-server.tar.gz; then
-        tar xzf /tmp/lua-language-server.tar.gz -C "$HOME/.local/opt/lua-language-server"
+    luals_tmp="$(mktemp -d)"
+    if curl -fsSL "https://github.com/LuaLS/lua-language-server/releases/download/$LUA_LS_VERSION/lua-language-server-$LUA_LS_VERSION-linux-${NODE_ARCH}.tar.gz" -o "$luals_tmp/lua-language-server.tar.gz"; then
+        tar xzf "$luals_tmp/lua-language-server.tar.gz" -C "$HOME/.local/opt/lua-language-server"; rm -rf "$luals_tmp"
         ln -sf "$HOME/.local/opt/lua-language-server/bin/lua-language-server" "$HOME/.local/bin/lua-language-server"
     else
         FAILED_PACKAGES+=(lua-language-server)
@@ -998,8 +1029,13 @@ if [ "$PLATFORM" = linux ] && ! command -v lua-language-server &> /dev/null; the
 fi
 
 if [ "$PLATFORM" = linux ] && ! command -v ghcup &> /dev/null; then
-    curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org -o /tmp/ghcup.sh
-    BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 sh /tmp/ghcup.sh || FAILED_PACKAGES+=(ghcup)
+    ghcup_tmp="$(mktemp -d)"
+    if curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org -o "$ghcup_tmp/ghcup.sh"; then
+        BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 sh "$ghcup_tmp/ghcup.sh" || FAILED_PACKAGES+=(ghcup)
+    else
+        FAILED_PACKAGES+=(ghcup)
+    fi
+    rm -rf "$ghcup_tmp"
 fi
 export PATH="$HOME/.ghcup/bin:$PATH"
 if command -v ghcup &> /dev/null; then
@@ -1106,13 +1142,15 @@ fi
 
 echo ""
 echo "Manual next steps:"
-echo "  1. Restart your terminal (or log out and back in)"
-echo "  2. Install Neovim plugins:  nvim '+Lazy sync' +qa"
+step=0
+next_step() { step=$((step + 1)); echo "  $step. $1"; }
+next_step "Restart your terminal (or log out and back in)"
+next_step "Install Neovim plugins:  nvim '+Lazy sync' +qa"
 if [ "$PLATFORM" = "linux" ] && command -v gnome-shell &> /dev/null; then
-    echo "  3. Log out and back in so the GNOME extensions load"
+    next_step "Log out and back in so the GNOME extensions load"
 fi
 if [ "$PLATFORM" = "linux" ] && [ "$INSTALL_DOCKER" = "1" ]; then
-echo "  3. Log out/in for Docker group changes"
+    next_step "Log out/in for Docker group changes"
 fi
 if [ "$INSTALL_DOCKER" != "1" ]; then
 echo ""

@@ -9,11 +9,11 @@ bash <(curl -s https://raw.githubusercontent.com/naamanu/.dotfiles/main/setup.sh
 This single command will:
 
 1. **Install chezmoi** (dotfile manager)
-2. **Clone and deploy dotfiles** via SSH
+2. **Clone and deploy dotfiles** (SSH when a GitHub key is set up, HTTPS otherwise)
 3. **Install development tools** (platform-appropriate)
 4. **Post-install setup**: TPM and the tmux plugins it manages, set fish as default shell
 
-The script is idempotent — safe to re-run on an already-configured machine.
+The script is safe to re-run on an already-configured machine: every step checks for the tool first and collects failures into a summary instead of aborting.
 
 ## What's Managed by Chezmoi
 
@@ -26,10 +26,13 @@ Chezmoi manages all configuration files. The setup script only installs packages
 | aerospace | `dot_config/aerospace/` |
 | starship | `dot_config/starship.toml` |
 | neovim | `dot_config/nvim/` |
-| tmux | `dot_tmux.conf` |
-| git | `dot_gitconfig` |
+| tmux | `dot_tmux.conf`, `dot_config/tmux/` (palettes) |
+| git | `dot_gitconfig.tmpl`, `dot_gitignore_global` |
 | emacs | `dot_emacs.d/` |
-| desktop scripts | `private_dot_local/private_bin/` |
+| ocamlformat | `dot_config/ocamlformat` |
+| zsh login shell (macOS) | `dot_zprofile` |
+| Claude Code / Codex | `dot_claude/`, `dot_codex/` |
+| bin scripts | `private_dot_local/private_bin/` (`theme-mode`, `dev-doctor`, `keys`, `menu`, desktop scripts) |
 
 To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 
@@ -45,19 +48,19 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
   release binaries into `~/.local` — the apt packages are too old for this
   config, which needs Neovim ≥ 0.10 and tree-sitter CLI ≥ 0.22; Emacs likewise
   comes from the classic snap, since apt ships 29 and the config targets 30)
-- Languages: Node.js, Python (uv), Rust (+ rust-analyzer), Go, Lua
+- Languages: Node.js (fnm), Python (uv), Rust (rustup, with rust-analyzer/clippy/rustfmt), Go, Lua
 - C/C++: clang/clangd, clang-format, bear, lldb
 - FP: OCaml (opam, dune, merlin, ocaml-lsp, utop), Haskell (ghc, cabal, HLS, ormolu),
   Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl)
-- ML/AI & Scientific: jupyterlab, ipython, pandoc, typst, ollama, dvisvgm (Org LaTeX previews)
+- ML/AI & Scientific: jupyterlab and ipython (uv tools), pandoc, typst, ollama, dvisvgm (Org LaTeX previews)
 - MLOps (via uv tool): mlflow, dvc, tensorboard
-- LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright (uv tool), jupytext (uv tool), shellcheck, enchant (spellcheck)
+- LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext and cmake-language-server (uv tools), texlab (macOS), shellcheck, enchant (spellcheck)
 - Emacs pdf-tools build deps: poppler, automake
 - Treesitter: tree-sitter CLI (parser compilation for Neovim)
 - Git: gh, lazygit, git-delta
 - Databases: PostgreSQL, SQLite
 - Containers: Docker + lazydocker — **opt-in**, set `INSTALL_DOCKER=1`
-- Fonts: JetBrains Mono, Fira Code, Inconsolata (Nerd Font patched); macOS also Iosevka Comfy, Commit Mono, Symbols Nerd Font (icons)
+- Fonts: Iosevka Comfy (editor and terminal face), Symbols Nerd Font (icons), plus JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts as Emacs fontaine presets
 - Home-grown editor packages (cloned into `~/workspace`, not chezmoi-managed):
   `fp-repl`, `dune-transient`, `mli-lens` (Emacs, `~/workspace/elisp/`) and
   `lectern.nvim` (Neovim, `~/workspace/nvim/`).  The editor config is guarded
@@ -81,7 +84,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - [ ] Log out/in for Docker group changes (Linux, only if `INSTALL_DOCKER=1`)
 - [ ] `gh auth login` — authenticate GitHub CLI
 - [ ] `slack login` — authorize Slack CLI when developing or managing a Slack app
-- [ ] `uv tool install jupyterlab --with ipykernel` — verify JupyterLab works
+- [ ] `jupyter-lab --version` — verify the uv-installed JupyterLab works
 - [ ] `mlenv test-project ml` — test ML project bootstrapping
 - [ ] Linux/GNOME: log out and back in so the desktop extensions load
 - [ ] Linux/GNOME: `desktop-theme --check` — confirm every desktop part installed
