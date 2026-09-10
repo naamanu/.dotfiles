@@ -1,5 +1,6 @@
 function dev --description "Open dev workspace: two vim panes on left, claude on right"
-    set -l session (basename (pwd))
+    # tmux rejects '.' and ':' in session names.
+    set -l session (basename (pwd) | string replace -a -r '[.:]' _)
     set -l cwd (pwd)
 
     # Reattach if session already exists

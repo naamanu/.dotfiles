@@ -17,14 +17,14 @@ function mlenv --description "Bootstrap a new ML/AI project with uv"
 
     switch $project_type
         case dl
-            uv add torch torchvision torchaudio jax jaxlib
+            uv add torch torchvision torchaudio "jax[cpu]"
             uv add wandb tensorboard
         case ml
             uv add scikit-learn pandas polars xgboost
             uv add wandb mlflow
         case llm
             uv add transformers tokenizers datasets accelerate
-            uv add langchain langchain-community
+            uv add langchain
             uv add wandb
     end
 

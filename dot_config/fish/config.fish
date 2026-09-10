@@ -1,148 +1,91 @@
 # ======================
-# PATH Configuration
+# PATH
 # ======================
-set -gx PATH $HOME/.local/bin $PATH
-set -gx PATH $HOME/.cargo/bin $PATH
-
-# bun
-set --export BUN_INSTALL "$HOME/.bun"
-set --export PATH $BUN_INSTALL/bin $PATH
-
-# pnpm
+# fish_add_path is idempotent and skips directories that do not exist, so a
+# nested shell never accumulates duplicates. Listed in priority order: the
+# first entry ends up first on PATH.
+set -gx BUN_INSTALL "$HOME/.bun"
 set -gx PNPM_HOME "$HOME/.local/share/pnpm"
-if not string match -q -- $PNPM_HOME $PATH
-  set -gx PATH "$PNPM_HOME" $PATH
-end
-
-# GHC/Haskell
-set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME
-set -gx PATH $HOME/.cabal/bin $HOME/.ghcup/bin $PATH
-
-# ======================
-# Shell Integrations
-# ======================
-
-# Zoxide - smart directory jumper
-if command -v zoxide &> /dev/null
-    zoxide init fish | source
-end
-
-# fnm (Fast Node Manager)
-if command -v fnm &> /dev/null
-    fnm env --use-on-cd --shell fish | source
-end
+set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set -gx GHCUP_INSTALL_BASE_PREFIX $HOME
+fish_add_path -g \
+    $HOME/.ghcup/bin $HOME/.cabal/bin \
+    $PNPM_HOME $BUN_INSTALL/bin \
+    $HOME/.cargo/bin \
+    $HOME/.local/bin
 
 # fnm's per-shell multishell dir is ephemeral, so long-running apps that
 # inherit PATH once at launch (Emacs via exec-path-from-shell) can end up
 # pointing at a node that no longer exists. Append the stable default alias
 # as a lower-priority fallback; per-project versions still take precedence.
-if test -d "$HOME/.local/share/fnm/aliases/default/bin"
-    set -gx PATH $PATH "$HOME/.local/share/fnm/aliases/default/bin"
-end
+fish_add_path -ga $HOME/.local/share/fnm/aliases/default/bin
 
 # ======================
-# Modern CLI Tool Aliases
+# Platform-specific paths
 # ======================
-
-# eza (modern ls)
-if command -v eza &> /dev/null
-    alias ls='eza --icons'
-    alias ll='eza -l --icons'
-    alias la='eza -la --icons'
-    alias lt='eza --tree --icons'
-    alias tree='eza --tree --icons'
-end
-
-# bat (cat with syntax highlighting)
-if command -v bat &> /dev/null
-    alias cat='bat'
-else if command -v batcat &> /dev/null
-    alias cat='batcat'
-    alias bat='batcat'
-end
-
-# fd (modern find)
-if command -v fdfind &> /dev/null
-    alias fd='fdfind'
-end
-
-# ripgrep
-if command -v rg &> /dev/null
-    alias grep='rg'
-end
-
-# ======================
-# Git Alias
-# ======================
-alias g='git'
-
-# ======================
-# Navigation Aliases
-# ======================
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias wks='cd ~/workspace'
-alias work='wks && cd work'
-
-# ======================
-# Utility Aliases
-# ======================
-alias c='clear'
-alias h='history'
-alias vim='nvim'
-alias v='nvim'
-
-# ======================
-# ML/AI & Scientific Tools
-# ======================
-alias jl='jupyter lab'
-alias nb='jupyter notebook'
-alias tb='tensorboard --logdir'
-
-# ======================
-# Atuin (shell history)
-# ======================
-if command -q atuin
-    atuin init fish | source
+# Tool-specific snippets (antigravity, orbstack, rustup, texlive) live in
+# conf.d/; only the entries with no file of their own are here.
+switch (uname)
+    case Darwin
+        fish_add_path -ga "$HOME/Library/Application Support/Coursier/bin"
+    case Linux
+        fish_add_path -ga $HOME/.local/share/coursier/bin
+        fish_add_path -g $HOME/.opencode/bin
 end
 
 # ======================
 # Language/Runtime Configs
 # ======================
 
-# BEGIN opam configuration
-# This is useful if you're using opam as it adds:
-#   - the correct directories to the PATH
-#   - auto-completion for the opam binary
-test -r "$HOME/.opam/opam-init/init.fish" && source "$HOME/.opam/opam-init/init.fish" > /dev/null 2> /dev/null; or true
-# END opam configuration
+# opam: adds the active switch to PATH and installs opam completions.
+test -r "$HOME/.opam/opam-init/init.fish"; and source "$HOME/.opam/opam-init/init.fish" >/dev/null 2>&1; or true
+
+# Everything below only matters when a person is typing at the prompt.
+# Scripts, `fish -c`, and the editors' shell probes skip it, which keeps
+# them fast and free of prompt/alias side effects.
+status is-interactive; or exit
 
 # ======================
-# Platform-specific paths
+# Shell Integrations
 # ======================
-switch (uname)
-    case Darwin
-        # Antigravity (macOS only)
-        test -d "$HOME/.antigravity/antigravity/bin" && fish_add_path "$HOME/.antigravity/antigravity/bin"
-        test -d "$HOME/.antigravity-ide/antigravity-ide/bin" && fish_add_path "$HOME/.antigravity-ide/antigravity-ide/bin"
-        # Coursier (Scala) - macOS location
-        test -d "$HOME/Library/Application Support/Coursier/bin" && set -gx PATH "$PATH:$HOME/Library/Application Support/Coursier/bin"
-        # OrbStack - command-line tools and integration (macOS only)
-        test -r "$HOME/.orbstack/shell/init2.fish" && source "$HOME/.orbstack/shell/init2.fish" 2>/dev/null; or true
-    case Linux
-        # Coursier (Scala) - Linux location
-        test -d "$HOME/.local/share/coursier/bin" && set -gx PATH "$PATH:$HOME/.local/share/coursier/bin"
-        # opencode (Linux only)
-        test -d "$HOME/.opencode/bin" && fish_add_path "$HOME/.opencode/bin"
-end
+command -q zoxide; and zoxide init fish | source
+command -q fnm; and fnm env --use-on-cd --shell fish | source
+command -q atuin; and atuin init fish | source
+command -q starship; and starship init fish | source
 
-# mise (version manager)
-if command -q mise
-    mise activate fish | source
-end
+# ======================
+# Abbreviations
+# ======================
+# Abbreviations, not aliases: they expand visibly at the prompt and never
+# leak into functions or scripts. An alias is a function, so `alias cat=bat`
+# would silently rewrite every `cat` inside the helpers in functions/.
 
-# Starship prompt
-if command -q starship
-    starship init fish | source
+# Modern replacements
+if command -q eza
+    abbr -a ls 'eza --icons'
+    abbr -a ll 'eza -l --icons'
+    abbr -a la 'eza -la --icons'
+    abbr -a lt 'eza --tree --icons'
+    abbr -a tree 'eza --tree --icons'
 end
+command -q bat; and abbr -a cat bat
+command -q rg; and abbr -a grep rg
+
+# Git
+abbr -a g git
+
+# Navigation
+abbr -a .. 'cd ..'
+abbr -a ... 'cd ../..'
+abbr -a .... 'cd ../../..'
+abbr -a wks 'cd ~/workspace'
+abbr -a work 'cd ~/workspace/work'
+
+# Utility
+abbr -a c clear
+abbr -a h history
+abbr -a vim nvim
+abbr -a v nvim
+
+# ML/AI & scientific. `uv tool install jupyterlab` exposes `jupyter-lab`.
+abbr -a jl jupyter-lab
+abbr -a tb 'tensorboard --logdir'

@@ -1,3 +1,4 @@
 function fish_user_key_bindings
-  fzf --fish | source
+    command -q fzf; or return
+    fzf --fish | source
 end

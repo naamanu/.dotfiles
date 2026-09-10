@@ -497,11 +497,20 @@ Active in `eglot-mode-map` when an LSP server is attached.
 
 ### Aliases & Functions
 
-| Alias | Command                  |
-| :---- | :----------------------- |
-| `jl`  | `jupyter lab`            |
-| `nb`  | `jupyter notebook`       |
-| `tb`  | `tensorboard --logdir`   |
+Abbreviations expand visibly at the prompt (interactive shells only).
+
+| Abbr    | Expands to                 |
+| :------ | :------------------------- |
+| `ls` `ll` `la` `lt` `tree` | `eza` variants (`--icons`, `-l`, `-la`, `--tree`) |
+| `cat`   | `bat`                      |
+| `grep`  | `rg`                       |
+| `g`     | `git`                      |
+| `..` `...` `....` | `cd ..` / `cd ../..` / `cd ../../..` |
+| `wks` `work` | `cd ~/workspace` / `cd ~/workspace/work` |
+| `c` `h` | `clear` / `history`        |
+| `vim` `v` | `nvim`                   |
+| `jl`    | `jupyter-lab`              |
+| `tb`    | `tensorboard --logdir`     |
 
 **Navigation**
 
