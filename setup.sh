@@ -277,7 +277,7 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing productivity tools..."
-    brew_cask_install rectangle ghostty raycast
+    brew_cask_install ghostty raycast
     brew_cask_install nikitabobko/tap/aerospace jordanbaird-ice
 
     echo ""

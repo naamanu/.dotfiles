@@ -70,7 +70,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - GNU coreutils (`gls` for Emacs Dired)
 - Cloud/DevOps: awscli, terraform, kubectl, k9s
 - LaTeX: MacTeX (mactex-no-gui)
-- Window management: Rectangle, AeroSpace (tiling WM)
+- Window management: AeroSpace (tiling WM)
 - Menu bar: Ice
 - Apps: Ghostty (cask), Raycast
 

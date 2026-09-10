@@ -4,6 +4,17 @@
 # Start at login
 start-at-login = true
 
+# Physical-key layout: bindings below name qwerty positions.
+key-mapping.preset = 'qwerty'
+
+# New workspaces tile horizontally; accordion shows a sliver of the neighbours.
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+accordion-padding = 30
+
+# Keep hidden (cmd-h) apps hidden instead of unhiding them on workspace switch.
+automatically-unhide-macos-hidden-apps = false
+
 # Normalizations
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
@@ -20,14 +31,19 @@ outer.right = 8
 outer.top = 8
 outer.bottom = 8
 
-# Main keybindings — alt as modifier (like i3)
+# Main keybindings -- alt as modifier (like i3), except focus, which is
+# ctrl-alt so that plain alt-hjkl reaches tmux (pane resize) and Emacs
+# (Meta) inside the terminal.
 [mode.main.binding]
 
+# Terminal
+alt-enter = 'exec-and-forget open -na Ghostty'
+
 # Focus windows
-alt-h = 'focus left'
-alt-j = 'focus down'
-alt-k = 'focus up'
-alt-l = 'focus right'
+ctrl-alt-h = 'focus left'
+ctrl-alt-j = 'focus down'
+ctrl-alt-k = 'focus up'
+ctrl-alt-l = 'focus right'
 
 # Move windows
 alt-shift-h = 'move left'
