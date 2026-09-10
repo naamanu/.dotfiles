@@ -43,6 +43,9 @@ Missing optional binaries leave editing usable and are reported by the doctor.
 | File sidebar | `SPC o` (dirvish-side) | `<leader>e` (snacks.explorer) |
 | Terminal toggle (right) | `SPC '` / `C-c '` | `<leader>'` / `<C-/>` |
 | Tabs / workspaces | `SPC TAB …`, `gt` | `<leader><tab>…`, `gt` |
+| Sessions | desktop-save / `SPC TAB` | `<leader><tab>s` / `<leader><tab>o` (per directory) |
+| REPL (OCaml, Haskell, Racket, SML, Python) | `C-c f o/h/r/m/p` opens; fp-repl `C-c C-v` evaluates in place | `<localleader>r` toggles; `<localleader>e` / `<localleader>b` send line, selection, buffer |
+| Notebooks (Jupyter) | code-cells + jupytext | — (not yet; see docs/nvim.md) |
 | Breadcrumbs | breadcrumb (header line) | dropbar (winbar), `<leader>;` |
 | Fuzzy finder | Vertico + Consult + Orderless | snacks.picker |
 | Rendered markdown pane | — | lectern.nvim (`<leader>m`) |

@@ -46,7 +46,7 @@ which-key fill in the rest:
 
 Standalone keys worth knowing now: `<leader>e` file explorer, `<leader>.` scratch
 buffer, `<leader><leader>` jump anywhere (Flash), `<leader>j` split/join, `<leader>z`
-zen mode, `<leader>u` undo tree, `<leader>q` quit.
+zen mode, `<leader>uu` undo tree, `<leader>q` quit.
 
 > **Practice** — Press `Space`, wait, then `f`. Read every find command. `<Esc>` out.
 
@@ -95,7 +95,7 @@ files by editing text and saving (`:w`):
 | `<leader>fs`   | Jump to a function/symbol in this file                   |
 | `]f` / `[f`    | Next / previous **function** (treesitter)                |
 | `]c` / `[c`    | Next / previous **class**                                |
-| `]]` / `[[`    | Next / previous use of the word under the cursor         |
+| `]r` / `[r`    | Next / previous use of the word under the cursor         |
 | `<C-d>` / `<C-u>` | Half-page down / up (kept centered)                   |
 
 > **Practice** — `<leader><leader>`, type two characters of a word across the screen, then press its label to teleport there.
@@ -135,7 +135,7 @@ open, `<C-v>`/`<C-x>` to open in a vertical/horizontal split, `<C-t>` in a tab,
   function, `cif` changes its body, `vac` selects a class.
 - **Grow a selection by syntax:** `<C-space>` to start/expand to the next node, `<bs>`
   to shrink.
-- **Undo tree** (`<leader>u`): browse and restore *any* past state — undo history is
+- **Undo tree** (`<leader>uu`): browse and restore *any* past state — undo history is
   saved across restarts.
 
 > **Practice** — Put the cursor inside a function and press `vif` to select its body. Then `ysiw)` to wrap a word in parens, and `<leader>j` to expand a one-line table.
@@ -165,20 +165,22 @@ Function signatures show automatically while you fill in arguments.
 ## 6. Code intelligence (native LSP)
 
 Language servers are installed by setup.sh and resolved from the shared PATH and attach by filetype (clangd,
-rust-analyzer, `ruff` + `ty` for Python, ocamllsp, hls, vtsls, eslint, tailwind, json,
-yaml…). Inlay hints turn on where supported.
+rust-analyzer, basedpyright + `ruff` for Python, ocamllsp, hls, vtsls, eslint, json,
+yaml, millet for SML, racket-langserver…). Each server is a file in `lsp/<name>.lua`
+and starts only when its binary is on PATH. Inlay hints turn on where supported.
 
 | Key          | Action                              |
 | :----------- | :---------------------------------- |
 | `gd` / `gD`  | Go to definition / declaration (`<C-o>` jumps back) |
-| `gr`         | References                          |
-| `gi` / `gt`  | Implementation / type definition    |
-| `K`          | Hover documentation                 |
+| `grr`        | References (Neovim default)         |
+| `gri` / `grt` | Implementation / type definition (Neovim defaults) |
+| `K`          | Hover documentation (Neovim default) |
 | `<leader>ls` | Signature help                      |
 | `<leader>la` | Code action (quick-fixes)           |
 | `<leader>lr` | **Rename** — live preview as you type |
 | `<leader>ld` | Line diagnostics (float)            |
-| `<leader>lh` | Toggle inlay hints                  |
+| `<leader>lh` | Toggle inlay hints (this buffer; `<leader>ui` for all) |
+| `]d` / `[d`  | Next / previous diagnostic          |
 | `<leader>lR` | Restart the language server         |
 
 **Import & cleanup actions** (the `<leader>c` group):
@@ -192,7 +194,7 @@ yaml…). Inlay hints turn on where supported.
 **Project-wide diagnostics** (Trouble): `<leader>xx` all, `<leader>xX` this buffer,
 `<leader>cs` a symbol outline, `<leader>cl` a refs/defs panel.
 
-> **Python:** `ruff` (lint/fix) and `ty` (types) attach automatically and resolve the
+> **Python:** `ruff` (lint/fix) and basedpyright (types) attach automatically and resolve the
 > project from `pyproject.toml` / `uv.lock`. Neovim's own Python host uses a dedicated
 > uv venv at `~/.local/share/nvim/venv` — your project's `.venv` is what the servers use.
 
@@ -287,7 +289,7 @@ In a `.http` / `.rest` file, the `<leader>R` group is a full REST client:
 ## 13. When something feels broken
 
 - **Stuck** in a half-typed command or wrong mode: `<Esc>`. Bad edit: `u` (or
-  `<leader>u` for the undo tree).
+  `<leader>uu` for the undo tree).
 - **No completion / formatting** for a language: run `dev-doctor --all`, then use `setup.sh` to install the server or
   formatter, `:LspInfo` to confirm it attached, `<leader>lR` to restart it.
 - **General health:** `:checkhealth`. **Plugins out of sync:** `:Lazy` then `S` to sync.

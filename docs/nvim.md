@@ -17,29 +17,41 @@ Tutorial guides:
 ## Structure
 
 ```text
-init.lua
+init.lua                  vim.loader, leaders, require("naamanu.core")
+stylua.toml               formatting rules for the tree (2 spaces, width 100)
+lazy-lock.json            pinned plugin revisions (sync with `:Lazy sync`)
+lsp/<server>.lua          one native vim.lsp.config table per server (17)
+after/ftplugin/           c, cpp, rust: 4-wide indentation
+queries/ocaml/            local rainbow-delimiters query
 lua/naamanu/
+  theme.lua               shared light/dark mode (theme-mode state file)
   core/
+    init.lua              load order: options, keymaps, autocmds, lazy, lsp, workflows
     options.lua
-    keymaps.lua
+    keymaps.lua           includes sessions (<leader><tab>s/o) and REPL keys
     autocmds.lua
-    lazy.lua
-    tasks.lua
-  exact_plugins/
+    lazy.lua              lazy.nvim bootstrap; imports naamanu.plugins
+    lsp.lua               capabilities, diagnostics, LspAttach, PythonEnv, server gate
+    tasks.lua             project build/test commands (overseer) and the REPL
+    workflows.lua         terminal agent and notes
+  exact_plugins/          (applied as lua/naamanu/plugins/)
+    cloak.lua
     colorscheme.lua
     completion.lua
+    dap.lua
     editor.lua
     formatting.lua
     git.lua
     http.lua
+    lectern.lua           local checkout guard
     linting.lua
-    lsp.lua
+    lsp.lua               fidget, lazydev, inc-rename, schemastore
     navigation.lua
     overseer.lua
     render-markdown.lua
-    snacks.lua
+    snacks.lua            snacks modules, <leader>u toggles
     treesitter.lua
-    ui.lua
+    ui.lua                lualine, which-key groups, dropbar, rainbow, trouble
 ```
 
 ---
@@ -83,7 +95,7 @@ Native LSP configuration (vim.lsp.config/enable) lives in `lua/naamanu/core/lsp.
 | Standard ML | millet |
 | Racket | racket-langserver (`raco pkg install racket-langserver`) |
 | TypeScript / JavaScript / React | vtsls, eslint-lsp |
-| Vue / CSS / Tailwind | vtsls, css-lsp, tailwindcss-language-server |
+| Vue / CSS | vtsls, css-lsp |
 | JSON / YAML | json-lsp, yaml-language-server |
 
 Ruff handles Python lint/fix actions. basedpyright owns Python hover and type intelligence (matching the Emacs setup); Ruff hover is disabled to avoid duplicate hover providers.
@@ -129,6 +141,7 @@ Format on save is enabled with a 3s timeout. JS/TS/Vue formatting uses Prettier 
 | `-` / `<leader>E` | Oil parent directory / Oil explorer |
 | `<leader>'` / `<C-/>` | Toggle terminal on the right (also from inside it) |
 | `<leader><tab>` `n x ] [ l r` | Tabs: new, close, next, prev, last, move; `gt`/`gT` |
+| `<leader><tab>s` / `<leader><tab>o` | Save / open the session for the current directory |
 | `<leader>;` | Pick a breadcrumb (dropbar) |
 | `<leader>ff` | Find files |
 | `<leader>fp` | Project files, using Git files when possible |
@@ -149,8 +162,8 @@ Format on save is enabled with a 3s timeout. JS/TS/Vue formatting uses Prettier 
 | Key | Action |
 | :--- | :--- |
 | `gd` / `gD` | Definition / declaration |
-| `gr` / `gi` / `gt` | References / implementation / type definition |
-| `K` | Hover docs |
+| `grr` / `gri` / `grt` | References / implementation / type definition (Neovim defaults) |
+| `K` | Hover docs (Neovim default) |
 | `<leader>la` | Code action |
 | `<leader>lr` | Rename with live preview |
 | `<leader>ld` | Line diagnostics |
@@ -284,7 +297,22 @@ explicitly rather than `DEV_AGENT` — that probe prefers `codex`, which lacks
 | `<leader>j` | Split / join node with treesj |
 | `<leader>uh` / `<leader>ud` | Notification history / dismiss notifications |
 | `<leader>rf` | Rename current file |
-| `]]` / `[[` | Next / previous reference for word under cursor |
+| `]r` / `[r` | Next / previous reference for word under cursor |
+| `<leader>uw` `us` `ul` `ur` | Toggle wrap / spelling / line numbers / relative numbers |
+| `<leader>ui` `ut` `uz` `uD` | Toggle inlay hints / treesitter highlight / zoom / diagnostics |
+| `<leader>uv` / `<leader>uV` | Toggle diagnostic virtual text / virtual lines (current line) |
+
+### REPL
+
+Filetype picks the REPL, which runs in a snacks terminal on the right (Emacs: fp-repl):
+OCaml `dune utop`/`utop`, Haskell `cabal repl`/`stack ghci`/`ghci`, Racket
+`racket -il readline`, SML `sml`, Python `uv run ipython`/`ipython`. `<localleader>` is `,`.
+
+| Key | Action |
+| :--- | :--- |
+| `<localleader>r` | Toggle the REPL for this buffer's language |
+| `<localleader>e` | Send the current line, or the visual selection |
+| `<localleader>b` | Send the whole buffer |
 
 ---
 

@@ -46,4 +46,18 @@ function M.apply(mode)
   return mode
 end
 
+-- theme-mode pushes over the RPC socket; a session that was detached, suspended
+-- or started without a server socket misses the push. Re-read the state file
+-- when focus returns so the mismatch heals itself.
+vim.api.nvim_create_autocmd({ "FocusGained", "VimResume" }, {
+  group = vim.api.nvim_create_augroup("theme-mode-resync", { clear = true }),
+  callback = function()
+    local mode = M.mode()
+    if vim.o.background ~= mode then
+      M.apply(mode)
+    end
+  end,
+  desc = "Re-apply the shared light/dark mode after a missed push",
+})
+
 return M

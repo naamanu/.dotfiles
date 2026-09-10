@@ -1,82 +1,81 @@
+local o = vim.o
 local opt = vim.opt
 
 -- Line numbers
-opt.number = true
-opt.relativenumber = true
+o.number = true
+o.relativenumber = true
 
--- Tabs & indentation
-opt.tabstop = 2
-opt.shiftwidth = 2
-opt.expandtab = true
-opt.autoindent = true
-opt.smartindent = true
+-- Tabs & indentation (C, C++ and Rust use 4 via after/ftplugin/)
+o.tabstop = 2
+o.shiftwidth = 2
+o.expandtab = true
+o.autoindent = true
+o.smartindent = true
 
 -- Line wrapping
-opt.wrap = false
+o.wrap = false
 
 -- Search settings
-opt.ignorecase = true
-opt.smartcase = true
-opt.hlsearch = true
-opt.incsearch = true
+o.ignorecase = true
+o.smartcase = true
+o.hlsearch = true
+o.incsearch = true
 
 -- Cursor line
-opt.cursorline = true
+o.cursorline = true
 
--- Appearance
-opt.termguicolors = true
-opt.background = "dark"
-opt.signcolumn = "yes"
-opt.colorcolumn = "100"
+-- Appearance. `background` belongs to theme.lua (the shared light/dark
+-- state); setting it here flashed dark before the theme loaded in light mode.
+o.termguicolors = true
+o.signcolumn = "yes"
+o.colorcolumn = "100"
 opt.fillchars:append({ eob = " " })
+-- One border for every floating window (hover, diagnostics, signature help,
+-- pickers); plugins that pass their own `border` still win.
+o.winborder = "rounded"
 
 -- Backspace
-opt.backspace = "indent,eol,start"
+o.backspace = "indent,eol,start"
 
 -- Clipboard
 opt.clipboard:append("unnamedplus")
 
 -- Split windows
-opt.splitright = true
-opt.splitbelow = true
+o.splitright = true
+o.splitbelow = true
 
--- Swap and backup
-opt.swapfile = false
-opt.backup = false
-opt.undofile = true
-opt.undodir = vim.fn.expand("~/.vim/undodir")
+-- Swap, backup and undo (undo history lives in stdpath("state")/undo)
+o.swapfile = false
+o.backup = false
+o.undofile = true
+
+-- Pick up files changed outside Neovim; autocmds.lua runs :checktime on focus.
+o.autoread = true
 
 -- Mouse
-opt.mouse = "a"
+o.mouse = "a"
 
 -- Performance
-opt.updatetime = 250
-opt.timeoutlen = 300
+o.updatetime = 250
+o.timeoutlen = 300
 
 -- Completion
-opt.completeopt = "menu,menuone,noinsert"
+o.completeopt = "menu,menuone,noinsert"
 
 -- Scrolling
-opt.scrolloff = 8
-opt.sidescrolloff = 8
-
--- Folding (using treesitter)
-opt.foldmethod = "expr"
-opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-opt.foldenable = false
+o.scrolloff = 8
+o.sidescrolloff = 8
 
 -- Show invisible characters
-opt.list = true
+o.list = true
 opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
 -- File encoding
-opt.fileencoding = "utf-8"
+o.fileencoding = "utf-8"
 
--- Add mise shims to PATH so nvim can find mise-managed tools (ruby, etc.)
-local mise_shims = vim.fn.expand("~/.local/share/mise/shims")
-if vim.fn.isdirectory(mise_shims) == 1 then
-  vim.env.PATH = mise_shims .. ":" .. vim.env.PATH
-end
+-- Sessions: what <leader><tab>s / <leader><tab>o (keymaps.lua) persist.
+-- No `options`/`blank`, so restoring a session does not replay stale settings.
+o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,globals,skiprtp"
 
 -- Disable unused providers
 vim.g.loaded_perl_provider = 0
@@ -89,4 +88,3 @@ end
 
 -- Ruby provider: unused, disable to avoid warnings
 vim.g.loaded_ruby_provider = 0
-

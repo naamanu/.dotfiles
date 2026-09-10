@@ -18,14 +18,12 @@ require("lazy").setup({
   spec = {
     { import = "naamanu.plugins" },
   },
-  -- Configure lazy.nvim
-  checker = {
-    enabled = true,
-    notify = false,
-  },
-  change_detection = {
-    notify = false,
-  },
+  -- Updates are a deliberate `:Lazy sync` (then chezmoi add lazy-lock.json),
+  -- not a background fetch of 40 repos on every start.
+  checker = { enabled = false },
+  -- Spec files are edited from the chezmoi loop, not live; skip the watcher.
+  change_detection = { enabled = false },
+  -- lazy passes its border explicitly, so 'winborder' does not reach it.
   ui = {
     border = "rounded",
   },
@@ -34,8 +32,14 @@ require("lazy").setup({
   },
   performance = {
     rtp = {
+      -- netrw: oil.nvim is the directory browser (default_file_explorer).
+      -- matchparen stays: it is the cursor-adjacent bracket aid for Racket/OCaml.
       disabled_plugins = {
         "gzip",
+        "matchit",
+        "netrwPlugin",
+        "rplugin",
+        "spellfile",
         "tarPlugin",
         "tohtml",
         "tutor",

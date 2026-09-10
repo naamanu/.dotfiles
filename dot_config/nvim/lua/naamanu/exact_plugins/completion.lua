@@ -35,10 +35,7 @@ return {
         if pcall(vim.snippet.expand, escaped) then
           return
         end
-        local literal = snippet
-          :gsub("%${%d+:([^}]*)}", "%1")
-          :gsub("%${%d+}", "")
-          :gsub("%$%d+", "")
+        local literal = snippet:gsub("%${%d+:([^}]*)}", "%1"):gsub("%${%d+}", ""):gsub("%$%d+", "")
         vim.api.nvim_put(vim.split(literal, "\n", { plain = true }), "c", false, true)
       end,
       active = function(filter)
@@ -47,7 +44,9 @@ return {
         end
         return vim.snippet.active()
       end,
-      jump = function(direction) vim.snippet.jump(direction) end,
+      jump = function(direction)
+        vim.snippet.jump(direction)
+      end,
     },
     sources = {
       default = { "lazydev", "lsp", "path", "snippets", "buffer" },

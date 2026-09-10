@@ -19,7 +19,7 @@ Think in four loops.
 
 ### Read
 
-Use `<leader>ff` or `<leader>fp` for files, `<leader>fg` for text, `<leader>fs` for document symbols, and `gd`/`gr`/`gi` once LSP is attached.
+Use `<leader>ff` or `<leader>fp` for files, `<leader>fg` for text, `<leader>fs` for document symbols, and `gd`/`grr`/`gri` once LSP is attached.
 
 ### Edit
 
@@ -52,7 +52,7 @@ Start from the repository root with `nvim`.
 
 1. Use `<leader>fp` to pick a likely entry file.
 2. Use `<leader>fg` to find an important symbol or concept.
-3. Use `gd`, `gr`, and `gi` to navigate semantically.
+3. Use `gd`, `grr`, and `gri` to navigate semantically.
 4. Use `<leader>fb` and `<leader>fr` to return to active or recent files.
 
 This config is search-first; there is no separate quick-file bookmarking layer.
@@ -66,15 +66,16 @@ Core LSP keys:
 | Key | Action |
 | :--- | :--- |
 | `gd` / `gD` | Definition / declaration |
-| `gr` / `gi` / `gt` | References / implementation / type definition |
-| `K` | Hover docs |
+| `grr` / `gri` / `grt` | References / implementation / type definition (Neovim defaults) |
+| `K` | Hover docs (Neovim default) |
 | `<leader>la` | Code action |
 | `<leader>lr` | Rename with live preview |
 | `<leader>ld` | Line diagnostics |
-| `<leader>lh` | Toggle inlay hints |
+| `<leader>lh` | Toggle inlay hints (buffer); `<leader>ui` toggles globally |
 | `<leader>lR` | Restart attached LSP clients |
+| `]d` / `[d` | Next / previous diagnostic (float opens on arrival) |
 
-For JS/TS, `<leader>ci`, `<leader>cI`, `<leader>cu`, `<leader>cF`, and `<leader>cE` cover import organization and fix-all actions. Python uses Ruff for lint/fix/format and Ty for hover/type intelligence.
+For JS/TS, `<leader>ci`, `<leader>cI`, `<leader>cu`, `<leader>cF`, and `<leader>cE` cover import organization and fix-all actions. Python uses Ruff for lint/fix/format and basedpyright for hover/type intelligence.
 
 ---
 
@@ -128,7 +129,7 @@ The intended flow is edit, format, run the relevant task, then review and stage 
 1. Open the repo with `nvim`.
 2. Jump to an entry file with `<leader>fp`.
 3. Search the task with `<leader>fg`.
-4. Navigate with `gd`, `gr`, and `gi`.
+4. Navigate with `gd`, `grr`, and `gri`.
 5. Edit and save with `<C-s>`.
 6. Format or lint with `<leader>cf` and `<leader>ll` if needed.
 7. Run project work with `<leader>ob`, `<leader>on`, `<leader>os`, `<leader>op`, or `<leader>oT`.

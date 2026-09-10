@@ -248,9 +248,9 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 | :--- | :----------- | :------------------- |
 | n    | `gd`         | Go to definition     |
 | n    | `gD`         | Go to declaration    |
-| n    | `gr`         | Go to references     |
-| n    | `gi`         | Go to implementation |
-| n    | `gt`         | Go to type definition |
+| n    | `grr`        | Go to references (0.11 default) |
+| n    | `gri`        | Go to implementation (0.11 default) |
+| n    | `grt`        | Go to type definition (0.11 default) |
 | n    | `K`          | Hover documentation  |
 | n    | `<leader>la` | Code action          |
 | n    | `<leader>lr` | Rename               |
@@ -311,8 +311,8 @@ Format on save is enabled by default.
 | n    | `<leader>uh` | Notification history     |
 | n    | `<leader>ud` | Dismiss notifications    |
 | n    | `<leader>rf` | Rename file              |
-| n, t | `]]`         | Next reference           |
-| n, t | `[[`         | Previous reference       |
+| n, t | `]r`         | Next reference           |
+| n, t | `[r`         | Previous reference       |
 
 **Auto-enabled:** bigfile detection, indent guides, scope highlighting, quickfile, input UI, picker (`vim.ui.select`).
 

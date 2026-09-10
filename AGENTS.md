@@ -147,23 +147,41 @@ After verifying: `chezmoi add ~/.emacs.d/init.el ~/.emacs.d/early-init.el
 
 ## Neovim configuration (`dot_config/nvim/`)
 
-Neovim 0.12+, lazy.nvim, ~36 plugins.
+Neovim 0.12+, lazy.nvim, ~36 plugins. `stylua.toml` (2 spaces, width 100)
+formats the tree: run `stylua ~/.config/nvim` before `chezmoi add`.
 
 ### Load order
 
-`init.lua` (leaders only) → `lua/naamanu/core/init.lua`:
-options → keymaps → autocmds → lazy → **lsp** (must stay after lazy — it
-requires lazy-loaded modules like schemastore). Plugin specs are auto-imported
-from `lua/naamanu/plugins/*.lua`, one file per concern. `core/tasks.lua` is
-the bespoke project build/test command layer consumed by the overseer keymaps.
+`init.lua` (`vim.loader.enable()`, leaders) → `lua/naamanu/core/init.lua`:
+options → keymaps → autocmds → lazy → **lsp** (after lazy so lazy-loaded
+plugin modules resolve from server callbacks) → workflows. Plugin specs are
+auto-imported from `lua/naamanu/plugins/*.lua`, one file per concern.
+`core/tasks.lua` is the bespoke project build/test command layer consumed by
+the overseer keymaps, and holds the REPL (`<localleader>r/e/b`).
+Per-server LSP tables live in `lsp/<name>.lua` at the config root (the native
+runtimepath `lsp/` directory, `:h lsp-config`); `core/lsp.lua` keeps only what
+is shared. `after/ftplugin/<ft>.lua` holds per-filetype settings.
 
 ### Non-obvious constraints
 
-- **LSP is the native API** (`vim.lsp.config`/`vim.lsp.enable` in
-  `core/lsp.lua`, no nvim-lspconfig). nvim-lspconfig concepts like
-  `on_new_config` and `single_file_support` DO NOT EXIST here and fail
-  silently — do not reintroduce them. Servers are gated on binary presence
-  (mason bin, then PATH) so missing tools degrade silently.
+- **LSP is the native API** (`vim.lsp.config`/`vim.lsp.enable`; tables in
+  `lsp/<name>.lua`, shared parts in `core/lsp.lua`; no nvim-lspconfig, no
+  mason). nvim-lspconfig concepts like `on_new_config` and
+  `single_file_support` DO NOT EXIST here and fail silently — do not
+  reintroduce them. Servers are enabled by the gate table at the bottom of
+  `core/lsp.lua` only when their binary is on PATH (racket-langserver is
+  gated on the raco package directory), so missing tools degrade silently.
+  `vim.lsp.enable` loads every enabled `lsp/<name>.lua` at startup, so keep
+  plugin requires (schemastore) inside `on_init`, as jsonls/yamlls do.
+- **blink capabilities are merged in `before_init`** on the `*` config, not
+  by an eager `require("blink.cmp")` at startup. A server file only sets
+  `capabilities` for something else (ruff pins `positionEncodings` to utf-16
+  so it matches basedpyright); completion support is already covered.
+- **Python interpreter** for basedpyright is resolved per client in
+  `lsp/basedpyright.lua`'s `on_init` from `core/lsp.lua`'s `python_path`
+  (deep-copies `client.settings`, then re-sends didChangeConfiguration).
+  `:PythonEnv` reports the result. Keep that block intact; it is why imports
+  resolve when Neovim is started outside the project root.
 - **nvim-treesitter is the `main` rewrite branch** (pinned). Its `setup()`
   only accepts `install_dir`; master-branch option tables
   (`ensure_installed`/`highlight`/`indent`/`incremental_selection`) are
@@ -188,12 +206,15 @@ the bespoke project build/test command layer consumed by the overseer keymaps.
 - **Plugin** → new/existing file in `lua/naamanu/plugins/`, then
   `nvim --headless "+Lazy! sync" +qa`; sync the spec file AND
   `lazy-lock.json` to chezmoi.
-- **LSP server** → `lsp.config(...)` + entry in the `mason_servers` enable
-  table, both in `core/lsp.lua`; mason package in `ensure_installed`
-  (plugins/lsp.lua); install now with `:MasonToolsInstallSync`.
+- **LSP server** → new `lsp/<name>.lua` returning the `vim.lsp.config`
+  table (`cmd`, `filetypes`, `root_markers`, `settings`), a `{ name, binary }`
+  row in the `servers` gate table in `core/lsp.lua`, and the binary installed
+  by `setup.sh` (see the `dotfiles-add-tool` skill). Nothing installs servers
+  from inside Neovim.
 - **Language** → parser in `ensure_installed` (plugins/treesitter.lua),
   formatter in `plugins/formatting.lua` (conform), server as above, test
-  commands in `core/tasks.lua` if overseer should know it.
+  commands in `core/tasks.lua` if overseer should know it, REPL command in
+  `repl_command` (core/tasks.lua), indentation in `after/ftplugin/<ft>.lua`.
 
 ---
 
