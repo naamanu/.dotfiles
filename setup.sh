@@ -888,6 +888,22 @@ fi
 echo ""
 echo "Running post-install setup..."
 
+# Install Slack's official CLI for building and managing Slack apps. The
+# installer is shared by macOS and Linux and places the command in a
+# user-scoped PATH location, so no sudo access is required.
+if ! command -v slack &> /dev/null; then
+    echo "Installing Slack CLI..."
+    SLACK_CLI_INSTALLER="/tmp/slack-cli-install.sh"
+    if curl -fsSL https://downloads.slack-edge.com/slack-cli/install.sh -o "$SLACK_CLI_INSTALLER"; then
+        bash "$SLACK_CLI_INSTALLER" || FAILED_PACKAGES+=(slack-cli)
+        rm -f "$SLACK_CLI_INSTALLER"
+    else
+        FAILED_PACKAGES+=(slack-cli)
+    fi
+else
+    echo "Slack CLI already installed."
+fi
+
 # Clone TPM (Tmux Plugin Manager)
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
     echo "Installing TPM (Tmux Plugin Manager)..."
