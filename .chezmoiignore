@@ -3,10 +3,6 @@ INSTALL.md
 AGENTS.md
 docs/
 setup.sh
-install-tools-mac.sh
-install-tools-linux.sh
-output.txt
-LICENSE
 .claude/backups/
 .claude/cache/
 .claude/debug/
@@ -41,4 +37,11 @@ LICENSE
 {{ if ne .chezmoi.os "linux" }}
 .local/bin/desktop-theme
 .local/bin/desktop-wallpaper
+{{ end }}
+
+# macOS-only: AeroSpace is a macOS window manager and .zprofile exists solely to
+# put Homebrew on a zsh login shell's PATH.
+{{ if ne .chezmoi.os "darwin" }}
+.config/aerospace
+.zprofile
 {{ end }}

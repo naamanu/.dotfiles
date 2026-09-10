@@ -19,3 +19,6 @@ dot_config/fish/fish_variables
 
 # Backup files
 *.bak
+
+# Claude Code per-session permission state, never shared
+.claude/settings.local.json
