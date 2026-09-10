@@ -393,7 +393,7 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
 presentation size of each (`iosevka', `iosevka-large', `iosevka-present').
 `fixed-pitch' anchors to the same family so code blocks and tables in
 mixed-font buffers match code buffers exactly."
-  (let ((base (if (eq system-type 'darwin) 155 130))
+  (let ((base (if (eq system-type 'darwin) 160 130))
         presets)
     (pcase-dolist (`(,name ,family ,weight ,adjust) my/mono-families)
       (dolist (size `((""         . ,(+ base adjust))
