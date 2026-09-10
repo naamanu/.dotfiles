@@ -576,11 +576,13 @@ Abbreviations expand visibly at the prompt (interactive shells only).
 | `C-a + m`        | Maximize pane (toggle zoom)                    |
 | `C-a + p`        | Previous window                                |
 | `C-a + n`        | Next window                                    |
+| `C-h/j/k/l`      | Move between tmux panes and Neovim windows      |
+| `M-h/j/k/l`      | Resize pane (no prefix)                        |
+| `C-a + C-l`      | Clear screen (C-l is taken by navigation)      |
 | `C-a + [`        | Enter copy mode                                |
 | `v`              | Begin selection (in copy mode)                 |
 | `C-v`            | Rectangle selection (in copy mode)             |
 | `y`              | Copy selection and exit (in copy mode)         |
-| `C-a + I`        | Install plugins (TPM)                          |
-| `C-a + U`        | Update plugins (TPM)                           |
-| `C-a + C-s`      | Save session (resurrect)                       |
-| `C-a + C-r`      | Restore session (resurrect)                    |
+| `C-a + U`        | Update plugins (TPM; install is automatic)     |
+| `C-a + C-s`      | Save session now (continuum saves every 15m)   |
+| `C-a + C-r`      | Restore session (automatic on server start)    |
