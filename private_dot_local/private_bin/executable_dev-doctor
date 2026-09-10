@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.ghcup/bin:$PATH"
+# Deliberately no PATH edits here: the report must reflect what a shell
+# actually sees, or the PATH-ordering faults it exists to catch stay hidden.
 JSON=0
 SHOW_ALL=0
 for arg in "$@"; do
@@ -52,6 +53,18 @@ optional|codex|terminal coding agent
 optional|claude|terminal coding agent
 EOF
 )
+
+# Version floors the editor configs depend on: tool|minimum|how to read the version.
+FLOORS=$(cat <<'EOF'
+nvim|0.10.0|nvim --version | sed -n '1s/^NVIM v//p'
+tree-sitter|0.22.0|tree-sitter --version | awk '{print $2}'
+fish|4.0.0|fish --version | awk '{print $3}'
+tmux|3.3|tmux -V | awk '{print $2}' | tr -d a-z
+git|2.38.0|git --version | awk '{print $3}'
+emacs|30.1|emacs --version | sed -n '1s/^GNU Emacs //p'
+EOF
+)
+version_ge() { [ "$(printf '%s\n' "$2" "$1" | sort -V | head -1)" = "$2" ]; }
 [ "$JSON" -eq 0 ] || printf '['
 first=1
 missing_required=0
@@ -75,10 +88,24 @@ while IFS='|' read -r kind command description; do
 done <<EOF
 $TOOLS
 EOF
+too_old=0
 if [ "$JSON" -eq 1 ]; then printf '\n]\n'; else
-    printf '\nEditors:\n'
-    command -v emacs >/dev/null 2>&1 && emacs --version | sed -n '1p' || echo 'Emacs: missing'
-    command -v nvim >/dev/null 2>&1 && nvim --version | sed -n '1p' || echo 'Neovim: missing'
-    command -v tree-sitter >/dev/null 2>&1 && tree-sitter --version || true
+    printf '\nVersion floors:\n'
+    while IFS='|' read -r command minimum probe; do
+        [ -n "$command" ] || continue
+        if ! command -v "$command" >/dev/null 2>&1; then
+            printf '[%-7s] %-14s >= %-8s not installed\n' MISSING "$command" "$minimum"
+            continue
+        fi
+        have=$(eval "$probe" 2>/dev/null | head -1)
+        if [ -n "$have" ] && version_ge "$have" "$minimum"; then
+            printf '[%-7s] %-14s >= %-8s %s\n' ok "$command" "$minimum" "$have"
+        else
+            printf '[%-7s] %-14s >= %-8s %s\n' OLD "$command" "$minimum" "${have:-unknown}"
+            too_old=$((too_old + 1))
+        fi
+    done <<EOF
+$FLOORS
+EOF
 fi
-[ "$missing_required" -eq 0 ]
+[ "$missing_required" -eq 0 ] && [ "$too_old" -eq 0 ]

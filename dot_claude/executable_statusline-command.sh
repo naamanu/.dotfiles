@@ -65,19 +65,23 @@ dir_part="${C}in ${path}${X}"
 [ -w "$cwd" ] || dir_part="${dir_part}${R} 󰌾${X}"     # [directory].read_only
 
 # ---------- git branch + status ----------
+# One `git status --porcelain=v2 --branch` yields the branch, upstream
+# ahead/behind counts and every file state, instead of five git invocations.
 git_part=""
 if $in_repo; then
-  branch=$(git symbolic-ref --short HEAD) || branch=""
-  [ -n "$branch" ] || branch=$(git rev-parse --short HEAD)
+  porcelain=$(git status --porcelain=v2 --branch)
+  branch=$(printf '%s\n' "$porcelain" | sed -n 's/^# branch.head //p')
+  [ "$branch" = "(detached)" ] && branch=$(git rev-parse --short HEAD)
 
   if [ -n "$branch" ]; then
     git_part=" ${P}on  ${branch}${X}"
 
-    porcelain=$(git status --porcelain=v1)
-    staged=$(printf '%s\n'  "$porcelain" | grep -c '^[MADRC]')
-    modified=$(printf '%s\n' "$porcelain" | grep -c '^.[MD]')
-    untracked=$(printf '%s\n' "$porcelain" | grep -c '^??')
-    conflict=$(printf '%s\n' "$porcelain" | grep -c '^\(UU\|AA\|DD\)')
+    # Entries: "1 XY ..." ordinary, "2 XY ..." rename/copy, "u ..." unmerged,
+    # "? path" untracked. XY is the staged/unstaged pair.
+    staged=$(printf '%s\n'    "$porcelain" | grep -c '^[12] [MADRC]')
+    modified=$(printf '%s\n'  "$porcelain" | grep -c '^[12] .[MD]')
+    untracked=$(printf '%s\n' "$porcelain" | grep -c '^? ')
+    conflict=$(printf '%s\n'  "$porcelain" | grep -c '^u ')
 
     flags=""
     [ "$conflict"  -gt 0 ] && flags="${flags}🏳"
@@ -85,9 +89,10 @@ if $in_repo; then
     [ "$modified"  -gt 0 ] && flags="${flags}!${modified}"
     [ "$untracked" -gt 0 ] && flags="${flags}?${untracked}"
 
-    if ab=$(git rev-list --left-right --count '@{upstream}...HEAD'); then
-      behind=${ab%%[[:space:]]*}
-      ahead=${ab##*[[:space:]]}
+    ab=$(printf '%s\n' "$porcelain" | sed -n 's/^# branch.ab +\([0-9]*\) -\([0-9]*\)$/\1 \2/p')
+    if [ -n "$ab" ]; then
+      ahead=${ab%% *}
+      behind=${ab##* }
       [ "${ahead:-0}"  -gt 0 ] 2>/dev/null && flags="${flags}⇡${ahead}"
       [ "${behind:-0}" -gt 0 ] 2>/dev/null && flags="${flags}⇣${behind}"
     fi

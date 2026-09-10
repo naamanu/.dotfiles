@@ -40,8 +40,14 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-if ! command -v convert > /dev/null 2>&1; then
-    echo "desktop-wallpaper: ImageMagick ('convert') is required -- run setup.sh." >&2
+# ImageMagick 7 renamed convert to magick and deprecates the old name.
+if command -v magick > /dev/null 2>&1; then
+    IM=magick
+elif command -v convert > /dev/null 2>&1; then
+    IM=convert
+fi
+if [ -z "${IM:-}" ]; then
+    echo "desktop-wallpaper: ImageMagick ('magick' or 'convert') is required -- run setup.sh." >&2
     exit 1
 fi
 
@@ -110,7 +116,7 @@ esac
 # away while reading as texture rather than dirt.
 render() {
     local out="$1" points="$2"
-    convert -size 64x36 xc: \
+    "$IM" -size 64x36 xc: \
         -sparse-color Shepards "$points" \
         -resize "${SIZE}!" \
         \( -size "$SIZE" radial-gradient:'#ffffff'-'#bcbcbc' \) \

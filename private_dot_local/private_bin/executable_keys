@@ -95,4 +95,4 @@ extract | fzf \
     --height 100% \
     --layout reverse \
     --info inline \
-    --bind 'enter:execute-silent(printf "%s" {2} | (xclip -selection clipboard 2>/dev/null || xsel -ib 2>/dev/null))+abort'
+    --bind 'enter:execute-silent(printf "%s" {2} | (pbcopy 2>/dev/null || wl-copy 2>/dev/null || xclip -selection clipboard 2>/dev/null || xsel -ib 2>/dev/null))+abort'
