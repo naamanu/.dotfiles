@@ -6,60 +6,58 @@
 scan_timeout = 30
 command_timeout = 500
 
-# Inserts a blank line between shell prompts
-add_newline = true
+# One prompt per line, no blank line between them.
+add_newline = false
 
 # Active modus palette. Switched by theme-mode(1), which for light mode points
 # STARSHIP_CONFIG at a generated copy of this file with this one line rewritten
 # -- starship cannot select a palette from the environment.
 palette = "modus_dark"
 
-# Format
-format = """
-[┌─](bold green)$username$hostname$directory$git_branch$git_status$git_state
-[└─](bold green)$character"""
+# A plain single-line prompt: directory, git branch and status, the active
+# Python venv if any, then the prompt character. User and host appear only
+# over ssh or as root.
+format = "$username$hostname$directory$git_branch$git_status$git_state$python$character"
 
-# Right format (shown on the right side)
-right_format = """$cmd_duration$nodejs$rust$python$golang$lua"""
+# Slow commands report their duration on the right.
+right_format = "$cmd_duration"
 
 [character]
-success_symbol = "[➜](bold green)"
-error_symbol = "[✗](bold red)"
-vimcmd_symbol = "[](bold green)"
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
 
 [username]
 style_user = "bold blue"
 style_root = "bold red"
 format = "[$user]($style) "
-disabled = false
-show_always = true
 
 [hostname]
-ssh_only = false
-format = "on [$hostname](bold yellow) "
-disabled = false
+ssh_only = true
+style = "bold yellow"
+format = "[$hostname]($style) "
 
 [directory]
 truncation_length = 3
 truncate_to_repo = true
 style = "bold cyan"
 read_only = " 󰌾"
-format = "in [$path]($style)[$read_only]($read_only_style) "
+format = "[$path]($style)[$read_only]($read_only_style) "
 home_symbol = "~"
 
 [git_branch]
-symbol = " "
+symbol = ""
 style = "bold purple"
-format = "on [$symbol$branch]($style) "
+format = "[$branch]($style) "
 
 [git_status]
 style = "bold red"
 format = '([\[$all_status$ahead_behind\]]($style) )'
-conflicted = "🏳"
+conflicted = "="
 ahead = "⇡${count}"
 behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
-up_to_date = "✓"
+diverged = "⇡${ahead_count}⇣${behind_count}"
+up_to_date = ""
 untracked = "?${count}"
 stashed = "$${count}"
 modified = "!${count}"
@@ -71,60 +69,14 @@ deleted = "✘${count}"
 format = '\([$state( $progress_current/$progress_total)]($style)\) '
 style = "bright-black"
 
-[cmd_duration]
-min_time = 500
-format = "took [$duration](bold yellow) "
-
-[nodejs]
-symbol = " "
-style = "bold green"
-format = "via [$symbol($version )]($style)"
-
 [python]
-symbol = " "
 style = "bold yellow"
-format = 'via [${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+format = '[(\($virtualenv\) )]($style)'
 
-[rust]
-symbol = " "
-style = "bold red"
-format = "via [$symbol($version )]($style)"
-
-[golang]
-symbol = " "
-style = "bold cyan"
-format = "via [$symbol($version )]($style)"
-
-[lua]
-symbol = " "
-style = "bold blue"
-format = "via [$symbol($version )]($style)"
-
-[package]
-symbol = "📦 "
-style = "208"
-format = "is [$symbol$version]($style) "
-disabled = false
-
-[docker_context]
-symbol = " "
-style = "blue bold"
-format = "via [$symbol$context]($style) "
-disabled = false
-
-[time]
-disabled = true
-format = '🕙[\[ $time \]]($style) '
-time_format = "%T"
-
-[battery]
-full_symbol = "🔋"
-charging_symbol = "🔌"
-discharging_symbol = "⚡"
-
-[[battery.display]]
-threshold = 30
-style = "bold red"
+[cmd_duration]
+min_time = 2000
+style = "bold yellow"
+format = "[$duration]($style)"
 
 # Modus palettes. Every value is the colour Neovim actually renders for the
 # matching highlight group under modus_vivendi (tinted) / modus_operandi, read
