@@ -1,19 +1,45 @@
 [user]
 	name = Nana Adjei Manu
 	email = n.k.a.manu06@gmail.com
+# Work checkouts get their own identity from an unmanaged ~/.gitconfig-work.
+[includeIf "gitdir:~/workspace/work/"]
+	path = ~/.gitconfig-work
 [init]
 	defaultBranch = main
 [pull]
 	rebase = true
+[rebase]
+	# pull --rebase with a dirty tree stashes and restores automatically.
+	autostash = true
+	# Rebasing a stack moves the branches that point into it too.
+	updateRefs = true
 [core]
 	editor = nvim
 	# Exclude machine-specific configs from global .gitconfig
 	excludesfile = ~/.gitignore_global
 	pager = delta
+{{- if eq .chezmoi.os "darwin" }}
+	# Built-in file watcher (macOS build ships it): status on large trees
+	# stops walking the disk.
+	fsmonitor = true
+	untrackedCache = true
+{{- end }}
+[commit]
+	# Show the full diff in the commit message buffer.
+	verbose = true
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate
+[tag]
+	sort = version:refname
+[help]
+	# Offer the correction instead of running it after a delay.
+	autocorrect = prompt
 [alias]
 	a = add
 	ap = add -p
-	aa = add .
+	aa = add -A
 	b = branch
 	bd = branch -D
 	ca = commit --amend
@@ -37,19 +63,33 @@
 	stp = stash pop
 	unstage = reset HEAD --
 [color]
-	ui = true
+	ui = auto
 [push]
 	# Push to the same branch you are on
 	default = current
 	autoSetupRemote = true
+	followTags = true
 [fetch]
-	# Prune remote branches that no longer exist
+	# Prune remote branches and tags that no longer exist
 	prune = true
+	prunetags = true
+	fsckobjects = true
+[transfer]
+	fsckobjects = true
+[receive]
+	fsckObjects = true
+[submodule]
+	recurse = true
 [rerere]
 	enabled = true
+	# Re-stage the recorded resolution, not just replay it into the tree.
+	autoupdate = true
 [diff]
 	algorithm = histogram
 	colorMoved = default
+	# i/ w/ c/ prefixes say which side is index, worktree, commit.
+	mnemonicPrefix = true
+	renames = copies
 [interactive]
 	diffFilter = delta --color-only
 [delta]
