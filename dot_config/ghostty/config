@@ -15,32 +15,34 @@ window-padding-y = 12
 window-padding-balance = true
 window-decoration = true
 window-theme = auto
+# Option is Meta. Without this, Option+h types a composed character, so tmux's
+# M-hjkl resize and every Emacs M- binding are unreachable on macOS.
+macos-option-as-alt = true
+window-save-state = always
 
 # Theme and colors
 # Both halves at once: Ghostty follows the desktop colour-scheme, which
 # theme-mode(1) sets, so the terminal turns over with everything else and needs
 # no push of its own.
 theme = light:Modus Operandi,dark:Modus Vivendi Tinted
-# Translucent so the desktop blur reads through the terminal.  The blur
-# itself is NOT ghostty's `background-blur` -- that is a macOS and
-# KDE/Wayland path and does nothing on GNOME/X11.  Blur My Shell provides it
-# instead, whitelisted to com.mitchellh.ghostty by `desktop-theme`.
+# Translucent so the desktop blur reads through the terminal. `background-blur`
+# is honoured on macOS and KDE/Wayland; on GNOME/X11 it is a no-op and Blur My
+# Shell provides the blur instead, whitelisted to com.mitchellh.ghostty by
+# `desktop-theme`.
 background-opacity = 0.92
+background-blur = true
 unfocused-split-opacity = 0.95
 
 # Shell
 shell-integration = fish
 shell-integration-features = cursor,sudo,title
 
-# Keybindings
-keybind = ctrl+shift+c=copy_to_clipboard
-keybind = ctrl+shift+v=paste_from_clipboard
-keybind = ctrl+shift+t=new_tab
-keybind = ctrl+shift+w=close_surface
+# Keybindings: the defaults already cover copy/paste/tabs on both platforms
+# (ctrl+shift on Linux, cmd on macOS). Only non-default bindings go here.
 keybind = ctrl+tab=next_tab
 keybind = ctrl+shift+tab=previous_tab
 
-# Performance
+# Selection
 copy-on-select = true
 
 # Cursor
