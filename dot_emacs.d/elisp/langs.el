@@ -12,27 +12,69 @@
 ;; Grammars support more highlighting than the default level 3 enables.
 (setq treesit-font-lock-level 4)
 
-;; Emacs ships tree-sitter support but no grammars.  Compile them once with
-;; `M-x my/install-missing-grammars'.  Racket, SML, Haskell and OCaml use
-;; their classic major modes, which are still more complete than the
-;; tree-sitter ones.
+;; Emacs 31 does the mode plumbing itself.  With `treesit-enabled-modes' set
+;; to t every built-in tree-sitter mode takes over from its classic
+;; counterpart (python-ts-mode for python-mode, c-ts-mode for c-mode, ...),
+;; and the `*-ts-mode-maybe' wrappers it puts in `auto-mode-alist' fall back
+;; to the classic mode, offering to build the grammar first, when one is
+;; missing.  `setopt' matters: the option's setter is what installs the
+;; remaps.  Racket, SML, Haskell and OCaml keep their classic major modes,
+;; which are still more complete than the tree-sitter ones.
+(setopt treesit-enabled-modes t
+        treesit-auto-install-grammar 'ask)
+
+;; Emacs ships tree-sitter support but no grammars; `C-c e g'
+;; (`my/install-missing-grammars') compiles them into ~/.emacs.d/tree-sitter/.
+;; Each entry is pinned to the commit the corresponding Emacs 31 mode
+;; declares for itself -- the grammar version it was tested against -- so a
+;; rebuild on a new machine produces the same grammar, not whatever HEAD is.
+;; The doc-comment grammars (`jsdoc' for js-ts-mode, `doxygen' for
+;; c-ts-mode) and go.mod / go.work are included because the modes declare
+;; them and would otherwise offer to build them on first use.  Bump the
+;; commits together with an Emacs upgrade.
 (setq treesit-language-source-alist
-      '((bash       "https://github.com/tree-sitter/tree-sitter-bash")
-        (go         "https://github.com/tree-sitter/tree-sitter-go")
-        (c          "https://github.com/tree-sitter/tree-sitter-c")
-        (cpp        "https://github.com/tree-sitter/tree-sitter-cpp")
-        (cmake      "https://github.com/uyha/tree-sitter-cmake")
-        (css        "https://github.com/tree-sitter/tree-sitter-css")
-        (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
-        (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
-        (json       "https://github.com/tree-sitter/tree-sitter-json")
-        (lua        "https://github.com/tree-sitter-grammars/tree-sitter-lua")
-        (python     "https://github.com/tree-sitter/tree-sitter-python")
-        (rust       "https://github.com/tree-sitter/tree-sitter-rust")
-        (toml       "https://github.com/tree-sitter/tree-sitter-toml")
-        (tsx        "https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src")
-        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src")
-        (yaml       "https://github.com/ikatyang/tree-sitter-yaml")))
+      '((bash       "https://github.com/tree-sitter/tree-sitter-bash"
+                    :commit "487734f87fd87118028a65a4599352fa99c9cde8")
+        (c          "https://github.com/tree-sitter/tree-sitter-c"
+                    :commit "3aa2995549d5d8b26928e8d3fa2770fd4327414e")
+        (cpp        "https://github.com/tree-sitter/tree-sitter-cpp"
+                    :commit "f41b4f66a42100be405f96bdc4ebc4a61095d3e8")
+        (cmake      "https://github.com/uyha/tree-sitter-cmake"
+                    :commit "e409ae33f00e04cde30f2bcffb979caf1a33562a")
+        (css        "https://github.com/tree-sitter/tree-sitter-css"
+                    :commit "6a442a3cf461b0ce275339e5afa178693484c927")
+        (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile"
+                    :commit "087daa20438a6cc01fa5e6fe6906d77c869d19fe")
+        (doxygen    "https://github.com/tree-sitter-grammars/tree-sitter-doxygen"
+                    :commit "1e28054cb5be80d5febac082706225e42eff14e6")
+        (go         "https://github.com/tree-sitter/tree-sitter-go"
+                    :commit "12fe553fdaaa7449f764bc876fd777704d4fb752")
+        (gomod      "https://github.com/camdencheek/tree-sitter-go-mod"
+                    :commit "3b01edce2b9ea6766ca19328d1850e456fde3103")
+        (gowork     "https://github.com/omertuc/tree-sitter-go-work"
+                    :commit "949a8a470559543857a62102c84700d291fc984c")
+        (javascript "https://github.com/tree-sitter/tree-sitter-javascript"
+                    :commit "108b2d4d17a04356a340aea809e4dd5b801eb40d")
+        (jsdoc      "https://github.com/tree-sitter/tree-sitter-jsdoc"
+                    :commit "b253abf68a73217b7a52c0ec254f4b6a7bb86665")
+        (json       "https://github.com/tree-sitter/tree-sitter-json"
+                    :commit "4d770d31f732d50d3ec373865822fbe659e47c75")
+        (lua        "https://github.com/tree-sitter-grammars/tree-sitter-lua"
+                    :commit "db16e76558122e834ee214c8dc755b4a3edc82a9")
+        (python     "https://github.com/tree-sitter/tree-sitter-python"
+                    :commit "bffb65a8cfe4e46290331dfef0dbf0ef3679de11")
+        (rust       "https://github.com/tree-sitter/tree-sitter-rust"
+                    :commit "18b0515fca567f5a10aee9978c6d2640e878671a")
+        (toml       "https://github.com/tree-sitter-grammars/tree-sitter-toml"
+                    :commit "64b56832c2cffe41758f28e05c756a3a98d16f41")
+        (tsx        "https://github.com/tree-sitter/tree-sitter-typescript"
+                    :commit "8e13e1db35b941fc57f2bd2dd4628180448c17d5"
+                    :source-dir "tsx/src")
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                    :commit "8e13e1db35b941fc57f2bd2dd4628180448c17d5"
+                    :source-dir "typescript/src")
+        (yaml       "https://github.com/tree-sitter-grammars/tree-sitter-yaml"
+                    :commit "b733d3f5f5005890f324333dd57e1f0badec5c87")))
 
 (defun my/install-missing-grammars (&optional force)
   "Compile every tree-sitter grammar that is not already available.
@@ -48,55 +90,6 @@ With prefix argument FORCE, reinstall grammars that are already present."
     (message "Grammars installed: %s%s"
              (if installed (mapconcat #'symbol-name (nreverse installed) ", ") "none")
              (if failed (format " | failed: %s" (mapcar #'car failed)) ""))))
-
-;; `treesit-language-available-p' dlopens the grammar to answer, ~5ms each
-;; and there are fifteen; at startup a file check is enough.
-(defun my/grammar-installed-p (lang)
-  "Whether the compiled grammar for LANG exists in the user grammar directory."
-  (file-exists-p (expand-file-name (format "libtree-sitter-%s%s" lang module-file-suffix)
-                                   (expand-file-name "tree-sitter" user-emacs-directory))))
-
-;; Prefer the tree-sitter major modes wherever a grammar is present.  This is
-;; the Emacs 30 idiom, and degrades to the classic mode when one is missing.
-(dolist (pair '((js-mode         . js-ts-mode)
-                (javascript-mode . js-ts-mode)
-                (python-mode     . python-ts-mode)
-                (css-mode        . css-ts-mode)
-                (json-mode       . json-ts-mode)
-                (js-json-mode    . json-ts-mode)
-                (conf-toml-mode  . toml-ts-mode)
-                (sh-mode         . bash-ts-mode)
-                (go-mode         . go-ts-mode)))
-  (when (my/grammar-installed-p
-         (intern (string-remove-suffix "-ts-mode" (symbol-name (cdr pair)))))
-    (add-to-list 'major-mode-remap-alist pair)))
-
-;; The C++ grammar is named `cpp', which the suffix rule above cannot derive,
-;; so the C family is remapped explicitly (c-or-c++-ts-mode needs both).
-(when (and (my/grammar-installed-p 'c)
-           (my/grammar-installed-p 'cpp))
-  (dolist (pair '((c-mode        . c-ts-mode)
-                  (c++-mode      . c++-ts-mode)
-                  (c-or-c++-mode . c-or-c++-ts-mode)))
-    (add-to-list 'major-mode-remap-alist pair)))
-
-(when (my/grammar-installed-p 'typescript)
-  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)))
-(when (my/grammar-installed-p 'tsx)
-  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode)))
-(when (my/grammar-installed-p 'rust)
-  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-ts-mode)))
-(when (my/grammar-installed-p 'yaml)
-  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode)))
-(when (my/grammar-installed-p 'dockerfile)
-  (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\|\\.dockerfile\\)\\'" . dockerfile-ts-mode)))
-(when (my/grammar-installed-p 'toml)
-  (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode)))
-(when (my/grammar-installed-p 'lua)
-  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode)))
-;; cmake-ts-mode registers CMakeLists.txt / *.cmake itself once its grammar
-;; is present.
 
 ;; --- Shared helpers ------------------------------------------------------
 
@@ -170,15 +163,28 @@ With prefix argument FORCE, reinstall grammars that are already present."
   (my/set-local-compile-command
    (if (my/project-file-path "CMakeLists.txt") "cmake --build build" "make -k"))
   (setq-local tab-width 4 fill-column 100)
-  (setq-local c-ts-mode-indent-offset 4)
+  (setq-local c-ts-indent-offset 4) ; `c-ts-mode-indent-offset' is obsolete in 31
   (my/eglot-ensure-when-executable "clangd"))
 
 (dolist (hook '(c-ts-mode-hook c++-ts-mode-hook))
   (add-hook hook #'my/c-mode-defaults))
 
+;; CMakeLists.txt and *.cmake open in the built-in `cmake-ts-mode';
+;; cmake-language-server adds completion and diagnostics when installed, and
+;; Apheleia formats with cmake-format (dev.el).
+(defun my/cmake-mode-defaults ()
+  "Defaults for CMake buffers."
+  (my/set-local-compile-command "cmake --build build")
+  (my/eglot-ensure-when-executable "cmake-language-server"))
+
+(add-hook 'cmake-ts-mode-hook #'my/cmake-mode-defaults)
+
+;; K&R brace placement with the 4-column offset set above.  `linux' lays
+;; braces out the same way but is the kernel style, 8-column tabs included,
+;; which contradicts the spaces-only indentation used everywhere else here.
 (use-package c-ts-mode
   :ensure nil
-  :custom (c-ts-mode-indent-style 'linux))
+  :custom (c-ts-mode-indent-style 'k&r))
 
 ;; --- Lisps: Racket and Emacs Lisp ----------------------------------------
 
@@ -287,23 +293,36 @@ With prefix argument FORCE, reinstall grammars that are already present."
          ("\\.mli\\'" . tuareg-mode))
   :hook (tuareg-mode . my/ocaml-mode-defaults))
 
-;; utop.el ships with the opam utop package, not ELPA, so the elisp always
-;; matches the installed utop binary.
+;; utop.el and dune.el ship with the opam packages of the same name, not
+;; ELPA, so the elisp always matches the installed binaries.  Their directory
+;; comes from the active switch (`opam var share') rather than a hardcoded
+;; ~/.opam/default; one short opam call at startup.
+(defconst my/opam-site-lisp
+  (when-let* ((share (and (executable-find "opam")
+                          (car (ignore-errors (process-lines "opam" "var" "share"))))))
+    (let ((dir (expand-file-name "emacs/site-lisp" share)))
+      (and (file-directory-p dir) dir)))
+  "Emacs site-lisp directory of the active opam switch, or nil without one.")
+
+(when my/opam-site-lisp
+  (add-to-list 'load-path my/opam-site-lisp))
+
+(defun my/opam-site-lisp-has-p (file)
+  "Whether FILE exists in `my/opam-site-lisp'."
+  (and my/opam-site-lisp (file-exists-p (expand-file-name file my/opam-site-lisp))))
+
 (use-package utop
   :ensure nil
-  :if (file-exists-p "~/.opam/default/share/emacs/site-lisp/utop.el")
-  :load-path "~/.opam/default/share/emacs/site-lisp"
+  :if (my/opam-site-lisp-has-p "utop.el")
   :commands (utop utop-minor-mode)
   :hook (tuareg-mode . utop-minor-mode)
   :custom
   (utop-edit-command nil))
 
-;; dune.el ships with the opam dune package: syntax for `dune',
-;; `dune-project' and `dune-workspace' files.
+;; Syntax for `dune', `dune-project' and `dune-workspace' files.
 (use-package dune
   :ensure nil
-  :if (file-exists-p "~/.opam/default/share/emacs/site-lisp/dune.el")
-  :load-path "~/.opam/default/share/emacs/site-lisp"
+  :if (my/opam-site-lisp-has-p "dune.el")
   :mode ("\\(?:\\`\\|/\\)dune\\(?:-project\\|-workspace\\)?\\'" . dune-mode))
 
 ;; Home-grown: eros-style inline evaluation results across the FP stack —
@@ -335,10 +354,10 @@ With prefix argument FORCE, reinstall grammars that are already present."
 
 ;; Merlin features plain Eglot drops: `ocaml-eglot-construct' fills a typed
 ;; hole, `ocaml-eglot-destruct' generates exhaustive match arms, plus
-;; type-driven search and enclosing-type navigation.
+;; type-driven search and enclosing-type navigation.  Its C-c C-i / C-c C-l
+;; jumps are unbound in keys.el (they shadow the tab map; xref covers them).
 (use-package ocaml-eglot
-  :after tuareg
-  :hook (tuareg-mode . ocaml-eglot))
+  :hook (tuareg-mode . ocaml-eglot-mode))
 
 ;; --- Python --------------------------------------------------------------
 

@@ -16,7 +16,7 @@ therefore exists twice — the source copy here and the applied copy in `$HOME`
 | `dot_config/ghostty/`, `dot_config/aerospace/`, `dot_config/starship.toml`, `dot_tmux.conf` | terminal, window manager, prompt, tmux | |
 | `dot_claude/` | `~/.claude/` | Claude Code user config, statusline, `skills/` |
 | `dot_gitconfig`, `dot_zprofile` | git and login-shell config | |
-| `private_dot_local/private_bin/` | `~/.local/bin/` | `dev-doctor`, plus `desktop-theme`/`desktop-wallpaper` — see "GNOME desktop" below |
+| `private_dot_local/private_bin/` | `~/.local/bin/` | `dev-doctor`, `keys`, `menu`, `theme-mode` (shared light/dark switch), plus `desktop-theme`/`desktop-wallpaper` — see "GNOME desktop" below |
 | `setup.sh` | not applied | New-machine bootstrap: installs packages only, never writes config |
 | `docs/`, `README.md`, `INSTALL.md` | not applied | Human documentation and keybinding reference |
 
@@ -52,8 +52,9 @@ apply that directory while a live-only spec exists un-added.
 
 | Tool | Command |
 | :--- | :--- |
-| Emacs | `emacs --batch -l ~/.emacs.d/init.el` — must exit 0 with no warnings |
-| Emacs (interactive) | `C-c e h` (`M-x my/emacs-health-check`) for external tools |
+| Emacs | `emacs --batch -l ~/.emacs.d/init.el` — must exit 0 with no warnings (`--batch` implies `-q`; init.el loads early-init.el and activates packages itself in that case) |
+| Emacs (daemon) | `emacs --daemon=check && emacsclient -s check -e '(car custom-enabled-themes)' && emacsclient -s check -e '(kill-emacs)'` |
+| Emacs (interactive) | `C-c e h` (`M-x my/emacs-health-check`) for external tools and grammars |
 | Neovim | `nvim --headless +qa`; deprecations: `nvim --headless '+checkhealth vim.deprecated' '+qa'` |
 | Neovim (plugins) | `nvim --headless "+Lazy! sync" +qa` after spec changes |
 | fish | `fish -n <file>` |
@@ -80,20 +81,29 @@ apply that directory while a live-only spec exists un-added.
 
 ## Emacs configuration (`dot_emacs.d/`)
 
-Emacs 30+ (31 on macOS), `use-package` with `use-package-always-ensure t` (built-in packages
-get `:ensure nil`), completion via vertico/orderless/marginalia/consult +
-corfu/cape/embark, LSP via eglot, tree-sitter major modes throughout.
+Emacs 31 (the `emacs-app` cask on macOS), `use-package` with
+`use-package-always-ensure t` (built-in packages get `:ensure nil`),
+completion via vertico/orderless/marginalia/consult + corfu/cape/embark, LSP
+via eglot, tree-sitter major modes throughout (`treesit-enabled-modes t`).
 
-### Module load order (init.el)
+### Startup and module load order
 
-`elisp/` modules load in dependency order; **keys.el must stay last** so every
-keymap it binds into already exists:
+`early-init.el` sets `package-archives` and turns on `package-quickstart`;
+package.el then activates everything itself before init.el (no manual
+`package-initialize`). init.el loads `custom.el` first, then the `elisp/`
+modules in dependency order — **keys.el must stay last** so every keymap it
+binds into already exists — and finally dispatches `my/setup-appearance`:
+immediately in a GUI session, from `server-after-make-frame-hook` under
+`emacs --daemon` (fonts, padding, ligatures and icons need a graphical frame
+to probe, so the font checks are functions, never constants).
 
-1. `core.el` — editor defaults, repeat-mode, Dired, theme, fontaine/pulsar, `my/emacs-health-check`
+1. `core.el` — editor defaults, repeat-mode, Dired/dirvish, theme, lin, fontaine/pulsar,
+   `my/setup-appearance`, `my/emacs-health-check`
 2. `completion.el` — minibuffer and in-buffer completion stack
 3. `dev.el` — project.el helpers, eglot, apheleia, magit/forge, envrc, vterm, dape
-4. `langs.el` — tree-sitter grammars/remaps and per-language hooks
-5. `notes.el` — org, denote, citar, cdlatex/org-fragtog, olivetti, jinx, org-present
+4. `langs.el` — tree-sitter (pinned `treesit-language-source-alist`) and per-language hooks
+5. `notes.el` — org, denote (+ consult-denote, denote-journal/markdown/org), citar,
+   AUCTeX, cdlatex/org-fragtog, olivetti, jinx, org-present
 6. `vim.el` — evil, evil-collection, evil-surround, evil-commentary, evil-org
    (file is `vim.el`, not `evil.el`, so it cannot shadow the evil package)
 7. `keys.el` — every global binding, including the evil `SPC` leader;
@@ -106,14 +116,24 @@ everything; `custom.el` holds only `package-selected-packages`.
 
 - **New package** → `use-package` form in the right module AND the package
   name added to `package-selected-packages` in `~/.emacs.d/custom.el`
-  (machine-local; keeps `package-autoremove` safe).
+  (machine-local; keeps `package-autoremove` safe). `M-x package-install`
+  maintains that list itself; the manual step is for packages first declared
+  in a module and installed by `use-package-always-ensure`, which does not.
 - **New external binary** → row in `my/emacs-health-checks` (core.el) and in
   `setup.sh`. Exception: Python modules (e.g. debugpy) are per-project via
   `uv add --dev`, not health-checked globally.
-- **New language** → grammar in `treesit-language-source-alist`, mode remap or
-  `auto-mode-alist` entry, a `my/<lang>-mode-defaults` hook setting
-  `compile-command` + `my/eglot-ensure-when-executable`, and entries in
-  `eglot-server-programs` (dev.el) and `apheleia-mode-alist` if applicable.
+- **New language** → grammar in `treesit-language-source-alist` (pinned to the
+  `:commit` the Emacs 31 mode declares in its own `add-to-list`), a
+  `my/<lang>-mode-defaults` hook setting `compile-command` +
+  `my/eglot-ensure-when-executable`, and an `apheleia-mode-alist` entry if
+  applicable. Mode remaps and `auto-mode-alist` come from
+  `treesit-enabled-modes`; do not hand-roll them.
+- **`eglot-server-programs`**: Emacs 31's built-in list already carries every
+  server in use, with the `:language-id` each expects (tuareg-mode →
+  "ocaml", tsx-ts-mode → "typescriptreact"). Only add an entry for a server
+  the built-in list lacks (vtsls), and give it explicit `:language-id`s; a
+  bare `(mode . ("server"))` entry shadows the built-in one and sends the
+  mode name as the language id.
 - Keybindings live in `keys.el` only, on the established `C-c` prefix maps.
   The evil leader (`SPC`) mirrors those maps; a new `C-c x` prefix map also
   gets a `<leader> x` line in the Leader section (end of keys.el).

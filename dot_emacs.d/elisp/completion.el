@@ -49,17 +49,32 @@
   :custom
   (completion-styles '(orderless basic))
   (orderless-matching-styles '(orderless-literal orderless-regexp orderless-initialism))
+  ;; Emacs's own per-category defaults (e.g. `basic' for buffers and emails)
+  ;; would otherwise win over `completion-styles' in those categories.
+  (completion-category-defaults nil)
   (completion-category-overrides '((file (styles partial-completion orderless)))))
 
+;; M-A in the minibuffer cycles between the annotators (e.g. more or less
+;; detail for files and commands).
 (use-package marginalia
-  :init (marginalia-mode))
+  :init (marginalia-mode)
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle)))
 
 (use-package consult
   :init
   (setq register-preview-delay 0.5
         register-preview-function #'consult-register-format
         xref-show-definitions-function #'consult-xref
-        xref-show-xrefs-function #'consult-xref)
+        xref-show-xrefs-function #'consult-xref
+        ;; `<' then a letter narrows consult-buffer and friends to one source.
+        consult-narrow-key "<")
+  :config
+  ;; Searches that spawn a process preview on a short pause, not every
+  ;; keystroke, so rg is not restarted for each character typed.
+  (consult-customize consult-ripgrep consult-grep consult-git-grep
+                     consult-fd consult-find
+                     :preview-key '(:debounce 0.4 any))
   :bind
   (("C-x b"   . consult-buffer)
    ("C-x C-r" . consult-recent-file)
@@ -94,7 +109,10 @@
 (use-package substitute
   :custom (substitute-highlight t))
 
+;; `C-h' after any prefix (C-c n C-h, C-x C-h) lists its keys in the
+;; minibuffer with completion instead of a help buffer.
 (use-package embark
+  :init (setq prefix-help-command #'embark-prefix-help-command)
   :bind
   (("C-."   . embark-act)
    ("C-h B" . embark-bindings)))
@@ -181,16 +199,26 @@ nothing matches, so `a<b' comparisons are unaffected."
   (add-hook 'prog-mode-hook #'my/setup-prog-completion)
   (add-hook 'text-mode-hook #'my/setup-text-completion))
 
+;; Icons in minibuffer candidates and the Corfu popup, when a Nerd Font is
+;; installed.  That is a question for the display, so the setup runs from
+;; `my/setup-appearance-hook' (core.el) once a GUI frame exists -- under a
+;; daemon, not at load time.
 (use-package nerd-icons-completion
-  :if my/nerd-font-installed-p
-  :after marginalia
-  :config (nerd-icons-completion-mode)
-  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
+  :defer t)
 
 (use-package nerd-icons-corfu
-  :if my/nerd-font-installed-p
-  :after corfu
-  :config (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  :defer t)
+
+(defun my/setup-completion-icons ()
+  "Show nerd-icons in marginalia annotations and the Corfu popup."
+  (when (my/nerd-font-installed-p)
+    (require 'nerd-icons-completion)
+    (nerd-icons-completion-mode 1)
+    (nerd-icons-completion-marginalia-setup)
+    (require 'nerd-icons-corfu)
+    (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)))
+
+(add-hook 'my/setup-appearance-hook #'my/setup-completion-icons)
 
 (provide 'completion)
 ;;; completion.el ends here

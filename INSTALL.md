@@ -54,7 +54,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
   Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl)
 - ML/AI & Scientific: jupyterlab and ipython (uv tools), pandoc, typst, ollama, dvisvgm (Org LaTeX previews)
 - MLOps (via uv tool): mlflow, dvc, tensorboard
-- LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext and cmake-language-server (uv tools), texlab (macOS), shellcheck, enchant (spellcheck)
+- LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext, cmake-language-server and cmake-format (uv tools), texlab (macOS), shellcheck, enchant (spellcheck)
 - Emacs pdf-tools build deps: poppler, automake
 - Treesitter: tree-sitter CLI (parser compilation for Neovim)
 - Git: gh, lazygit, git-delta

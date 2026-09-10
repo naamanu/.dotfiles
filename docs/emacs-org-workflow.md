@@ -24,7 +24,7 @@ Org owns three files under `~/org/`:
 | :--- | :--- |
 | `inbox.org` | Tasks and unsorted ideas |
 | `projects.org` | Active and someday project work |
-| `journal.org` | Dated entries |
+| `journal.org` | Older dated entries; new ones are Denote journal notes (`C-c n j`) |
 
 ### Capture
 
@@ -35,7 +35,6 @@ Org owns three files under `~/org/`:
 | `t` | Todo | `inbox.org` → Tasks |
 | `i` | Idea | `inbox.org` → Ideas |
 | `p` | Project task | `projects.org` → Active |
-| `j` | Journal | `journal.org` datetree |
 
 Finish with `C-c C-c`, abandon with `C-c C-k`. Each capture records a
 `CREATED` timestamp and a link back to the exact file and line you were
@@ -188,7 +187,7 @@ Denote
 
 Org files
   C-c n i      inbox             C-c n p     projects
-  C-c n j      journal
+  C-c n j      today's journal note (Denote)
 
 Writing / presenting
   M-$          spellcheck        C-c t o     centred text

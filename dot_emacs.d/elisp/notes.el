@@ -15,14 +15,35 @@
   (expand-file-name (or (getenv "BIBLIOGRAPHY") "references.bib") my/notes-directory)
   "Shared BibTeX bibliography.")
 
+(defconst my/org-directory (file-name-as-directory (expand-file-name "~/org"))
+  "Org agenda and capture files.  Denote notes live in `my/notes-directory'.")
+
+(defun my/org-file (name)
+  "Return the path of NAME inside `my/org-directory'."
+  (expand-file-name name my/org-directory))
+
+(defun my/find-org-inbox ()
+  "Open the Org inbox (C-c n i)."
+  (interactive)
+  (find-file (my/org-file "inbox.org")))
+
+(defun my/find-org-projects ()
+  "Open the Org projects file (C-c n p)."
+  (interactive)
+  (find-file (my/org-file "projects.org")))
+
 ;; --- Org -----------------------------------------------------------------
 
 (use-package org
   :ensure nil
   :custom
-  (org-directory "~/org/")
-  (org-default-notes-file "~/org/inbox.org")
-  (org-agenda-files '("~/org/inbox.org" "~/org/projects.org" "~/org/journal.org"))
+  (org-directory my/org-directory)
+  (org-default-notes-file (my/org-file "inbox.org"))
+  ;; journal.org holds the entries captured before denote-journal took over
+  ;; (C-c n j, below); it stays on the agenda for those.
+  (org-agenda-files (list (my/org-file "inbox.org")
+                          (my/org-file "projects.org")
+                          (my/org-file "journal.org")))
   (org-todo-keywords
    '((sequence "TODO(t)" "NEXT(n)" "WAIT(w@)" "|" "DONE(d)" "CANCELLED(c@)")))
   (org-tag-alist '(("@research" . ?r) ("@coding" . ?c) ("@writing" . ?w) ("@admin" . ?a)))
@@ -40,14 +61,18 @@
   (org-refile-use-outline-path 'file)
   (org-outline-path-complete-in-steps nil)
   (org-capture-templates
-   '(("t" "Todo" entry (file+headline "~/org/inbox.org" "Tasks")
+   `(("t" "Todo" entry (file+headline ,(my/org-file "inbox.org") "Tasks")
       "* TODO %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i\n%a")
-     ("i" "Idea" entry (file+headline "~/org/inbox.org" "Ideas")
+     ("i" "Idea" entry (file+headline ,(my/org-file "inbox.org") "Ideas")
       "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i\n%a")
-     ("p" "Project task" entry (file+headline "~/org/projects.org" "Active")
-      "* NEXT %^{Task}\n:PROPERTIES:\n:CREATED: %U\n:END:\n%a\n\n** Notes\n%?")
-     ("j" "Journal" entry (file+olp+datetree "~/org/journal.org")
-      "* %?\nEntered on %U\n")))
+     ("p" "Project task" entry (file+headline ,(my/org-file "projects.org") "Active")
+      "* NEXT %^{Task}\n:PROPERTIES:\n:CREATED: %U\n:END:\n%a\n\n** Notes\n%?")))
+  ;; org-cite: the shared bibliography, with citar as the processor (its
+  ;; autoloads register it the moment org-cite loads).
+  (org-cite-global-bibliography (list my/bibliography-file))
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar)
   :hook (org-mode . visual-line-mode)
   :config
   (setq org-agenda-custom-commands
@@ -86,16 +111,31 @@
   ;; Show the readable title in the buffer name rather than the raw filename.
   (denote-rename-buffer-mode 1))
 
-(defun my/denote-search ()
-  "Ripgrep across all Denote notes."
-  (interactive)
-  (consult-ripgrep denote-directory))
+;; Denote's prompts through consult, with previews: `consult-denote-find' and
+;; `consult-denote-grep' (C-c n f / C-c n s) replace a bare find-file and
+;; ripgrep in the notes directory, and the mode adds a notes source to
+;; `consult-buffer'.
+(use-package consult-denote
+  :after denote
+  :custom
+  (consult-denote-grep-command #'consult-ripgrep)
+  (consult-denote-find-command (if (executable-find "fd") #'consult-fd #'consult-find))
+  :config (consult-denote-mode 1))
 
-(defun my/denote-find ()
-  "Find a Denote note by filename."
-  (interactive)
-  (let ((default-directory denote-directory))
-    (call-interactively #'find-file)))
+;; Link conversion for Markdown notes (Denote <-> Obsidian <-> plain file
+;; paths), the format `denote-file-type' selects above.
+(use-package denote-markdown
+  :after denote)
+
+;; Org extras: dynamic blocks of links and backlinks, links to headings.
+(use-package denote-org
+  :after (denote org))
+
+;; Journal entries as Denote notes -- one file per day in the `journal'
+;; subdirectory, keyword `journal' -- instead of an Org datetree.  `C-c n j'
+;; opens today's entry, creating it if needed.
+(use-package denote-journal
+  :after denote)
 
 ;; --- Papers and bibliography ---------------------------------------------
 
@@ -108,27 +148,27 @@
   :custom (pdf-view-use-scaling t)) ; crisp text on retina displays
 
 ;; One bibliography for everything: org-cite inserts citations (C-c C-x @),
-;; citar browses, previews and opens entries.
-;; Loads with Org (which registers the citar org-cite processors); the
-;; `citar-open' binding is autoloaded for use outside Org.
+;; citar browses, previews and opens entries.  Its commands are autoloaded
+;; and citar-org's autoloads register the org-cite processors when org-cite
+;; loads, so nothing here waits for Org: `citar-open' (C-c n c) works in a
+;; Markdown-only session too.
 (use-package citar
-  :after org
+  :defer t
   :custom
-  (citar-bibliography (list my/bibliography-file))
-  (org-cite-global-bibliography (list my/bibliography-file))
-  (org-cite-insert-processor 'citar)
-  (org-cite-follow-processor 'citar)
-  (org-cite-activate-processor 'citar))
+  (citar-bibliography (list my/bibliography-file)))
 
-;; Literature notes as Denote files: `citar-open' (C-c n c) gains actions to
-;; create and revisit a note per bibliography entry.
+;; Literature notes as Denote files: `citar-open' gains actions to create
+;; and revisit a note per bibliography entry.
 (use-package citar-denote
-  :after (citar denote)
+  :after citar
   :config (citar-denote-mode 1))
+
+(declare-function citar-select-ref "citar")
 
 (defun my/citar-insert-pandoc ()
   "Insert a Pandoc citation using the shared bibliography."
   (interactive)
+  (require 'citar)
   (when-let* ((key (citar-select-ref)))
     (insert (format "[@%s]" key))))
 
@@ -151,18 +191,43 @@
 (add-hook 'org-mode-hook #'variable-pitch-mode)
 (add-hook 'markdown-mode-hook #'variable-pitch-mode)
 
-;; --- Math ------------------------------------------------------------------
+;; --- LaTeX and math ------------------------------------------------------
 
-;; cdlatex needs `texmathp' (is point inside math?), which ships with AUCTeX;
-;; without it `org-cdlatex-mode' errors in every Org buffer's mode hook.
-;; AUCTeX also makes .tex files first class (`LaTeX-mode', preview).
+;; AUCTeX makes .tex files first class: `C-c C-c' runs latexmk, the PDF opens
+;; in pdf-tools and SyncTeX links source and PDF both ways (`C-c C-v', or a
+;; click in the PDF); RefTeX handles labels, references and citations; texlab
+;; adds completion and diagnostics through Eglot when installed (the built-in
+;; `eglot-server-programs' already maps LaTeX-mode to it).  AUCTeX also
+;; supplies `texmathp' (is point inside math?), without which
+;; `org-cdlatex-mode' errors in every Org buffer.
+(declare-function TeX-source-correlate-mode "tex")
+(declare-function TeX-revert-document-buffer "tex")
+
+(defun my/latex-mode-defaults ()
+  "Defaults for AUCTeX LaTeX buffers."
+  (setq-local TeX-command-default "LaTeXMk")
+  (TeX-source-correlate-mode 1)
+  (reftex-mode 1)
+  (my/eglot-ensure-when-executable "texlab"))
+
 (use-package auctex
-  :defer t)
+  :defer t
+  :custom
+  (TeX-parse-self t)                     ; parse on open, for completion and RefTeX
+  (TeX-source-correlate-start-server t)  ; let the viewer jump back to the source
+  (TeX-view-program-selection '((output-pdf "PDF Tools")))
+  (reftex-plug-into-AUCTeX t)
+  :hook (LaTeX-mode . my/latex-mode-defaults))
+
+;; `auctex' the feature is never loaded as such (tex-site autoloads `tex' and
+;; `latex'), so hooks on its internals go through the real library.
+(with-eval-after-load 'tex
+  ;; Refresh the PDF buffer once a compile finishes.
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
 
 ;; Fast LaTeX math entry inside Org: ` opens a symbol menu, _ and ^ insert
 ;; scripts with braces, TAB expands templates like fr and env names.
 (use-package cdlatex
-  :after auctex
   :hook (org-mode . org-cdlatex-mode))
 
 ;; Render a LaTeX fragment when the cursor leaves it, un-render on re-entry.
@@ -189,7 +254,8 @@
 (defun my/org-present-start ()
   "Enter a distraction-free presentation view."
   (org-present-big)
-  (org-display-inline-images)
+  ;; Org 9.8 renamed `org-display-inline-images' to this.
+  (org-link-preview-region t t (point-min) (point-max))
   (org-present-hide-cursor)
   (org-present-read-only)
   (display-line-numbers-mode -1)
@@ -198,7 +264,7 @@
 (defun my/org-present-stop ()
   "Restore the buffer after presenting."
   (org-present-small)
-  (org-remove-inline-images)
+  (org-link-preview-clear (point-min) (point-max))
   (org-present-show-cursor)
   (org-present-read-write))
 

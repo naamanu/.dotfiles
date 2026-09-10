@@ -57,7 +57,7 @@ From then on:
 | `C-c p P` | Switch project and jump straight to find-file |
 | `C-c p f` | Find a file in the current project |
 | `C-c p b` | Switch buffer within the project |
-| `C-c p o` | Open the project root in Dired |
+| `C-c p o` | Find a file from the project root (new files too; `C-c p D` is Dired there) |
 
 `C-c p f` matches with Orderless, so `src ts` finds `src/index.ts`. Fragments may be typed in any order and need not be contiguous.
 
@@ -151,7 +151,7 @@ Place the cursor on `wordFrequency` inside `topWords`:
 | `C-c l a` | Code actions, including import fixes |
 | `C-c l i` | Find implementation |
 | `C-c l e` | List diagnostics for the buffer |
-| `M-g n` / `M-g p` | Next / previous error |
+| `C-c l n` / `C-c l p` | Next / previous diagnostic (`M-g f` lists them) |
 
 `C-c l r` performs a real project-wide rename through the language server, not a text substitution.
 

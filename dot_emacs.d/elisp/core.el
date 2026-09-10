@@ -4,10 +4,11 @@
 
 ;; Restore a working GC threshold now that startup is done.  64MB keeps GC
 ;; pauses rare during LSP and completion bursts without hoarding memory.
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (* 64 1024 1024)
-                  gc-cons-percentage 0.1)))
+(defun my/restore-gc-threshold ()
+  "Lower the GC threshold early-init.el raised for startup."
+  (setq gc-cons-threshold (* 64 1024 1024)
+        gc-cons-percentage 0.1))
+(add-hook 'emacs-startup-hook #'my/restore-gc-threshold)
 
 ;; --- Responsiveness ------------------------------------------------------
 
@@ -29,8 +30,7 @@
 (setq bidi-inhibit-bpa t)
 
 ;; Smooth trackpad scrolling.
-(when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode 1))
+(pixel-scroll-precision-mode 1)
 
 (defconst my/cache-dir (expand-file-name "var/" user-emacs-directory)
   "Directory for cache-like state that should never be version controlled.")
@@ -90,18 +90,33 @@
 
 (column-number-mode 1)
 (electric-pair-mode 1)
+(setq show-paren-delay 0) ; read when the mode starts, so it must come first
 (show-paren-mode 1)
-(setq show-paren-delay 0)
+
+(defun my/show-trailing-whitespace ()
+  "Make trailing whitespace visible in this buffer."
+  (setq show-trailing-whitespace t))
 
 (setq display-line-numbers-type 'relative)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
-(add-hook 'prog-mode-hook (lambda () (setq show-trailing-whitespace t)))
+(add-hook 'prog-mode-hook #'my/show-trailing-whitespace)
 (add-hook 'text-mode-hook #'visual-line-mode)
 
 (setq scroll-margin 3
       scroll-conservatively 101
       scroll-preserve-screen-position t)
+
+(defun my/escape-dwim ()
+  "Quit whatever is in progress without touching the window layout.
+Bound to ESC in keys.el.  `keyboard-escape-quit' would be the obvious
+choice, but with nothing to quit it runs `delete-other-windows', which is
+never what ESC in a split should do."
+  (interactive)
+  (cond ((region-active-p) (deactivate-mark))
+        ((> (minibuffer-depth) 0) (abort-minibuffers))
+        ((> (recursion-depth) 0) (exit-recursive-edit))
+        (t (keyboard-quit))))
 
 ;; Jump to any visible position from a couple of characters.
 (use-package avy
@@ -162,6 +177,8 @@
   (dired-vc-rename-file t)
   :hook (dired-mode . dired-hide-details-mode)
   :config
+  ;; `a' visits a directory in the same buffer; Emacs disables it by default.
+  (put 'dired-find-alternate-file 'disabled nil)
   (if (executable-find "gls")
       (setq insert-directory-program "gls"
             dired-listing-switches "-AGFhlv --group-directories-first")
@@ -208,14 +225,21 @@ Use `my/sidebar-focus' (C-c t S / SPC O) to jump into an open sidebar."
 
 ;; --- Appearance ----------------------------------------------------------
 
+;; Everything below that depends on the display -- fonts, padding, ligatures,
+;; icons -- is applied by `my/setup-appearance' (end of this section), which
+;; init.el runs right away in a GUI session and from
+;; `server-after-make-frame-hook' under `emacs --daemon'.  So the font probes
+;; are functions, not constants: a daemon has no display when this file
+;; loads and `font-family-list' is empty until the first GUI frame exists.
+
 (defun my/font-installed-p (family)
-  "Return non-nil when FAMILY is available."
+  "Return non-nil when FAMILY is available on the selected frame's display."
   (member family (font-family-list)))
 
-(defconst my/nerd-font-installed-p
+(defun my/nerd-font-installed-p ()
+  "Whether any Nerd Font is present, for icon-dependent packages."
   (and (display-graphic-p)
-       (seq-some (lambda (f) (string-match-p "Nerd Font" f)) (font-family-list)))
-  "Whether any Nerd Font is present, for icon-dependent packages.")
+       (seq-some (lambda (f) (string-match-p "Nerd Font" f)) (font-family-list))))
 
 ;; Plain modus is pure white on pure black (#ffffff / #000000).  The `-tinted'
 ;; pair uses a warmer background and a distinctly different syntax palette,
@@ -292,15 +316,15 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
   ;; comes up light.  `C-c t t' flips it, and everything else with it.
   (my/apply-theme-mode))
 
-;; Padding around windows and a subtle, borderless mode line.
+;; Padding around windows and a subtle, borderless mode line.  Enabled from
+;; `my/setup-appearance'.
 (use-package spacious-padding
-  :if (display-graphic-p)
+  :defer t
   :custom
   (spacious-padding-widths
    '(:internal-border-width 12 :header-line-width 4 :mode-line-width 4
      :tab-width 4 :right-divider-width 16 :scroll-bar-width 0 :fringe-width 8))
-  (spacious-padding-subtle-mode-line t)
-  :config (spacious-padding-mode 1))
+  (spacious-padding-subtle-frame-lines t))
 
 ;; One tab per workspace, named after its project.  Tabs hold window
 ;; layouts, not buffers, so `SPC b' is still how you move between files.
@@ -325,10 +349,19 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
 (use-package breadcrumb
   :hook ((prog-mode text-mode) . breadcrumb-local-mode))
 
-;; Highlight the current line where it helps orientation, not in prose.
-(dolist (hook '(prog-mode-hook dired-mode-hook tabulated-list-mode-hook
-                magit-mode-hook compilation-mode-hook))
+;; Highlight the current line where it helps orientation, not in prose.  In
+;; code and compilation output the plain highlight is enough.
+(dolist (hook '(prog-mode-hook compilation-mode-hook))
   (add-hook hook #'hl-line-mode))
+
+;; In selection buffers -- Dired, tabulated lists, grep/occur, xref, Magit
+;; logs -- Prot's `lin' draws the same highlight as a clearer selection bar
+;; that does not fight the buffer's own faces (Magit's section highlight
+;; used to double up with a second hl-line).  Its default hook list covers
+;; all of those.
+(use-package lin
+  :custom (lin-face 'lin-blue)
+  :config (lin-global-mode 1))
 
 ;; Indentation guides, tree-sitter aware where a grammar is present.  The
 ;; NS build cannot draw stipples, so on macOS the guides are characters.
@@ -351,17 +384,17 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
   :hook (prog-mode . hl-todo-mode))
 
 ;; Ligatures for the operators these fonts draw specially (Iosevka Comfy,
-;; Commit Mono, FiraCode and JetBrains Mono all support this set).
+;; Commit Mono, FiraCode and JetBrains Mono all support this set).  The
+;; global mode is switched on from `my/setup-appearance'.
 (use-package ligature
-  :if (display-graphic-p)
+  :defer t
   :config
   (ligature-set-ligatures
    'prog-mode
    '("->" "->>" "-<" "<-" "<--" "<->" "=>" "==>" "<=>" "<==" "=>>" ">>=" "=<<"
      "==" "!=" "===" "!==" "<=" ">=" "<<" ">>" "<<<" ">>>" "::" ":::" "..."
      ".." "&&" "||" "|>" "<|" "<|>" "//" "/*" "*/" "++" "+++" "--" "__" "~>"
-     "<~" "~~" "~=" "/=" "=~" "#{" "#(" "#_" "#?" "#[" ";;" ":=" "=:" "<>"))
-  (global-ligature-mode 1))
+     "<~" "~~" "~=" "/=" "=~" "#{" "#(" "#_" "#?" "#[" ";;" ":=" "=:" "<>")))
 
 ;; Candidate monospace families, in preference order: preset name, family,
 ;; weight, and a height adjustment in tenths of a point (Iosevka is narrow
@@ -375,27 +408,25 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
     (inconsolata "Inconsolata Nerd Font"  regular 5))
   "Monospace families to offer as fontaine presets.")
 
-(defconst my/mono-families
-  (seq-filter (lambda (c) (my/font-installed-p (nth 1 c))) my/mono-candidates)
-  "The installed subset of `my/mono-candidates'.")
-
-(defconst my/mono-family (nth 1 (car my/mono-families))
-  "Preferred monospace family, for packages that need one outside fontaine.")
+(defun my/mono-families ()
+  "Return the installed subset of `my/mono-candidates'."
+  (seq-filter (lambda (c) (my/font-installed-p (nth 1 c))) my/mono-candidates))
 
 ;; Prose face for org/markdown (`variable-pitch-mode' in notes.el).  Charter
 ;; ships with macOS; without any of these, prose stays monospace.
-(defconst my/prose-family
-  (seq-find #'my/font-installed-p '("Charter" "Georgia"))
-  "Proportional family for `variable-pitch'.")
+(defun my/prose-family ()
+  "Return a proportional family for `variable-pitch', or nil."
+  (seq-find #'my/font-installed-p '("Charter" "Georgia")))
 
-(defun my/fontaine-presets ()
-  "Build fontaine presets: one per installed family, plus a large and a
-presentation size of each (`iosevka', `iosevka-large', `iosevka-present').
-`fixed-pitch' anchors to the same family so code blocks and tables in
-mixed-font buffers match code buffers exactly."
+(defun my/fontaine-presets (families)
+  "Build fontaine presets from FAMILIES, entries of `my/mono-candidates'.
+One preset per family, plus a large and a presentation size of each
+\(`iosevka', `iosevka-large', `iosevka-present').  `fixed-pitch' anchors to
+the same family so code blocks and tables in mixed-font buffers match code
+buffers exactly."
   (let ((base (if (eq system-type 'darwin) 160 130))
         presets)
-    (pcase-dolist (`(,name ,family ,weight ,adjust) my/mono-families)
+    (pcase-dolist (`(,name ,family ,weight ,adjust) families)
       (dolist (size `((""         . ,(+ base adjust))
                       ("-large"   . ,(+ base adjust 35))
                       ("-present" . ,(+ base adjust 105))))
@@ -408,36 +439,45 @@ mixed-font buffers match code buffers exactly."
     (append (nreverse presets)
             `((t :bold-weight semibold
                  :fixed-pitch-height 1.0
-                 :variable-pitch-family ,my/prose-family
+                 :variable-pitch-family ,(my/prose-family)
                  :variable-pitch-height 1.05)))))
 
 ;; `C-c t f' switches family or size live; the last choice persists across
-;; sessions.  The `t' entry holds the shared defaults.
+;; sessions.  The `t' entry holds the shared defaults.  Presets are built
+;; and applied by `my/setup-fonts' once a GUI frame exists.
 (use-package fontaine
-  :if (and (display-graphic-p) my/mono-families)
+  :defer t
   :custom
-  (fontaine-latest-state-file (expand-file-name "fontaine-latest-state.eld" my/cache-dir))
-  :config
-  (setq fontaine-presets (my/fontaine-presets))
-  (fontaine-mode 1)
-  (let ((saved (fontaine-restore-latest-preset)))
-    (fontaine-set-preset (if (assq saved fontaine-presets)
-                             saved
-                           (caar my/mono-families)))))
+  (fontaine-latest-state-file (expand-file-name "fontaine-latest-state.eld" my/cache-dir)))
+
+(defun my/setup-fonts ()
+  "Build the fontaine presets from the installed families and apply one.
+Restores the preset chosen last session when it still exists, else the
+first installed candidate.  No-op when none of the families is installed."
+  (when-let* ((families (my/mono-families)))
+    (require 'fontaine)
+    (setq fontaine-presets (my/fontaine-presets families))
+    (fontaine-mode 1)
+    (let ((saved (fontaine-restore-latest-preset)))
+      (fontaine-set-preset (if (assq saved fontaine-presets)
+                               saved
+                             (caar families))))))
 
 ;; Icon glyphs live in the Unicode private-use areas.  Fonts like Iosevka
 ;; Comfy and Commit Mono have nothing there, and macOS fallback only covers
 ;; the older U+E000 block, so the Material Design range (U+F0000+) used by
 ;; nerd-icons and doom-modeline rendered as hex boxes.  Route both ranges to
 ;; the symbols-only Nerd Font whatever the main family is.
-(defconst my/symbol-font
+(defun my/symbol-font ()
+  "Return the family that supplies Nerd Font icon glyphs, or nil."
   (seq-find #'my/font-installed-p
-            '("Symbols Nerd Font Mono" "JetBrainsMono Nerd Font" "FiraCode Nerd Font"))
-  "Family that supplies Nerd Font icon glyphs.")
+            '("Symbols Nerd Font Mono" "JetBrainsMono Nerd Font" "FiraCode Nerd Font")))
 
-(when (and (display-graphic-p) my/symbol-font)
-  (dolist (range '((#xe000 . #xf8ff) (#xf0000 . #xfffff)))
-    (set-fontset-font t range my/symbol-font nil 'prepend)))
+(defun my/setup-symbol-fontset ()
+  "Route the private-use icon ranges to `my/symbol-font' in every frame."
+  (when-let* ((font (my/symbol-font)))
+    (dolist (range '((#xe000 . #xf8ff) (#xf0000 . #xfffff)))
+      (set-fontset-font t range font nil 'prepend))))
 
 ;; Briefly highlight the current line after jumps and window switches, so
 ;; the eye finds point without hunting.
@@ -456,8 +496,10 @@ mixed-font buffers match code buffers exactly."
     (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry))
   (pulsar-global-mode 1))
 
+;; Icon glyphs for dirvish, doom-modeline and the completion UI; whether they
+;; are shown is decided per display in `my/setup-appearance'.
 (use-package nerd-icons
-  :if my/nerd-font-installed-p)
+  :defer t)
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -468,23 +510,48 @@ mixed-font buffers match code buffers exactly."
   (doom-modeline-bar-width 4)
   (doom-modeline-project-detection 'project)
   (doom-modeline-buffer-file-name-style 'relative-from-project)
-  (doom-modeline-icon my/nerd-font-installed-p)
-  (doom-modeline-major-mode-icon my/nerd-font-installed-p)
   (doom-modeline-minor-modes nil)
   :init (doom-modeline-mode 1))
+
+(defvar my/appearance-ready nil
+  "Non-nil once `my/setup-appearance' has run against a GUI frame.")
+
+(defvar my/setup-appearance-hook nil
+  "Run by `my/setup-appearance' after the core setup, with a GUI frame selected.
+Other modules add their display-dependent setup here (completion.el: icons).")
+
+(defun my/setup-appearance ()
+  "Apply everything that needs a GUI frame: fonts, padding, ligatures, icons.
+Runs once.  init.el calls it directly in a normal GUI session and from
+`server-after-make-frame-hook' under `emacs --daemon', where the first
+frame may be a terminal one -- then this waits for the first graphical
+frame and unhooks itself afterwards."
+  (when (and (not my/appearance-ready) (display-graphic-p))
+    (setq my/appearance-ready t)
+    (remove-hook 'server-after-make-frame-hook #'my/setup-appearance)
+    (my/setup-fonts)
+    (my/setup-symbol-fontset)
+    (let ((icons (and (my/nerd-font-installed-p) t)))
+      (setq doom-modeline-icon icons
+            doom-modeline-major-mode-icon icons))
+    (spacious-padding-mode 1)
+    (global-ligature-mode 1)
+    (run-hooks 'my/setup-appearance-hook)))
 
 ;; --- Health check --------------------------------------------------------
 
 (defconst my/emacs-health-checks
   '((required "git"                      "Magit, Forge, and project detection")
     (required "rg"                       "Project search via consult")
-    (required "node"                     "TypeScript and JavaScript toolchain")
-    (optional "fd"                       "Faster file finding")
+    (optional "fd"                       "Faster file finding (consult-fd)")
     (optional "uv"                       "Python environments and runner")
     (optional "direnv"                   "envrc: per-project environments")
     (optional "jupytext"                 "code-cells: .ipynb editing")
     (optional "latex"                    "Org LaTeX previews")
     (optional "dvisvgm"                  "Org LaTeX previews (SVG backend)")
+    (optional "latexmk"                  "AUCTeX compile command (C-c C-c)")
+    (optional "texlab"                   "LaTeX LSP")
+    (optional "node"                     "TypeScript / JavaScript toolchain (vtsls, prettier)")
     (optional "vtsls"                    "TypeScript / JavaScript LSP")
     (optional "gopls"                    "Go LSP")
     (optional "goimports"                "Go imports and format")
@@ -496,17 +563,28 @@ mixed-font buffers match code buffers exactly."
     (optional "shellcheck"               "Shell lint")
     (optional "shfmt"                    "Shell format")
     (optional "rust-analyzer"            "Rust LSP")
+    (optional "rustfmt"                  "Rust format")
     (optional "ocamllsp"                 "OCaml LSP")
     (optional "clangd"                   "C/C++ LSP (Xcode CLT or llvm)")
     (optional "clang-format"             "C/C++ format")
+    (optional "bear"                     "compile_commands.json for clangd in Makefile projects")
+    (optional "cmake"                    "CMake builds (C/C++ compile command)")
+    (optional "cmake-language-server"    "CMake LSP")
+    (optional "cmake-format"             "CMake format")
     (optional "basedpyright-langserver"  "Python LSP")
     (optional "yaml-language-server"     "YAML LSP")
     (optional "docker-langserver"        "Dockerfile LSP")
+    (optional "vscode-json-language-server" "JSON LSP")
+    (optional "vscode-css-language-server"  "CSS LSP")
     (optional "ruff"                     "Python lint and format")
     (optional "prettier"                 "Web, JSON, YAML, Markdown format")
     (optional "sql-formatter"            "SQL format")
     (optional "ocamlformat"              "OCaml format")
+    (optional "opam"                     "OCaml switch; utop.el and dune.el come from its share dir")
+    (optional "dune"                     "OCaml build, test and utop")
     (optional "utop"                     "OCaml REPL (ships utop.el)")
+    (optional "cabal"                    "Haskell build and test")
+    (optional "raco"                     "Racket packages and `raco test'")
     (optional "lldb-dap"                 "dape: Rust / native debugging")
     (optional "gh"                       "Forge authentication")
     (optional "enchant-2"                "jinx spellchecker backend")
@@ -514,7 +592,10 @@ mixed-font buffers match code buffers exactly."
     (optional "sml"                      "SML/NJ REPL for sml-mode")
     (optional "millet-ls"                "Standard ML LSP")
     (optional "ipython"                  "Richer Python REPL (falls back to python3)")
-    (optional "gls"                      "GNU ls: Dired directories-first listing"))
+    (optional "gls"                      "GNU ls: Dired directories-first listing")
+    (optional "theme-mode"               "Shared light/dark switch behind C-c t t")
+    (optional "codex"                    "Terminal coding agent (C-c g g); or set DEV_AGENT")
+    (optional "claude"                   "Terminal coding agent, fallback"))
   "External tools this configuration expects, checked by `my/emacs-health-check'.
 debugpy is deliberately absent: it is a Python module dape resolves through
 the project environment, so install it per project with `uv add --dev debugpy'.")
@@ -536,12 +617,13 @@ the project environment, so install it per project with `uv add --dev debugpy'."
                           command
                           (if (eq kind 'required) "required" "optional")
                           description))))
+      ;; Every grammar langs.el knows how to build; (!) marks a missing one,
+      ;; which `C-c e g' (`my/install-missing-grammars') compiles.
       (insert (format "\nGrammars: %s\n"
                       (mapconcat
                        (lambda (l)
                          (format "%s%s" l (if (treesit-language-available-p l) "" "(!)")))
-                       '(typescript tsx javascript rust python c cpp cmake lua
-                         bash yaml json toml dockerfile)
+                       (mapcar #'car treesit-language-source-alist)
                        " ")))
       ;; vterm builds a native module against the system libvterm; without
       ;; its headers the build fails and vterm reports libvterm as missing.

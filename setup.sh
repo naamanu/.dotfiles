@@ -986,6 +986,7 @@ if command -v uv &> /dev/null; then
     uv tool install jupytext || FAILED_PACKAGES+=(jupytext)
     # CMake language server for the systems track (both editors gate on it).
     uv tool install cmake-language-server || FAILED_PACKAGES+=(cmake-language-server)
+    uv tool install cmakelang || FAILED_PACKAGES+=(cmake-format)
 fi
 
 # Install Node.js LTS via fnm

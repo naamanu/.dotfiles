@@ -7,13 +7,19 @@
 ;;           C-c TAB tabs (workspaces).
 ;; Evil: the same prefixes under SPC in normal/visual state (see Leader).
 ;; Package-owned bindings kept on their upstream defaults: consult's M-g /
-;; M-s maps (completion.el), expreg on C-= (completion.el), dape, magit.
+;; M-s maps and marginalia's M-A (completion.el), expreg on C-= (completion.el),
+;; dape, magit.
+;; Known shadows: Org and Markdown bind C-c ' (edit block) and C-c TAB in
+;; their own maps, so in those buffers the terminal toggle and the tab map
+;; are reached from the leader (SPC ' / SPC TAB) or via M-x.
 
 ;;; Code:
 
 ;; --- Global --------------------------------------------------------------
 
-(global-set-key (kbd "<escape>") #'keyboard-escape-quit)
+;; ESC quits the thing in progress (region, minibuffer, recursive edit,
+;; running command) and nothing else -- see `my/escape-dwim' in core.el.
+(global-set-key (kbd "<escape>") #'my/escape-dwim)
 (global-set-key (kbd "M-o") #'other-window)
 (global-set-key (kbd "C-c w") #'delete-window)
 ;; Also works inside the terminal: vterm passes C-c through to Emacs.
@@ -62,26 +68,31 @@
 (define-key my/search-map (kbd "f") #'consult-fd)
 (define-key my/search-map (kbd "d") #'consult-flymake)
 ;; C-c s u {b,d,r,s}: substitute in buffer / defun / below (rest) / above (start).
-(with-eval-after-load 'substitute
-  (define-key my/search-map (kbd "u") substitute-prefix-map))
+;; The map is an autoloaded keymap symbol: bound by name, it loads
+;; substitute on first use.
+(define-key my/search-map (kbd "u") 'substitute-prefix-map)
 
 ;; --- Projects ------------------------------------------------------------
 
-(with-eval-after-load 'project
-  (global-set-key (kbd "C-c p") project-prefix-map)
-  (define-key project-prefix-map (kbd "p") #'project-switch-project)
-  (define-key project-prefix-map (kbd "P") #'my/project-switch-find-file)
-  (define-key project-prefix-map (kbd "f") #'project-find-file)
-  (define-key project-prefix-map (kbd "b") #'project-switch-to-buffer)
-  (define-key project-prefix-map (kbd "a") #'my/project-remember-current)
-  (define-key project-prefix-map (kbd "d") #'project-find-dir)
-  (define-key project-prefix-map (kbd "D") #'project-dired)
-  (define-key project-prefix-map (kbd "o") #'my/project-open-root)
-  (define-key project-prefix-map (kbd "s") #'my/project-search)
-  (define-key project-prefix-map (kbd "m") #'my/project-compile)
-  (define-key project-prefix-map (kbd "t") #'my/project-test)
-  (define-key project-prefix-map (kbd "v") #'my/project-vterm)
-  (define-key project-prefix-map (kbd "g") #'my/project-agent))
+;; A map of our own rather than `project-prefix-map', which stays pristine
+;; for `C-x p' and for the menu `project-switch-project' shows (find-regexp,
+;; shell, vc-dir, any-command...).
+(defvar my/project-map (make-sparse-keymap) "Project commands.")
+(global-set-key (kbd "C-c p") my/project-map)
+(define-key my/project-map (kbd "p") #'project-switch-project)
+(define-key my/project-map (kbd "P") #'my/project-switch-find-file)
+(define-key my/project-map (kbd "f") #'project-find-file)
+(define-key my/project-map (kbd "o") #'project-root-find-file) ; new files too
+(define-key my/project-map (kbd "b") #'project-switch-to-buffer)
+(define-key my/project-map (kbd "a") #'project-remember-project)
+(define-key my/project-map (kbd "d") #'project-find-dir)
+(define-key my/project-map (kbd "D") #'project-dired)
+(define-key my/project-map (kbd "s") #'my/project-search)
+(define-key my/project-map (kbd "m") #'project-compile)
+(define-key my/project-map (kbd "t") #'my/project-test)
+(define-key my/project-map (kbd "v") #'my/project-vterm)
+(define-key my/project-map (kbd "g") #'my/project-agent)
+(define-key my/project-map (kbd "k") #'project-kill-buffers)
 
 ;; --- LSP -----------------------------------------------------------------
 
@@ -96,11 +107,10 @@
   (define-key eglot-mode-map (kbd "C-c l s") #'consult-eglot-symbols)
   (define-key eglot-mode-map (kbd "C-c l e") #'flymake-show-buffer-diagnostics)
   (define-key eglot-mode-map (kbd "C-c l n") #'flymake-goto-next-error)
-  (define-key eglot-mode-map (kbd "C-c l p") #'flymake-goto-prev-error))
-
-(with-eval-after-load 'flymake
-  (define-key flymake-mode-map (kbd "M-g n") #'flymake-goto-next-error)
-  (define-key flymake-mode-map (kbd "M-g p") #'flymake-goto-prev-error))
+  (define-key eglot-mode-map (kbd "C-c l p") #'flymake-goto-prev-error)
+  (define-key eglot-mode-map (kbd "C-c l h") #'eglot-inlay-hints-mode))
+;; Diagnostics are also on M-g f (consult-flymake) and `[e ]e'; M-g n / M-g p
+;; keep their stock meaning, `next-error' / `previous-error'.
 
 ;; --- Debugging -----------------------------------------------------------
 
@@ -122,13 +132,13 @@
 (define-key my/notes-map (kbd "l") #'denote-link)
 (define-key my/notes-map (kbd "b") #'denote-backlinks)
 (define-key my/notes-map (kbd "r") #'denote-rename-file)
-(define-key my/notes-map (kbd "f") #'my/denote-find)
-(define-key my/notes-map (kbd "s") #'my/denote-search)
+(define-key my/notes-map (kbd "f") #'consult-denote-find)
+(define-key my/notes-map (kbd "s") #'consult-denote-grep)
+(define-key my/notes-map (kbd "j") #'denote-journal-new-or-existing-entry)
 (define-key my/notes-map (kbd "c") #'citar-open)
 (define-key my/notes-map (kbd "C") #'my/citar-insert-pandoc)
-(define-key my/notes-map (kbd "i") (lambda () (interactive) (find-file "~/org/inbox.org")))
-(define-key my/notes-map (kbd "p") (lambda () (interactive) (find-file "~/org/projects.org")))
-(define-key my/notes-map (kbd "j") (lambda () (interactive) (find-file "~/org/journal.org")))
+(define-key my/notes-map (kbd "i") #'my/find-org-inbox)
+(define-key my/notes-map (kbd "p") #'my/find-org-projects)
 
 (global-set-key (kbd "C-c c") #'org-capture)
 (global-set-key (kbd "C-c a") #'org-agenda)
@@ -145,6 +155,12 @@
   (define-key tuareg-mode-map (kbd "C-c i q") #'mli-lens-quit))
 (with-eval-after-load 'dune
   (define-key dune-mode-map (kbd "C-c b") #'dune-transient))
+
+;; ocaml-eglot binds C-c C-i (= C-c TAB, the tab map) and C-c C-l to
+;; declaration/definition jumps that xref already covers (gd, C-c l d).
+(with-eval-after-load 'ocaml-eglot
+  (keymap-unset ocaml-eglot-mode-map "C-c C-i" 'remove)
+  (keymap-unset ocaml-eglot-mode-map "C-c C-l" 'remove))
 
 ;; --- FP inline evaluation (fp-repl) ---------------------------------------
 
@@ -166,8 +182,11 @@
 
 ;; Only REPLs with real Emacs support; for node, a project vterm (C-c p v)
 ;; beats a bare comint buffer.  utop qualifies: utop.el speaks a dedicated
-;; -emacs protocol with completion and phrase evaluation.  In-buffer bindings
-;; (C-c C-c / C-c C-l / C-c C-z) come from each mode; these only open REPLs.
+;; -emacs protocol with completion and phrase evaluation.  Haskell uses the
+;; GHCi session of `interactive-haskell-mode' (langs.el), the one C-c C-l
+;; loads into -- not the older inf-haskell `run-haskell', a second REPL that
+;; knew nothing about it.  In-buffer bindings (C-c C-c / C-c C-l / C-c C-z)
+;; come from each mode; these only open REPLs.
 (defvar my/repl-map (make-sparse-keymap) "Language REPLs.")
 (global-set-key (kbd "C-c f") my/repl-map)
 (define-key my/repl-map (kbd "p") #'run-python)
@@ -176,7 +195,7 @@
 (define-key my/repl-map (kbd "o") #'utop)
 (define-key my/repl-map (kbd "r") #'racket-repl)
 (define-key my/repl-map (kbd "m") #'sml-run)
-(define-key my/repl-map (kbd "h") #'run-haskell)
+(define-key my/repl-map (kbd "h") #'haskell-interactive-switch)
 
 ;; --- Leader (evil) -------------------------------------------------------
 
@@ -184,6 +203,8 @@
 ;; is `C-c p f'.  Extra leader keys that have no C-c twin: SPC SPC (M-x),
 ;; SPC b (buffers), SPC v (Magit), SPC w (windows), SPC ; (comment).
 (with-eval-after-load 'evil
+  ;; Same ESC as everywhere else (core.el): quit, never rearrange windows.
+  (define-key evil-normal-state-map (kbd "<escape>") #'my/escape-dwim)
   (evil-define-key '(normal visual motion) 'global
     (kbd "<leader> SPC") #'execute-extended-command
     (kbd "<leader> b")   #'consult-buffer
@@ -196,6 +217,7 @@
     (kbd "<leader> c")   #'org-capture
     (kbd "<leader> a")   #'org-agenda
     (kbd "<leader> j")   #'avy-goto-char-timer
+    (kbd "<leader> p")   my/project-map
     (kbd "<leader> s")   my/search-map
     (kbd "<leader> n")   my/notes-map
     (kbd "<leader> d")   my/debug-map
@@ -211,9 +233,6 @@
   (evil-define-key '(normal motion) 'global
     (kbd "gt") #'tab-bar-switch-to-next-tab
     (kbd "gT") #'tab-bar-switch-to-prev-tab)
-  (with-eval-after-load 'project
-    (evil-define-key '(normal visual motion) 'global
-      (kbd "<leader> p") project-prefix-map))
   ;; Vim habits: gd / gr / K on top of xref and eldoc, everywhere.
   (evil-define-key 'normal 'global
     (kbd "gd") #'xref-find-definitions

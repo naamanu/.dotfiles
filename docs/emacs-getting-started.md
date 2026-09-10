@@ -197,7 +197,7 @@ Changed lines are marked in the gutter (diff-hl) as you edit.
 
 ## 7. Notes and tasks (org)
 
-Three files live in `~/org/`: `inbox.org`, `projects.org`, `journal.org`.
+Two files live in `~/org/`: `inbox.org` and `projects.org`; the journal is a Denote note per day (`C-c n j`).
 
 **Capture** from anywhere with `C-c c`, then pick a template:
 
@@ -222,7 +222,7 @@ capture from inside code.
 
 In a heading, set state with `C-c C-t` (or cycle with `S-→`): **TODO → NEXT → WAIT →
 DONE/CANCELLED**. Tag with `@research`, `@coding`, `@writing`, `@admin`. Quick file
-access: `C-c n i` (inbox), `C-c n p` (projects), `C-c n j` (journal).
+access: `C-c n i` (inbox), `C-c n p` (projects); `C-c n j` opens today's Denote journal entry.
 
 > **Practice** — `C-c c`, `t`, write a task, `C-c C-c`. Then `C-c a`, `d` to see it on the dashboard.
 
@@ -310,7 +310,7 @@ This config is built so you can *find* commands instead of recalling them:
 | Jump to a symbol          | `C-c s i`                              |
 | Go to definition          | `C-c l d` (back: `M-,`)                |
 | Rename symbol             | `C-c l r`                              |
-| Next / previous error     | `M-g n` / `M-g p`                      |
+| Next / previous diagnostic | `C-c l n` / `C-c l p`                 |
 | Compile / test            | `C-c p m` / `C-c p t`                  |
 | Project shell             | `C-c p v`                              |
 | Git                       | `C-x g` (`'` for pull requests)        |

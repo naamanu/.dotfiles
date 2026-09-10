@@ -36,23 +36,19 @@
         evil-search-module 'isearch
         ;; Shift width follows the buffer's indentation.
         evil-shift-width 2)
-  :custom
-  ;; Where modal editing gets in the way of a REPL or a special buffer,
-  ;; start in insert or emacs state.  evil-collection covers most of these;
-  ;; these are the ones it leaves alone.
-  (evil-insert-state-modes '(utop-mode racket-repl-mode inferior-sml-mode inferior-python-mode
-                             inferior-haskell-mode))
-  (evil-emacs-state-modes '(dape-info-parent-mode dape-repl-mode))
   :config
+  ;; REPL buffers start in insert state.  evil's own
+  ;; `evil-insert-state-modes' already lists comint, utop, racket-repl,
+  ;; haskell-interactive, inferior-sml and inferior-python, so there is
+  ;; nothing to add; setting the variable here would *replace* that list.
+  ;; evil-collection gives dape's buffers their Vim keys in normal state.
   ;; Leader lives in keys.el; declare it here so `evil-define-key' forms
   ;; using <leader> resolve.
   (evil-set-leader '(normal visual motion) (kbd "SPC"))
-  ;; Escape gets out of everything, including the minibuffer.
-  (define-key evil-normal-state-map (kbd "<escape>") #'keyboard-escape-quit)
   (evil-mode 1))
 
 ;; Vim-style bindings for Magit, Dired, vterm, pdf-tools, Org agenda,
-;; compilation, xref, Corfu and the rest.
+;; compilation, xref, Corfu, dape and the rest.
 (use-package evil-collection
   :after evil
   :custom

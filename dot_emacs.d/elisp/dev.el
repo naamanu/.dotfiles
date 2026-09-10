@@ -4,32 +4,23 @@
 
 ;; --- Projects ------------------------------------------------------------
 
+;; project.el (Emacs 31) covers the basics itself: `project-remember-project'
+;; is a command, `project-root-find-file' is find-file from the root (new
+;; files included), `project-dired' opens the root, `project-compile' builds
+;; there.  Only the pieces with no built-in twin live here.
+
 (defun my/project-root ()
-  "Return the current project root, or signal an error."
-  (expand-file-name
-   (project-root (or (project-current t)
-                     (user-error "Not in a project")))))
-
-(defun my/project-read-root ()
-  "Prompt for a known project and return its root directory."
-  (expand-file-name (project-prompt-project-dir)))
-
-(defun my/project-open-root ()
-  "Open Dired at the current project root."
-  (interactive)
-  (dired (my/project-root)))
+  "Return the current project root, prompting for one outside a project."
+  (expand-file-name (project-root (project-current t))))
 
 (defun my/project-switch-find-file ()
-  "Switch to a known project and immediately find a file in it."
+  "Switch to a known project and go straight to `project-find-file'.
+`project-switch-project' normally shows its command menu first; binding
+`project-switch-commands' to one command skips it while keeping the
+built-in prompt, history and project list."
   (interactive)
-  (let ((default-directory (my/project-read-root)))
-    (project-find-file)))
-
-(defun my/project-remember-current ()
-  "Record the current directory as a known project."
-  (interactive)
-  (project-remember-project (expand-file-name default-directory))
-  (message "Remembered project: %s" (expand-file-name default-directory)))
+  (let ((project-switch-commands #'project-find-file))
+    (call-interactively #'project-switch-project)))
 
 (defun my/project-search ()
   "Ripgrep the current project."
@@ -89,19 +80,11 @@ Values are either a literal string or a function returning one.")
      ((and (symbolp entry) (fboundp entry)) (funcall entry))
      (t compile-command))))
 
-(defun my/project-compile ()
-  "Compile from the project root, saving modified buffers first."
-  (interactive)
-  (let ((default-directory (my/project-root)))
-    (save-some-buffers t)
-    (call-interactively #'project-compile)))
-
 (defun my/project-test ()
   "Run a mode-appropriate test command from the project root."
   (interactive)
   (let ((default-directory (my/project-root))
         (compile-command (my/project-default-test-command)))
-    (save-some-buffers t)
     (call-interactively #'compile)))
 
 (use-package project
@@ -111,7 +94,10 @@ Values are either a literal string or a function returning one.")
    '(".envrc" "package.json" "pyproject.toml" "Cargo.toml" "dune-project" "justfile"))
   :config
   (setq project-list-file (expand-file-name "projects" my/cache-dir)
-        compilation-scroll-output 'first-error))
+        compilation-scroll-output 'first-error
+        ;; `compile' and `project-compile' save modified buffers silently
+        ;; instead of asking about each one, as an IDE would.
+        compilation-ask-about-save nil))
 
 ;; Applies each project's direnv environment buffer-locally, so PATH,
 ;; VIRTUAL_ENV and friends resolve per project — LSP servers, ruff and
@@ -164,6 +150,12 @@ Values are either a literal string or a function returning one.")
   (when (executable-find command)
     (eglot-ensure)))
 
+(defun my/eglot-completion-styles ()
+  "Let orderless match the server's candidates in Eglot-managed buffers."
+  (setq-local completion-category-overrides
+              '((eglot (styles orderless basic))
+                (file (styles partial-completion)))))
+
 ;; Deferred: `eglot-ensure' is autoloaded, so Eglot loads with the first
 ;; buffer that wants it rather than at startup (it pulls in ert, jsonrpc,
 ;; xref, flymake...).
@@ -183,29 +175,22 @@ Values are either a literal string or a function returning one.")
   ;; a regexp against variable names, so "flymake" also matches
   ;; `flymake-diagnostic-functions' and prevents Eglot from installing its
   ;; diagnostics backend — silently disabling every LSP diagnostic.
-  ;; Eglot enables eldoc and flymake itself; do not hook them on again here.
-  (dolist (entry
-           '(((js-ts-mode typescript-ts-mode tsx-ts-mode) . ("vtsls" "--stdio"))
-             ((rust-ts-mode)      . ("rust-analyzer"))
-             ((go-ts-mode)        . ("gopls"))
-             ((haskell-mode)      . ("haskell-language-server-wrapper" "--lsp"))
-             ((lua-ts-mode)       . ("lua-language-server"))
-             ((bash-ts-mode)      . ("bash-language-server" "start"))
-             ((c-ts-mode c++-ts-mode) . ("clangd"))
-             ((tuareg-mode)       . ("ocamllsp"))
-             ((sml-mode)          . ("millet-ls"))
-             ((python-ts-mode)    . ("basedpyright-langserver" "--stdio"))
-             ((json-ts-mode)      . ("vscode-json-language-server" "--stdio"))
-             ((css-ts-mode)       . ("vscode-css-language-server" "--stdio"))
-             ((yaml-ts-mode)      . ("yaml-language-server" "--stdio"))
-             ((dockerfile-ts-mode). ("docker-langserver" "--stdio"))))
-    (add-to-list 'eglot-server-programs entry))
-  (add-hook 'eglot-managed-mode-hook
-            (lambda ()
-              (setq-local completion-category-defaults nil
-                          completion-category-overrides
-                          '((eglot (styles orderless basic))
-                            (file (styles partial-completion)))))))
+  ;; Eglot enables eldoc, flymake and (where the server offers them) inlay
+  ;; hints itself; do not hook them on again here.  `C-c l h' toggles hints.
+  ;;
+  ;; Emacs 31's own `eglot-server-programs' already lists every server this
+  ;; config uses -- rust-analyzer, gopls, clangd, ocamllsp, basedpyright,
+  ;; millet, the vscode json/css servers, ... -- together with the
+  ;; `:language-id' each expects (tuareg-mode -> "ocaml", tsx-ts-mode ->
+  ;; "typescriptreact").  Re-adding entries here shadows those and loses the
+  ;; ids, so the only addition is vtsls, which the built-in list does not
+  ;; know; pushed to the front, it wins over typescript-language-server.
+  (add-to-list 'eglot-server-programs
+               '(((js-ts-mode :language-id "javascript")
+                  (typescript-ts-mode :language-id "typescript")
+                  (tsx-ts-mode :language-id "typescriptreact"))
+                 . ("vtsls" "--stdio")))
+  (add-hook 'eglot-managed-mode-hook #'my/eglot-completion-styles))
 
 ;; Workspace-wide symbol search through the language server (`C-c l s').
 (use-package consult-eglot
@@ -228,11 +213,23 @@ Values are either a literal string or a function returning one.")
   :if (executable-find "ruff")
   :init
   (defun my/flymake-ruff-after-eglot ()
-    (when (derived-mode-p 'python-base-mode)
+    "Add ruff's diagnostics once Eglot manages a Python buffer.
+The hook also runs when Eglot shuts down, so only act while it is on."
+    (when (and (derived-mode-p 'python-base-mode)
+               (bound-and-true-p eglot--managed-mode))
       (flymake-ruff-load)))
   (add-hook 'eglot-managed-mode-hook #'my/flymake-ruff-after-eglot))
 
 ;; --- Formatting ----------------------------------------------------------
+
+(defun my/apheleia-inhibit-in-notes-p ()
+  "Non-nil in buffers under the Denote directory, so Apheleia stays off there.
+Prettier would reflow every Markdown note on save; Denote manages their
+front matter and links itself.  `my/notes-directory' (notes.el) is the
+fallback for the second before denote itself has loaded."
+  (when-let* ((dir (or (bound-and-true-p denote-directory)
+                       (bound-and-true-p my/notes-directory))))
+    (and buffer-file-name (file-in-directory-p buffer-file-name dir))))
 
 ;; Apheleia formats asynchronously on save without moving point.
 (use-package apheleia
@@ -249,6 +246,7 @@ Values are either a literal string or a function returning one.")
      (rust-ts-mode       . rustfmt)
      (c-ts-mode          . clang-format)
      (c++-ts-mode        . clang-format)
+     (cmake-ts-mode      . cmake-format)
      (go-ts-mode         . goimports)
      (haskell-mode       . ormolu)
      (lua-ts-mode        . stylua)
@@ -259,9 +257,15 @@ Values are either a literal string or a function returning one.")
   (setf (alist-get 'goimports apheleia-formatters) '("goimports"))
   ;; Without a project .clang-format, leave the buffer alone rather than
   ;; imposing LLVM style; formatting stays project-opt-in like ocamlformat.
-  (push "--fallback-style=none" (cddr (assq 'clang-format apheleia-formatters)))
+  ;; The whole command is spelled out, rather than spliced into apheleia's
+  ;; own list, so reloading this file stays idempotent.
+  (setf (alist-get 'clang-format apheleia-formatters)
+        '("clang-format" "--fallback-style=none" "-assume-filename"
+          (or (apheleia-formatters-local-buffer-file-name)
+              (apheleia-formatters-mode-extension)
+              ".c")))
+  (add-to-list 'apheleia-inhibit-functions #'my/apheleia-inhibit-in-notes-p)
   (apheleia-global-mode 1))
-
 
 (use-package restclient
   :mode ("\\.http\\'" . restclient-mode))
@@ -289,7 +293,9 @@ Values are either a literal string or a function returning one.")
   :config (diff-hl-flydiff-mode 1))
 
 ;; Editable grep buffers: export from consult with `C-.' then E, edit, C-c C-c.
-(use-package wgrep)
+;; Loads with the first grep buffer (its autoloads hook grep-mode).
+(use-package wgrep
+  :defer t)
 
 ;; --- Terminal ------------------------------------------------------------
 

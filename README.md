@@ -101,10 +101,7 @@ Machine-local Emacs overrides belong in:
 - `~/.emacs.d/local-pre.el`
 - `~/.emacs.d/local-post.el`
 
-Starter examples are included in the chezmoi source:
-
-- `dot_emacs.d/local-pre.el.example`
-- `dot_emacs.d/local-post.el.example`
+Neither file is tracked; create them by hand when a machine needs an override (for example a different default font size in `local-pre.el`).
 
 Inside Emacs, run `C-c e h` for a quick health check of required and optional external tools.
 

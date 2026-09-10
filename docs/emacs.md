@@ -12,11 +12,12 @@
 
 ---
 
-A small, modern Emacs 30+ configuration (31 on macOS) for software engineering
-and research: roughly 1750 lines across seven modules, with 58 packages.
-Everything Emacs now
-does well enough on its own — projects, LSP, diagnostics, tree-sitter,
-which-key, editorconfig — is used from the built-ins rather than replaced.
+A small, modern Emacs 31 configuration for software engineering and
+research: roughly 2400 lines across seven modules, with 72 ELPA packages.
+Everything Emacs now does well enough on its own — projects, LSP,
+diagnostics, tree-sitter modes and grammar sources, which-key, editorconfig —
+is used from the built-ins rather than replaced. It also runs as a daemon:
+fonts, padding and icons are applied when the first graphical frame appears.
 
 Run `C-c e h` on a new machine. It reports every external tool the config
 expects and is the fastest way to find a missing language server.
@@ -25,16 +26,19 @@ expects and is the fastest way to find a missing language server.
 
 ```text
 ~/.emacs.d/
-  early-init.el        GC, UI chrome, native-comp guard
-  init.el              package bootstrap, ordered module loading
+  early-init.el        GC, package archives + quickstart, UI chrome, native-comp guard
+  init.el              custom.el, ordered module loading, appearance dispatch (daemon-aware)
   elisp/
     core.el            editor defaults, repeat-mode, dired/dirvish, theme, fontaine,
-                       spacious-padding, tab-bar, breadcrumb, indent-bars, health check
+                       spacious-padding, lin, tab-bar, breadcrumb, indent-bars,
+                       my/setup-appearance, health check
     completion.el      vertico, orderless, marginalia, consult, embark, corfu, cape, tempel
     dev.el             project, terminal toggle, eglot, flymake-ruff, apheleia, magit,
                        forge, diff-hl, vterm, dape
-    langs.el           tree-sitter grammars and per-language setup
-    notes.el           org, denote, org-modern, olivetti, jinx, org-present
+    langs.el           tree-sitter (treesit-enabled-modes, pinned grammar sources) and
+                       per-language setup
+    notes.el           org, denote (+ consult/journal/markdown/org), citar, AUCTeX,
+                       org-modern, olivetti, jinx, org-present
     vim.el             evil + evil-collection/surround/commentary/org
     keys.el            every global binding and the SPC leader, loaded last
   templates            tempel snippets per major mode
@@ -78,7 +82,8 @@ into already exists.
 | Standard ML | `sml-mode` | millet-ls | — |
 | Python | `python-ts-mode` | basedpyright (+ flymake-ruff) | ruff isort + format |
 | C / C++ | `c-ts-mode`, `c++-ts-mode` | clangd | clang-format (project opt-in) |
-| CMake | `cmake-ts-mode` | — | — |
+| CMake | `cmake-ts-mode` | cmake-language-server | cmake-format |
+| LaTeX | AUCTeX `LaTeX-mode` (+ RefTeX, pdf-tools) | texlab | — (latexmk compiles) |
 | Go | `go-ts-mode` | gopls | goimports |
 | Lua | `lua-ts-mode` | lua-language-server | stylua |
 | Shell | `bash-ts-mode` | bash-language-server | shfmt |
@@ -90,7 +95,10 @@ into already exists.
 
 Emacs ships tree-sitter support but no grammars. Install them once with
 `C-c e g` (`my/install-missing-grammars`); they compile into
-`~/.emacs.d/tree-sitter/`.
+`~/.emacs.d/tree-sitter/`, each from the commit the Emacs 31 mode was tested
+with (`treesit-language-source-alist` in langs.el). The tree-sitter modes
+replace the classic ones through Emacs 31's own `treesit-enabled-modes`;
+opening a file whose grammar is missing offers to build it on the spot.
 
 Formatting runs on save through Apheleia, asynchronously, without moving
 point.
@@ -124,14 +132,16 @@ alongside basedpyright, since Eglot runs one server per buffer.
   (Lisps only), avy, ws-butler, built-in `repeat-mode`
 - **Development** — apheleia, flymake-ruff, wgrep, vterm, dape
 - **Appearance** — modus-themes (vivendi-tinted, borderless), spacious-padding,
-  fontaine (font presets), pulsar, doom-modeline, breadcrumb, indent-bars,
-  hl-todo, ligature, nerd-icons (plus completion and corfu variants),
-  rainbow-delimiters, built-in tab-bar workspaces
+  fontaine (font presets), pulsar, lin (selection bar in Dired, Magit logs,
+  grep...), doom-modeline, breadcrumb, indent-bars, hl-todo, ligature,
+  nerd-icons (plus completion and corfu variants), rainbow-delimiters,
+  built-in tab-bar workspaces
 - **Files** — dirvish (icons, preview, git state, `dirvish-side` sidebar) over Dired
 - **Languages** — tuareg, ocaml-eglot, haskell-mode, racket-mode, sml-mode,
   markdown-mode, csv-mode, code-cells
-- **Notes and writing** — denote, org-modern, olivetti, jinx, org-present
-- **Research** — Denote Markdown, Citar, PDF Tools
+- **Notes and writing** — denote (+ consult-denote, denote-journal,
+  denote-markdown, denote-org), org-modern, olivetti, jinx, org-present
+- **Research** — Citar (+ citar-denote), AUCTeX with RefTeX, PDF Tools
 
 `package-selected-packages` in `custom.el` is kept in sync with the
 `use-package` declarations, which is what makes `M-x package-autoremove` safe
@@ -208,12 +218,16 @@ state; `ESC` gets you to normal state for scrolling and copying.
 | `C-c p P` | Switch project and find a file |
 | `C-c p f` | Find file in project |
 | `C-c p b` | Switch buffer in project |
-| `C-c p a` | Remember this directory as a project |
-| `C-c p d` / `D` | Find directory / Dired |
-| `C-c p o` | Dired at project root |
-| `C-c p m` | Compile |
+| `C-c p a` | Remember this project |
+| `C-c p d` / `D` | Find directory / Dired at the root |
+| `C-c p o` | Find file from the project root (new files too) |
+| `C-c p m` | Compile (saves modified buffers first) |
 | `C-c p t` | Test (mode-aware) |
+| `C-c p k` | Kill the project's buffers |
 | `C-c p v` | Project terminal (one per project; `C-c '` / `SPC '` toggles it on the right) |
+
+`C-x p` is the stock `project-prefix-map`, untouched, with the rest
+(`project-find-regexp`, `project-shell`, `project-vc-dir`, ...).
 
 `C-c p t` picks its command from the major mode: the project's npm, pnpm,
 yarn or bun `test` script for TS and JS, else `cargo test`, `dune test`,
@@ -233,11 +247,13 @@ in a uv project).
 | `C-c l f` | Format buffer |
 | `C-c l s` | Workspace symbol search |
 | `C-c l e` | Buffer diagnostics |
-| `C-c l n` / `p` | Next / previous error |
+| `C-c l n` / `p` | Next / previous diagnostic |
+| `C-c l h` | Toggle inlay hints (on by default where the server offers them) |
 
-`M-g n` and `M-g p` also move between diagnostics; in evil, `gd` / `gr` /
-`gi` / `gy` / `K` cover definition, references, implementation, type and
-documentation.  OCaml adds Merlin features through ocaml-eglot: `C-c C-t`
+`M-g f` lists diagnostics through consult; `M-g n` / `M-g p` keep their
+stock `next-error` meaning for compilation and grep buffers. In evil, `gd` /
+`gr` / `gi` / `gy` / `K` cover definition, references, implementation, type
+and documentation.  OCaml adds Merlin features through ocaml-eglot: `C-c C-t`
 type of enclosing expression (repeat to widen), `C-c \\` construct,
 `C-c |` destruct, `C-c C-a` alternate `.ml`/`.mli`.
 
@@ -276,9 +292,10 @@ Adapters: `debugpy` for Python, `lldb-dap` for Rust and native code.
 | `C-c n l` | Insert a link to another note |
 | `C-c n b` | Backlinks |
 | `C-c n r` | Rename / retag |
-| `C-c n f` | Find a note |
-| `C-c n s` | Ripgrep all notes |
-| `C-c n i` / `p` / `j` | Inbox / projects / journal |
+| `C-c n f` | Find a note (consult, with preview) |
+| `C-c n s` | Grep all notes (consult-ripgrep) |
+| `C-c n j` | Today's journal entry — a Denote note under `notes/journal/` |
+| `C-c n i` / `p` | Org inbox / projects |
 | `C-c c` | Org capture |
 | `C-c a` | Org agenda (`C-c a d` for the dashboard) |
 
@@ -316,17 +333,25 @@ Pause after any prefix and which-key lists what follows.
 
 ## External tools
 
-Required: `git`, `rg`, `node`.
+Required: `git`, `rg`.
 
-Expected but optional: `vtsls`, `rust-analyzer`, `ocamllsp`,
-`basedpyright-langserver`, `haskell-language-server-wrapper`, `millet-ls`,
-`racket`, `sml`, `yaml-language-server`, `docker-langserver`, `ruff`,
-`prettier`, `sql-formatter`, `ocamlformat`, `ormolu`, `debugpy`, `lldb-dap`,
-`jupytext`, `ipython`, `gh`, `enchant`, `fd`, `gls`.
+Expected but optional: `node`, `vtsls`, `rust-analyzer`, `rustfmt`,
+`ocamllsp`, `opam`, `dune`, `basedpyright-langserver`,
+`haskell-language-server-wrapper`, `cabal`, `millet-ls`, `racket`, `raco`,
+`sml`, `yaml-language-server`, `docker-langserver`,
+`vscode-json-language-server`, `vscode-css-language-server`, `clangd`,
+`clang-format`, `bear`, `cmake`, `cmake-language-server`, `cmake-format`,
+`texlab`, `latexmk`, `ruff`, `prettier`, `sql-formatter`, `ocamlformat`,
+`ormolu`, `debugpy`, `lldb-dap`, `jupytext`, `ipython`, `gh`, `enchant`,
+`fd`, `gls`, `theme-mode`, `codex` or `claude`. `C-c e h` is the
+authoritative list.
 
 ```sh
 npm install -g vtsls yaml-language-server \
-               dockerfile-language-server-nodejs sql-formatter prettier
+               dockerfile-language-server-nodejs sql-formatter prettier \
+               vscode-langservers-extracted
+uv tool install cmake-language-server cmakelang   # CMake LSP and cmake-format
+brew install texlab                                 # LaTeX LSP (optional)
 uv tool install basedpyright jupytext ipython
 brew install rust-analyzer minimal-racket smlnj millet coreutils
 brew install ghc cabal-install haskell-language-server ormolu
