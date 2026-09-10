@@ -24,6 +24,28 @@ set -u
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/theme-mode"
 STARSHIP_LIGHT="${XDG_CACHE_HOME:-$HOME/.cache}/starship/light.toml"
 
+# Editor sockets. Linux puts them under $XDG_RUNTIME_DIR; macOS has no such
+# directory, so Neovim uses $TMPDIR/nvim.$USER/<random>/ and Emacs
+# $TMPDIR/emacs<uid>/. Both layouts are probed so the same script works on
+# either platform.
+nvim_sockets() {
+    local s
+    for s in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*/0 \
+             "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.* \
+             "${TMPDIR:-/tmp}/nvim.${USER}"/*/nvim.*; do
+        [ -S "$s" ] && printf '%s\n' "$s"
+    done
+}
+
+emacs_socket() {
+    local s
+    for s in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/emacs/server" \
+             "${TMPDIR:-/tmp}/emacs$(id -u)/server"; do
+        [ -S "$s" ] && { printf '%s\n' "$s"; return 0; }
+    done
+    return 1
+}
+
 current_mode() {
     case "$([ -r "$STATE_FILE" ] && cat "$STATE_FILE")" in
         light) echo light ;;
@@ -85,19 +107,18 @@ push_tmux() {
 push_nvim() {
     command -v nvim >/dev/null 2>&1 || return 0
     local sock
-    for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*; do
-        [ -S "$sock" ] || continue
+    while IFS= read -r sock; do
         nvim --server "$sock" --remote-expr \
             "luaeval(\"require('naamanu.theme').apply(_A)\", '$1')" >/dev/null 2>&1 || true
-    done
+    done < <(nvim_sockets)
 }
 
 # Only when a server is actually up: emacsclient without one blocks or errors.
 push_emacs() {
     command -v emacsclient >/dev/null 2>&1 || return 0
-    local sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/emacs/server"
-    [ -S "$sock" ] || return 0
-    emacsclient --eval "(my/apply-theme-mode \"$1\")" >/dev/null 2>&1 || true
+    local sock
+    sock="$(emacs_socket)" || return 0
+    emacsclient -s "$sock" --eval "(my/apply-theme-mode \"$1\")" >/dev/null 2>&1 || true
 }
 
 # starship cannot pick a palette from the environment, so the light variant is
@@ -292,18 +313,17 @@ check() {
     fi
 
     local socks=0 nmode="" sock
-    for sock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*; do
-        [ -S "$sock" ] || continue
+    while IFS= read -r sock; do
         socks=$((socks + 1))
         nmode="$(nvim --server "$sock" --remote-expr 'luaeval("vim.o.background")' 2>/dev/null)"
         status_for "$mode" "$nmode"; row nvim "$nmode  ($(basename "$sock"))" "$STATUS"
-    done
+    done < <(nvim_sockets)
     [ "$socks" -eq 0 ] && row nvim "not running" "-"
 
-    local esock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/emacs/server"
-    if [ -S "$esock" ] && command -v emacsclient >/dev/null 2>&1; then
+    local esock
+    if esock="$(emacs_socket)" && command -v emacsclient >/dev/null 2>&1; then
         local etheme emode
-        etheme="$(emacsclient --eval '(format "%s" (car custom-enabled-themes))' 2>/dev/null | tr -d \"\\\"\")"
+        etheme="$(emacsclient -s "$esock" --eval '(format "%s" (car custom-enabled-themes))' 2>/dev/null | tr -d \"\\\"\")"
         case "$etheme" in *operandi*) emode=light ;; *vivendi*) emode=dark ;; *) emode="$etheme" ;; esac
         status_for "$mode" "$emode"; row emacs "$etheme" "$STATUS"
     else

@@ -5,14 +5,29 @@
 # modus_vivendi (tinted) and modus_operandi, so the shell and the editors are
 # the same numbers and drift together or not at all.
 #
-# This file replaces conf.d/fish_frozen_theme.fish, which pinned fish's stock
-# ANSI theme. fish's own note in that file says to delete it and set the theme
-# yourself. It sorts after "fish_..." so it still wins if a later fish upgrade
-# drops that file back in.
+# fish 4.x writes conf.d/fish_frozen_theme.fish on upgrade to pin its stock
+# ANSI theme; this file sorts after "fish_..." so it still wins if that file
+# ever reappears. conf.d is an exact_ directory in chezmoi, so the frozen file
+# is removed on apply.
 
 set -g __modus_starship_light (
     test -n "$XDG_CACHE_HOME"; and echo $XDG_CACHE_HOME; or echo $HOME/.cache
 )/starship/light.toml
+
+# The universal variable is how theme-mode(1) reaches shells that are already
+# open. A shell on a fresh machine has no universal variable yet, so it falls
+# back to the state file every other tool reads -- otherwise fish would come up
+# dark while tmux, started from the same file, comes up light.
+if not set -q __theme_mode
+    set -l state_file (
+        test -n "$XDG_STATE_HOME"; and echo $XDG_STATE_HOME; or echo $HOME/.local/state
+    )/theme-mode
+    if test -r $state_file; and test (string trim < $state_file) = light
+        set -g __theme_mode light
+    else
+        set -g __theme_mode dark
+    end
+end
 
 function __modus_dark --description 'modus-vivendi-tinted palette'
     set -g fish_color_normal         ffffff             # Normal
@@ -80,12 +95,18 @@ function __modus_apply --description 'Apply the palette for the current theme mo
     set -g fish_color_history_current --bold
     set -g fish_color_cancel -r
 
+    # bat and delta (git's pager) pick a syntax theme by name, so they are
+    # switched here alongside starship rather than left dark-on-light.
     if test "$__theme_mode" = light
         __modus_light
         set -gx STARSHIP_CONFIG $__modus_starship_light
+        set -gx BAT_THEME GitHub
+        set -gx DELTA_FEATURES +light
     else
         __modus_dark
         set -e STARSHIP_CONFIG
+        set -gx BAT_THEME ansi
+        set -e DELTA_FEATURES
     end
 end
 
