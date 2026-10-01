@@ -51,7 +51,15 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - Languages: Node.js (fnm), Python (uv), Rust (rustup, with rust-analyzer/clippy/rustfmt), Go, Lua
 - C/C++: clang/clangd, clang-format, bear, lldb
 - FP: OCaml (opam, dune, merlin, ocaml-lsp, utop), Haskell (ghc, cabal, HLS, ormolu),
-  Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl)
+  Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl), Idris 2
+- Proof assistants: Coq/Rocq (`rocq` on macOS, optional `coq` distro package on
+  Linux); Isabelle Emacs build (`Isabelle2025-2-vsce`) with downloaded components
+  and a built HOL image. This first-time build is substantial. Idris 2 is an
+  optional distro package on Linux if available.
+- Emacs proof interfaces: Proof General (MELPA), idris-mode (MELPA), and
+  isar-mode + lsp-isar with lsp-mode/session-async. Isabelle checkouts live in
+  `~/workspace/tools/isabelle-emacs` and `~/workspace/elisp/isar-mode`; the
+  command is `isabelle-emacs`, keeping it distinct from stock Isabelle.
 - ML/AI & Scientific: jupyterlab and ipython (uv tools), pandoc, typst, ollama, dvisvgm (Org LaTeX previews)
 - MLOps (via uv tool): mlflow, dvc, tensorboard
 - LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext, cmake-language-server and cmake-format (uv tools), texlab (macOS), shellcheck, enchant (spellcheck)

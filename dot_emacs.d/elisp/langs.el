@@ -2,7 +2,7 @@
 
 ;;; Commentary:
 ;; Scope: Python (incl. notebooks), the FP stack (Racket, Standard ML, Haskell,
-;; OCaml), systems programming (C, C++, Rust, CMake), TypeScript/JavaScript,
+;; OCaml, Idris 2), Coq/Rocq and Isabelle proofs, systems programming (C, C++, Rust, CMake), TypeScript/JavaScript,
 ;; Go, Lua, shell, SQL, plus YAML, Dockerfile, JSON, TOML, CSV and Markdown.
 
 ;;; Code:
@@ -223,6 +223,68 @@ With prefix argument FORCE, reinstall grammars that are already present."
   :custom
   (racket-program "racket")
   (racket-show-functions '(racket-show-echo-area)))
+
+;; --- Coq / Rocq and Idris 2 -----------------------------------------------
+
+;; Proof General owns the prover process and proof-state buffers.
+;; Its autoloads register coq-mode and the prover-specific load paths.
+(use-package proof-general
+  :pin melpa
+  :defer t)
+
+;; idris-mode uses Idris 2's IDE protocol for holes, case splits and the REPL.
+(use-package idris-mode
+  :pin melpa
+  :mode (("\\.idr\\'" . idris-mode)
+         ("\\.lidr\\'" . idris-mode)
+         ("\\.ipkg\\'" . idris-ipkg-mode))
+  :custom
+  (idris-interpreter-path "idris2")
+  (idris-repl-history-file (expand-file-name "idris-history.eld" my/cache-dir)))
+
+;; --- Isabelle ------------------------------------------------------------
+
+;; Isabelle's proof-state protocol needs lsp-isar; Eglot remains the client
+;; for the other languages.  setup.sh installs the matching server/client
+;; checkout plus isar-mode outside chezmoi.
+(defvar my/isabelle-directory
+  (expand-file-name "~/workspace/tools/isabelle-emacs")
+  "Isabelle checkout containing the matching lsp-isar client.")
+
+(use-package lsp-mode
+  :defer t
+  :custom
+  (lsp-session-file (expand-file-name "lsp-session" my/cache-dir)))
+
+(use-package session-async
+  :defer t)
+
+(use-package isar-mode
+  :ensure nil
+  :if (file-directory-p (expand-file-name "~/workspace/elisp/isar-mode"))
+  :load-path "~/workspace/elisp/isar-mode"
+  :mode ("\\.thy\\'" . isar-mode))
+
+(defun my/isabelle-mode-defaults ()
+  "Start Isabelle's proof interface for the current theory."
+  ;; Corfu consumes the LSP CAPF; do not auto-enable Company.
+  (setq-local lsp-completion-provider :none
+              lsp-enable-snippet nil)
+  (lsp-isar-define-client-and-start))
+
+(use-package lsp-isar
+  :ensure nil
+  :if (file-directory-p
+       (expand-file-name "src/Tools/emacs-lsp/lsp-isar" my/isabelle-directory))
+  :load-path (lambda ()
+               (list (expand-file-name "src/Tools/emacs-lsp/lsp-isar"
+                                       my/isabelle-directory)))
+  :commands lsp-isar-define-client-and-start
+  :hook (isar-mode . my/isabelle-mode-defaults)
+  :init
+  (setq lsp-isar-path-to-isabelle my/isabelle-directory)
+  :config
+  (add-hook 'lsp-isar-init-hook #'lsp-isar-open-output-and-progress-right-spacemacs))
 
 ;; --- Standard ML ---------------------------------------------------------
 

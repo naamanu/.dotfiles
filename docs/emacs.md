@@ -1,9 +1,9 @@
 # Emacs Setup
 
 **Package manager**: use-package
-**LSP client**: Eglot
+**LSP client**: Eglot; lsp-isar/lsp-mode for Isabelle
 **Editing**: evil (Vim keys) with a `SPC` leader mirroring every `C-c` prefix
-**Theme**: Modus Vivendi Tinted (dark, borderless), toggle to Operandi with `C-c t t`
+**Theme**: Stock Modus Operandi at startup; `C-c t t` switches light/dark
 **Fonts**: fontaine presets (Iosevka Comfy default; Commit Mono, JetBrains Mono, Fira Code), `C-c t f`
 **Config**: `~/.emacs.d/`
 **Project layer**: built-in `project.el`
@@ -79,6 +79,9 @@ into already exists.
 | OCaml | `tuareg-mode` (+ `dune-mode`) | ocamllsp (+ ocaml-eglot) | ocamlformat |
 | Haskell | `haskell-mode` | haskell-language-server | ormolu |
 | Racket | `racket-mode` + `racket-xp-mode` | — (racket-mode back end) | — |
+| Coq / Rocq | `coq-mode` (Proof General) | prover protocol | — |
+| Idris 2 | `idris-mode` | IDE protocol | — |
+| Isabelle | `isar-mode` + `lsp-isar` | matching Isabelle LSP server | — |
 | Standard ML | `sml-mode` | millet-ls | — |
 | Python | `python-ts-mode` | basedpyright (+ flymake-ruff) | ruff isort + format |
 | C / C++ | `c-ts-mode`, `c++-ts-mode` | clangd | clang-format (project opt-in) |
@@ -417,3 +420,42 @@ To check whether any other package is exposed to the same failure, compare
 each `compat-call` site's argument count against the native function's arity —
 only calls that pass *more* arguments than the native function accepts can
 break this way.
+
+## Racket and proof assistants
+
+- **Racket:** open `.rkt`; `C-c C-c` runs it, `C-c C-z` opens its REPL.
+  `racket-xp-mode` supplies navigation, completion and diagnostics. Use
+  `M-x compile` for the configured `raco test .` command.
+- **Coq / Rocq:** open `.v` to enter Proof General's `coq-mode`.
+  `M-x proof-assert-next-command-interactive` steps forward,
+  `M-x proof-undo-last-successful-command` steps back, and
+  `M-x proof-process-buffer` checks the whole proof. Goals and response
+  buffers show prover output. Project `_CoqProject` files select flags.
+- **Idris 2:** open `.idr` (or `.lidr`); `C-c C-l` loads/checks the file,
+  `C-c C-z` opens its REPL. `M-x idris-case-split` and
+  `M-x idris-add-clause` provide type-directed editing. `.ipkg` files use
+  `idris-ipkg-mode`. The compiler is `idris2`.
+- **Isabelle:** open `.thy`; `lsp-isar` starts the matching Isabelle server.
+  On first use, select the directory containing your theory/session as the
+  LSP workspace. Output and theory progress appear alongside the source.
+  `M-x lsp-isar-open-output-and-progress-right` restores those panes.
+  `M-x lsp-isar-insert-sledgehammer-and-call` invokes Sledgehammer.
+  For custom sessions, configure `lsp-isabelle-options` with `-d` and `-S`
+  as described in the upstream guide. Other languages continue to use Eglot.
+
+`setup.sh` installs the toolchains, clones the Isabelle Emacs integration,
+downloads its components, and builds HOL. Existing checkouts are not updated
+automatically. The server and client share the `Isabelle2025-2-vsce` checkout
+at `~/workspace/tools/isabelle-emacs`; `isar-mode` lives at
+`~/workspace/elisp/isar-mode`. `C-c e h` checks executable availability.
+
+Upstream instructions: [Proof General](https://proofgeneral.github.io/download/),
+[Idris mode](https://github.com/idris-hackers/idris-mode),
+[Isabelle Emacs](https://github.com/m-fleury/isabelle-emacs/blob/Isabelle2025-2-vsce/src/Tools/emacs-lsp/spacemacs_layers/isabelle/README.org).
+
+Known upstream Isabelle client warnings on Emacs 31: two Isar Unicode files
+lack lexical-binding headers, and the client does not consume the server's
+`PIDE/sledgehammer_output` / `PIDE/sledgehammer_status` panel notifications.
+The HOL build and a theory processed through Emacs were verified successfully;
+these warnings are not suppressed. The client uses its existing proof-output
+interface rather than those newer panel notifications.

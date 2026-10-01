@@ -45,7 +45,7 @@
 (require 'vim)
 (require 'keys)
 
-;; Fonts, padding, ligatures and icons need a GUI frame to probe.  Under
+;; Fonts, ligatures and icons need a GUI frame to probe.  Under
 ;; `emacs --daemon' that frame arrives later, with the first emacsclient; the
 ;; hook runs the setup once and then removes itself (core.el).
 (if (daemonp)

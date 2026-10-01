@@ -237,6 +237,7 @@ if [ "$PLATFORM" = "mac" ]; then
     # Racket (minimal distribution; `raco pkg install' adds libraries),
     # Standard ML (SML/NJ REPL + millet language server), Common Lisp.
     brew_install minimal-racket smlnj millet
+    brew_install rocq idris2
     brew_install sbcl
     # Prefer the Xcode CLT copy: brew's llvm keg can be autoremoved, which
     # leaves a dangling link.
@@ -625,6 +626,9 @@ elif [ "$PLATFORM" = "linux" ]; then
     # Racket and Standard ML for the Emacs racket-mode / sml-mode setup;
     # millet (SML LSP) is a cargo install below.  Enchant backs Emacs jinx.
     install_optional_pkg racket
+    # Distribution package names retain Coq; Idris 2 availability varies.
+    install_optional_pkg coq
+    install_optional_pkg idris2
     install_optional_pkg smlnj
     install_optional_pkg enchant-2
     install_optional_pkg libenchant-2-2
@@ -959,6 +963,32 @@ for repo in elisp/fp-repl elisp/dune-transient elisp/mli-lens nvim/lectern.nvim;
             || FAILED_PACKAGES+=("$name")
     fi
 done
+
+# Isabelle's Emacs proof UI requires the matching community server/client.
+# Keep existing checkouts untouched; update these together deliberately.
+ISABELLE_EMACS_DIR="$HOME/workspace/tools/isabelle-emacs"
+ISAR_MODE_DIR="$HOME/workspace/elisp/isar-mode"
+if [ ! -d "$ISAR_MODE_DIR" ]; then
+    mkdir -p "$(dirname "$ISAR_MODE_DIR")"
+    git clone --depth 1 https://github.com/m-fleury/isar-mode.git "$ISAR_MODE_DIR" \
+        || FAILED_PACKAGES+=(isar-mode)
+fi
+if [ ! -d "$ISABELLE_EMACS_DIR" ]; then
+    mkdir -p "$(dirname "$ISABELLE_EMACS_DIR")"
+    git clone --depth 1 --branch Isabelle2025-2-vsce \
+        https://github.com/m-fleury/isabelle-emacs.git "$ISABELLE_EMACS_DIR" \
+        || FAILED_PACKAGES+=(isabelle-emacs)
+fi
+if [ -x "$ISABELLE_EMACS_DIR/bin/isabelle" ]; then
+    if "$ISABELLE_EMACS_DIR/bin/isabelle" components -I \
+        && "$ISABELLE_EMACS_DIR/bin/isabelle" components -a \
+        && "$ISABELLE_EMACS_DIR/bin/isabelle" build -b HOL; then
+        mkdir -p "$HOME/.local/bin"
+        ln -sfn "$ISABELLE_EMACS_DIR/bin/isabelle" "$HOME/.local/bin/isabelle-emacs"
+    else
+        FAILED_PACKAGES+=(isabelle-emacs-components-or-HOL)
+    fi
+fi
 
 # Neovim Python provider. Pin the interpreter: without --python, uv picks the
 # system python (3.9 on macOS), which is too old for jupyter_client.

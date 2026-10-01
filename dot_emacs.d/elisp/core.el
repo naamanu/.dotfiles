@@ -225,7 +225,7 @@ Use `my/sidebar-focus' (C-c t S / SPC O) to jump into an open sidebar."
 
 ;; --- Appearance ----------------------------------------------------------
 
-;; Everything below that depends on the display -- fonts, padding, ligatures,
+;; Everything below that depends on the display -- fonts, ligatures,
 ;; icons -- is applied by `my/setup-appearance' (end of this section), which
 ;; init.el runs right away in a GUI session and from
 ;; `server-after-make-frame-hook' under `emacs --daemon'.  So the font probes
@@ -241,10 +241,7 @@ Use `my/sidebar-focus' (C-c t S / SPC O) to jump into an open sidebar."
   (and (display-graphic-p)
        (seq-some (lambda (f) (string-match-p "Nerd Font" f)) (font-family-list))))
 
-;; Plain modus is pure white on pure black (#ffffff / #000000).  The `-tinted'
-;; pair uses a warmer background and a distinctly different syntax palette,
-;; not merely a recoloured background; swap these two values to try it.
-;; `M-x modus-themes-select' previews every variant interactively.
+;; Optional shared light/dark switching; startup uses plain Modus Operandi.
 (defvar my/light-theme 'modus-operandi "Theme used in light mode.")
 (defvar my/dark-theme 'modus-vivendi-tinted "Theme used in dark mode.")
 
@@ -293,38 +290,8 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
 ;; Emacs bundles the modus theme *files*, but not `modus-themes.el' itself,
 ;; which is where the customization options and the newest palettes live.
 (use-package modus-themes
-  :init
-  (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-mixed-fonts t
-        modus-themes-org-blocks 'gray-background
-        ;; Scaled Org headings.
-        modus-themes-headings '((1 . (1.3)) (2 . (1.2)) (3 . (1.1)) (t . (1.0)))
-        ;; Borderless mode line and invisible fringe: flat, like a modern
-        ;; editor; spacious-padding supplies the breathing room instead.
-        modus-themes-common-palette-overrides
-        '((border-mode-line-active unspecified)
-          (border-mode-line-inactive unspecified)
-          (fringe unspecified)
-          (bg-tab-bar bg-main)
-          (bg-tab-current bg-active)
-          (bg-tab-other bg-dim)
-          (bg-line-number-active unspecified)
-          (bg-line-number-inactive unspecified)))
   :config
-  ;; Follow the shared mode, so an Emacs started while the desktop is light
-  ;; comes up light.  `C-c t t' flips it, and everything else with it.
-  (my/apply-theme-mode))
-
-;; Padding around windows and a subtle, borderless mode line.  Enabled from
-;; `my/setup-appearance'.
-(use-package spacious-padding
-  :defer t
-  :custom
-  (spacious-padding-widths
-   '(:internal-border-width 12 :header-line-width 4 :mode-line-width 4
-     :tab-width 4 :right-divider-width 16 :scroll-bar-width 0 :fringe-width 8))
-  (spacious-padding-subtle-frame-lines t))
+  (my/load-theme 'modus-operandi))
 
 ;; One tab per workspace, named after its project.  Tabs hold window
 ;; layouts, not buffers, so `SPC b' is still how you move between files.
@@ -521,7 +488,7 @@ first installed candidate.  No-op when none of the families is installed."
 Other modules add their display-dependent setup here (completion.el: icons).")
 
 (defun my/setup-appearance ()
-  "Apply everything that needs a GUI frame: fonts, padding, ligatures, icons.
+  "Apply everything that needs a GUI frame: fonts, ligatures, icons.
 Runs once.  init.el calls it directly in a normal GUI session and from
 `server-after-make-frame-hook' under `emacs --daemon', where the first
 frame may be a terminal one -- then this waits for the first graphical
@@ -534,7 +501,6 @@ frame and unhooks itself afterwards."
     (let ((icons (and (my/nerd-font-installed-p) t)))
       (setq doom-modeline-icon icons
             doom-modeline-major-mode-icon icons))
-    (spacious-padding-mode 1)
     (global-ligature-mode 1)
     (run-hooks 'my/setup-appearance-hook)))
 
@@ -589,6 +555,9 @@ frame and unhooks itself afterwards."
     (optional "gh"                       "Forge authentication")
     (optional "enchant-2"                "jinx spellchecker backend")
     (optional "racket"                   "racket-mode back end and REPL")
+    (optional "coqtop"                   "Coq / Rocq prover for Proof General")
+    (optional "isabelle-emacs"           "Isabelle server (matching Emacs integration build)")
+    (optional "idris2"                   "Idris 2 compiler and IDE protocol")
     (optional "sml"                      "SML/NJ REPL for sml-mode")
     (optional "millet-ls"                "Standard ML LSP")
     (optional "ipython"                  "Richer Python REPL (falls back to python3)")
