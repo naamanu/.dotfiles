@@ -541,6 +541,9 @@ Abbreviations expand visibly at the prompt (interactive shells only).
 | `mlenv <name> [type]` | Bootstrap a uv ML project (`dl`, `ml`, `llm`) |
 | `jk` | Register current uv venv as a Jupyter kernel |
 | `ocaml-new <name>` | Bootstrap a dune project and stamp `.ocamlformat` |
+| `c-new <name>` | Create and enter a C17 CMake project |
+| `cpp-new <name>` | Create and enter a C++20 CMake project |
+| `c-run [args...]` | Configure, build, and run a C/C++ starter project from its root |
 | `ocamlformat-init` | Stamp the global ocamlformat config into this project |
 
 **Shell integrations:** atuin (history search with `Ctrl+R`), zoxide (`z`/`cd`), starship prompt.
