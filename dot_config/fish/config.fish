@@ -10,7 +10,7 @@ set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set -gx GHCUP_INSTALL_BASE_PREFIX $HOME
 fish_add_path -g \
     $HOME/.ghcup/bin $HOME/.cabal/bin \
     $PNPM_HOME $BUN_INSTALL/bin \
-    $HOME/.cargo/bin \
+    $HOME/.cargo/bin $HOME/.atuin/bin \
     $HOME/.local/bin
 
 # fnm's per-shell multishell dir is ephemeral, so long-running apps that
