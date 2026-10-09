@@ -34,6 +34,26 @@ function __c_project_new --description "Create a C or C++ CMake starter project"
         '' \
         "add_executable($name src/main.$extension)" >"$name/CMakeLists.txt"; or return 1
     if test "$language" = CXX
+        # A CMake run target resolves the executable for every build configuration.
+        printf '%s\n' \
+            '' \
+            "add_custom_target($name-run" \
+            "    COMMAND \$<TARGET_FILE:$name>" \
+            "    DEPENDS $name" \
+            '    USES_TERMINAL' \
+            '    VERBATIM)' >>"$name/CMakeLists.txt"; or return 1
+        printf '%s\n' \
+            '# Plain make builds and runs the app; make build only compiles it.' \
+            '.PHONY: run build configure' \
+            '' \
+            'run: configure' \
+            "	+cmake --build build --config Debug --target $name-run" \
+            '' \
+            'build: configure' \
+            '	+cmake --build build --config Debug' \
+            '' \
+            'configure:' \
+            '	cmake -S . -B build' >"$name/Makefile"; or return 1
         printf '%s\n' '#include <iostream>' '' 'int main() {' '    std::cout << "Hello, world!\n";' '    return 0;' '}' >"$name/src/main.cpp"; or return 1
     else
         printf '%s\n' '#include <stdio.h>' '' 'int main(void) {' '    puts("Hello, world!");' '    return 0;' '}' >"$name/src/main.c"; or return 1
@@ -42,5 +62,8 @@ function __c_project_new --description "Create a C or C++ CMake starter project"
     printf '%s\n' 'CompileFlags:' '  CompilationDatabase: build' >"$name/.clangd"; or return 1
     cd -- "$name"; or return 1
     printf "Project '%s' ready!\n\n" "$name"
+    if test "$language" = CXX
+        printf '%s\n' '  make        # Build and run' '  make build  # Build only'
+    end
     printf '%s\n' '  c-run' '  c-run arg1 arg2  # Pass arguments to your app'
 end
