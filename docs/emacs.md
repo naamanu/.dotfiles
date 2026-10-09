@@ -4,7 +4,7 @@
 **LSP client**: Eglot; lsp-isar/lsp-mode for Isabelle
 **Editing**: evil (Vim keys) with a `SPC` leader mirroring every `C-c` prefix
 **Theme**: Stock Modus Operandi at startup; `C-c t t` switches light/dark
-**Fonts**: fontaine presets (Iosevka Comfy default; Commit Mono, JetBrains Mono, Fira Code), `C-c t f`
+**Fonts**: fontaine presets (Source Code Pro default; Iosevka Comfy, Commit Mono, JetBrains Mono, Fira Code), `C-c t f`
 **Config**: `~/.emacs.d/`
 **Project layer**: built-in `project.el`
 **Notes**: Denote

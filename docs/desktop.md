@@ -137,7 +137,7 @@ grain defeats PNG compression (11 MB a piece against 300 KB).
 | Dock | Bottom, floating (not full width), autohide + intellihide, 44px icons, dots for running apps |
 | Top bar | 30px, clock on the right, no Activities button, boots to the desktop |
 | Window buttons | Traffic lights on the **left**, macOS order |
-| Fonts | Inter 11 for UI and titles, JetBrainsMono Nerd Font 12 for monospace |
+| Fonts | Inter 11 for UI and titles, SauceCodePro Nerd Font 12 (Source Code Pro) for monospace |
 | Icons / cursor | Colloid-Dark, Bibata-Modern-Classic |
 | Windows | 12px rounded corners, new windows centred, modal dialogs attached as sheets |
 | Trackpad | Natural scrolling, tap to click |

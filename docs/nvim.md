@@ -74,7 +74,7 @@ lua/naamanu/
 | Editor | nvim-autopairs, nvim-surround, builtin `gc` comments, todo-comments, flash.nvim, undotree, treesj, snacks.zen |
 | Agent | shared terminal agent (`<leader>a` group) |
 | UI | snacks.nvim (indent, scope, scroll, statuscolumn, terminal), lualine, which-key, trouble.nvim, dropbar.nvim (breadcrumbs), rainbow-delimiters.nvim |
-| Theme | modus-themes.nvim, `modus_vivendi` tinted variant — same as Emacs; Ghostty supplies Iosevka Comfy + Symbols Nerd Font |
+| Theme | modus-themes.nvim, `modus_vivendi` tinted variant — same as Emacs; Ghostty supplies Source Code Pro + Symbols Nerd Font |
 
 Native LSP configuration (vim.lsp.config/enable) lives in `lua/naamanu/core/lsp.lua`, required from `core/init.lua` after lazy.nvim. The nvim-treesitter `main` branch needs the `tree-sitter` CLI on PATH to compile parsers (`brew install tree-sitter-cli`).
 

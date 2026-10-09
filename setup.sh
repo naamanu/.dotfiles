@@ -303,6 +303,9 @@ if [ "$PLATFORM" = "mac" ]; then
     # Emacs offers these as fontaine presets (C-c t f); Iosevka Comfy is
     # Protesilaos's font, tuned for exactly this kind of setup.
     brew_cask_install font-iosevka-comfy font-commit-mono-nerd-font
+    # Default monospace everywhere (Emacs, Ghostty, GNOME); Nerd Fonts names
+    # its Source Code Pro build SauceCodePro.
+    brew_cask_install font-sauce-code-pro-nerd-font
     # Icon glyphs for nerd-icons/doom-modeline when the main font is not a
     # Nerd Font (core.el routes the private-use ranges to it).
     brew_cask_install font-symbols-only-nerd-font
@@ -772,6 +775,9 @@ elif [ "$PLATFORM" = "linux" ]; then
     # Emacs offers these as fontaine presets (C-c t f); Iosevka Comfy is
     # Protesilaos's font, tuned for exactly this kind of setup.
     install_nerd_font CommitMono CommitMonoNerdFont
+    # Default monospace everywhere (Emacs, Ghostty, GNOME); Nerd Fonts names
+    # its Source Code Pro build SauceCodePro.
+    install_nerd_font SourceCodePro SauceCodeProNerdFont
     # Icon glyphs for nerd-icons/doom-modeline when the main font is not a
     # Nerd Font (core.el routes the private-use ranges to it).
     install_nerd_font NerdFontsSymbolsOnly SymbolsNerdFont

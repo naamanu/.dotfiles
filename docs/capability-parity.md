@@ -55,7 +55,7 @@ Missing optional binaries leave editing usable and are reported by the doctor.
 ## Shared look
 
 Both editors use **Modus Vivendi Tinted** (modus-themes / modus-themes.nvim) and
-the same faces: **Iosevka Comfy** for text with **Symbols Nerd Font Mono** for
+the same faces: **Source Code Pro** (SauceCodePro Nerd Font) for text with **Symbols Nerd Font Mono** for
 icons — Emacs via fontaine + a fontset fallback, Neovim via Ghostty's
 `font-family` list. Both show indent guides, breadcrumbs, rainbow delimiters,
 TODO highlighting, git gutters, a current-line highlight and a 100-column

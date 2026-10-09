@@ -368,7 +368,8 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
 ;; and reads small, so it gets a bump; FiraCode's Regular is heavy, so it
 ;; gets Light).  Only installed families become presets.
 (defconst my/mono-candidates
-  '((iosevka   "Iosevka Comfy"            regular 10)
+  '((sourcecode "SauceCodePro Nerd Font" regular 0)
+    (iosevka   "Iosevka Comfy"            regular 10)
     (commit    "CommitMono Nerd Font"     regular 0)
     (jetbrains "JetBrainsMono Nerd Font"  regular 0)
     (fira      "FiraCode Nerd Font"       light   0)
@@ -388,7 +389,7 @@ turns Neovim, fish, tmux, Ghostty and starship over to match."
 (defun my/fontaine-presets (families)
   "Build fontaine presets from FAMILIES, entries of `my/mono-candidates'.
 One preset per family, plus a large and a presentation size of each
-\(`iosevka', `iosevka-large', `iosevka-present').  `fixed-pitch' anchors to
+\(`sourcecode', `sourcecode-large', `sourcecode-present').  `fixed-pitch' anchors to
 the same family so code blocks and tables in mixed-font buffers match code
 buffers exactly."
   (let ((base (if (eq system-type 'darwin) 160 130))
@@ -431,7 +432,7 @@ first installed candidate.  No-op when none of the families is installed."
                              (caar families))))))
 
 ;; Icon glyphs live in the Unicode private-use areas.  Fonts like Iosevka
-;; Comfy and Commit Mono have nothing there, and macOS fallback only covers
+;; Comfy have nothing there, and macOS fallback only covers
 ;; the older U+E000 block, so the Material Design range (U+F0000+) used by
 ;; nerd-icons and doom-modeline rendered as hex boxes.  Route both ranges to
 ;; the symbols-only Nerd Font whatever the main family is.

@@ -68,7 +68,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - Git: gh, lazygit, git-delta
 - Databases: PostgreSQL, SQLite
 - Containers: Docker + lazydocker — **opt-in**, set `INSTALL_DOCKER=1`
-- Fonts: Iosevka Comfy (editor and terminal face), Symbols Nerd Font (icons), plus JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts as Emacs fontaine presets
+- Fonts: Source Code Pro (default editor and terminal face), Symbols Nerd Font (icons), plus Iosevka Comfy, JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts as Emacs fontaine presets
 - Home-grown editor packages (cloned into `~/workspace`, not chezmoi-managed):
   `fp-repl`, `dune-transient`, `mli-lens` (Emacs, `~/workspace/elisp/`) and
   `lectern.nvim` (Neovim, `~/workspace/nvim/`).  The editor config is guarded
