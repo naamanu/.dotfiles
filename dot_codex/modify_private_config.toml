@@ -8,12 +8,16 @@
 # this box, not configuration, so neither belongs in a public dotfiles repo.
 # A plain managed file would force a choice between publishing them and having
 # every apply delete them; instead this prints the managed configuration and
-# carries those tables through from the live file untouched.
+# carries those tables and desktop/plugin/MCP runtime settings through from
+# the live file untouched.
 #
 # To change the configuration, edit the block below and `chezmoi apply
 # ~/.codex/config.toml`. Do NOT `chezmoi add` this target -- that would
 # replace this script with a static copy, machine-local tables and all.
 set -eu
+
+# Read once: preserve app-owned fields without storing runtime paths in source.
+live_config=$(cat)
 
 cat <<'MANAGED'
 model = "gpt-6-astra"
@@ -33,17 +37,24 @@ status_line = ["model-with-reasoning", "current-dir", "git-branch", "context-rem
 status_line_use_colors = true
 MANAGED
 
+# The desktop app also writes a scalar in [tui]. Keep it in the managed
+# table above, before emitting any carried tables.
+printf '%s\n' "$live_config" | awk '
+  /^[ \t]*\[/ { in_tui = ($0 ~ /^[ \t]*\[tui\][ \t]*$/) }
+  in_tui && /^[ \t]*screen_reader_detection_done[ \t]*=/ { print }
+'
+
 # Tables Codex owns, as an alternation of TOML header names. Add to this list
 # if Codex starts writing more of its own state into the file. Written with
 # [.] rather than \. because awk expands escapes in -v assignments.
-carried='projects|tui[.]model_availability_nux'
+carried='projects|tui[.]model_availability_nux|desktop|marketplaces|plugins|mcp_servers'
 
 # Every table header flips the switch: on for a carried table, off for anything
 # else, so a table ends where the next one starts. Blank lines are dropped and
 # one is re-inserted per table, which keeps the spacing stable no matter how
 # Codex laid the original out. Carried tables keep their relative order, which
 # is why the nux table lands under [tui] where it belongs.
-awk -v carried="$carried" '
+printf '%s\n' "$live_config" | awk -v carried="$carried" '
   BEGIN { keeper = "^[ \t]*\\[(" carried ")[].]" }
   /^[ \t]*\[/ {
     keep = ($0 ~ keeper)
