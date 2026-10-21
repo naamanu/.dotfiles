@@ -85,8 +85,8 @@ push_desktop() {
     } 2>/dev/null || true
 }
 
-# A universal variable reaches every running fish at once, where the
-# --on-variable handler in conf.d/modus-theme.fish repaints the palette.
+# A universal variable reaches every running fish at once. fish's colours
+# are Monokai in both modes (conf.d/monokai-theme.fish); --check reads it.
 push_fish() {
     command -v fish >/dev/null 2>&1 || return 0
     fish -c "set -U __theme_mode $1" >/dev/null 2>&1 || true
