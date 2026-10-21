@@ -212,10 +212,15 @@ if [ "$PLATFORM" = "mac" ]; then
     # nvim-treesitter (main branch) compiles parsers via the tree-sitter CLI
     brew_install tree-sitter-cli
     brew_install yazi atuin glow dust procs hyperfine tokei
+    # Task runner, file watcher (overseer watch tasks), structural search,
+    # HTTP clients (xh interactive, hurl for .hurl test files).
+    brew_install just watchexec ast-grep xh hurl
 
     echo ""
     echo "Installing version control tools..."
     brew_install gh lazygit git-delta
+    # Syntax-aware diffs (`git dft`), jujutsu, fixup autosquash.
+    brew_install difftastic jj git-absorb
 
     echo ""
     echo "Installing programming languages and runtimes..."
@@ -226,11 +231,6 @@ if [ "$PLATFORM" = "mac" ]; then
     # clippy and rustfmt are components of the same toolchain; brew's rust
     # would shadow it.
     brew_install go lua uv ghc cabal-install haskell-language-server ormolu
-
-    echo ""
-    echo "Installing C/C++, OCaml, FP and Lisp toolchains..."
-    # clangd comes from the Xcode CLT; brew llvm is keg-only, so install
-    # clang-format standalone to get it on PATH.  lldb-dap (for Emacs dape)
     brew_install openjdk@21 maven gradle jdtls
     # Register the JDK for macOS discovery without requiring a system-wide link.
     mkdir -p "$HOME/Library/Java/JavaVirtualMachines"
@@ -238,6 +238,11 @@ if [ "$PLATFORM" = "mac" ]; then
         ln -s "$(brew --prefix openjdk@21)/libexec/openjdk.jdk" \
             "$HOME/Library/Java/JavaVirtualMachines/openjdk-21.jdk"
     fi
+
+    echo ""
+    echo "Installing C/C++, OCaml, FP and Lisp toolchains..."
+    # clangd comes from the Xcode CLT; brew llvm is keg-only, so install
+    # clang-format standalone to get it on PATH.  lldb-dap (for Emacs dape)
     # is linked out of the keg below.
     brew_install llvm bear clang-format
     brew_install ocaml opam dune
@@ -268,6 +273,8 @@ if [ "$PLATFORM" = "mac" ]; then
     echo ""
     echo "Installing language servers and formatters..."
     brew_install lua-language-server stylua ruff shfmt shellcheck texlab
+    # Notes (marksman) and Typst (tinymist LSP, typstyle formatter).
+    brew_install marksman tinymist typstyle
     # Emacs pdf-tools compiles its epdfinfo server against these on first use.
     brew_install poppler automake
     # Spellchecking backend for Emacs jinx.
@@ -302,13 +309,17 @@ if [ "$PLATFORM" = "mac" ]; then
     echo ""
     echo "Installing productivity tools..."
     brew_cask_install ghostty raycast
+    # Papers: Zotero (+ Better BibTeX → ~/notes/references.bib) and Skim,
+    # the PDF viewer vimtex's forward/inverse search talks to.
+    brew_cask_install zotero skim
     brew_cask_install nikitabobko/tap/aerospace jordanbaird-ice
 
     echo ""
     echo "Installing fonts..."
+    # Source Code Pro (Nerd Font build) is the editor and terminal face.
+    brew_cask_install font-sauce-code-pro-nerd-font
     brew_cask_install font-jetbrains-mono-nerd-font font-fira-code-nerd-font font-hack-nerd-font font-inconsolata-nerd-font
-    # Emacs offers these as fontaine presets (C-c t f); Iosevka Comfy is
-    # Protesilaos's font, tuned for exactly this kind of setup.
+    # Optional alternatives for manual font selection in the editors.
     brew_cask_install font-iosevka-comfy font-commit-mono-nerd-font
     # Default monospace everywhere (Emacs, Ghostty, GNOME); Nerd Fonts names
     # its Source Code Pro build SauceCodePro.
@@ -523,6 +534,17 @@ elif [ "$PLATFORM" = "linux" ]; then
         fi
     fi
 
+    # Task runner, file watcher, structural search, HTTP clients, and the
+    # git helpers (difftastic, jujutsu, git-absorb): crates on every distro.
+    if command -v cargo &> /dev/null; then
+        for crate in just:just watchexec-cli:watchexec ast-grep:ast-grep xh:xh \
+            difftastic:difft jj-cli:jj git-absorb:git-absorb typstyle:typstyle; do
+            command -v "${crate#*:}" &> /dev/null && continue
+            cargo install --locked "${crate%%:*}" || FAILED_PACKAGES+=("${crate%%:*}")
+        done
+    fi
+    install_optional_pkg hurl
+
     if ! command -v atuin &> /dev/null; then
         curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh || FAILED_PACKAGES+=(atuin)
     fi
@@ -676,6 +698,27 @@ elif [ "$PLATFORM" = "linux" ]; then
     install_pkg shellcheck
     install_optional_pkg shfmt
 
+    # marksman (Markdown LSP) and tinymist (Typst LSP) ship release binaries.
+    if ! command -v marksman &> /dev/null; then
+        MARKSMAN_ARCH=x64
+        [ "$ARCH" = arm64 ] && MARKSMAN_ARCH=arm64
+        curl -fsSLo "$HOME/.local/bin/marksman" \
+            "https://github.com/artempyanykh/marksman/releases/latest/download/marksman-linux-$MARKSMAN_ARCH" \
+            && chmod +x "$HOME/.local/bin/marksman" || FAILED_PACKAGES+=(marksman)
+    fi
+    if ! command -v tinymist &> /dev/null; then
+        tinymist_tmp="$(mktemp -d)"
+        if curl -fsSLo "$tinymist_tmp/tinymist.tar.gz" \
+            "https://github.com/Myriad-Dreamin/tinymist/releases/latest/download/tinymist-$ARCH_UNAME-unknown-linux-gnu.tar.gz" \
+            && tar xf "$tinymist_tmp/tinymist.tar.gz" -C "$tinymist_tmp"; then
+            install -m 755 "$(find "$tinymist_tmp" -type f -name tinymist | head -n1)" "$HOME/.local/bin/tinymist" \
+                || FAILED_PACKAGES+=(tinymist)
+        else
+            FAILED_PACKAGES+=(tinymist)
+        fi
+        rm -rf "$tinymist_tmp"
+    fi
+
     # Emacs pdf-tools compiles its epdfinfo server against these on first use.
     if [ "$PKG_MGR" = "apt" ]; then
         install_optional_pkg libpoppler-glib-dev
@@ -788,12 +831,13 @@ elif [ "$PLATFORM" = "linux" ]; then
         rm -rf "$tmp"
     }
 
+    # Source Code Pro (Nerd Font build) is the editor and terminal face.
+    install_nerd_font SourceCodePro SauceCodeProNerdFont
     install_nerd_font JetBrainsMono JetBrainsMonoNerdFont
     install_nerd_font FiraCode FiraCodeNerdFont
     install_nerd_font Hack HackNerdFont
     install_nerd_font Inconsolata InconsolataNerdFont
-    # Emacs offers these as fontaine presets (C-c t f); Iosevka Comfy is
-    # Protesilaos's font, tuned for exactly this kind of setup.
+    # Optional alternatives for manual font selection in the editors.
     install_nerd_font CommitMono CommitMonoNerdFont
     # Default monospace everywhere (Emacs, Ghostty, GNOME); Nerd Fonts names
     # its Source Code Pro build SauceCodePro.
@@ -1108,6 +1152,13 @@ if ! command -v ormolu &> /dev/null && command -v cabal &> /dev/null; then
     cabal install ormolu --installdir="$HOME/.local/bin" --overwrite-policy=always || FAILED_PACKAGES+=(ormolu)
 fi
 
+# Local Haskell type search for Neovim's <leader>fD (falls back to the web).
+# Slow first build; the index is generated once afterwards.
+if ! command -v hoogle &> /dev/null && command -v cabal &> /dev/null; then
+    cabal install hoogle --installdir="$HOME/.local/bin" --overwrite-policy=always \
+        && "$HOME/.local/bin/hoogle" generate || FAILED_PACKAGES+=(hoogle)
+fi
+
 if ! command -v lldb-dap &> /dev/null; then
     LLDB_DAP="$(command -v lldb-dap-19 || command -v lldb-dap-18 || true)"
     [ -z "$LLDB_DAP" ] || ln -sf "$LLDB_DAP" "$HOME/.local/bin/lldb-dap"
@@ -1203,6 +1254,11 @@ step=0
 next_step() { step=$((step + 1)); echo "  $step. $1"; }
 next_step "Restart your terminal (or log out and back in)"
 next_step "Install Neovim plugins:  nvim '+Lazy sync' +qa"
+next_step "After gh auth login:  gh extension install dlvhdr/gh-dash  (tmux prefix G)"
+if [ "$PLATFORM" = "mac" ]; then
+    next_step "Zotero: install Better BibTeX, auto-export the library to ~/notes/references.bib"
+    next_step "Ghostty: grant Accessibility so cmd-\` (quick terminal) works globally"
+fi
 if [ "$PLATFORM" = "linux" ] && command -v gnome-shell &> /dev/null; then
     next_step "Log out and back in so the GNOME extensions load"
 fi

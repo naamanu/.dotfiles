@@ -43,7 +43,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - Shell: fish, tmux, starship, zoxide, xsel (clipboard backend for tmux-yank;
   wl-clipboard instead on a Wayland session — tmux-yank prefers wl-copy over
   xsel without checking the session type, so only one of the two is installed)
-- CLI: neovim, ripgrep, fd, fzf, bat, eza, jq, btop, yazi, atuin, glow, dust, procs, hyperfine, tokei, Slack CLI
+- CLI: neovim, ripgrep, fd, fzf, bat, eza, jq, btop, yazi, atuin, glow, dust, procs, hyperfine, tokei, just, watchexec, ast-grep, xh, hurl, Slack CLI
   (on Debian/Ubuntu, neovim and the tree-sitter CLI come from official GitHub
   release binaries into `~/.local` — the apt packages are too old for this
   config, which needs Neovim ≥ 0.10 and tree-sitter CLI ≥ 0.22; Emacs likewise
@@ -63,13 +63,13 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
   command is `isabelle-emacs`, keeping it distinct from stock Isabelle.
 - ML/AI & Scientific: jupyterlab and ipython (uv tools), pandoc, typst, ollama, dvisvgm (Org LaTeX previews)
 - MLOps (via uv tool): mlflow, dvc, tensorboard
-- LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext, cmake-language-server and cmake-format (uv tools), texlab (macOS), shellcheck, enchant (spellcheck)
+- LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext, cmake-language-server and cmake-format (uv tools), texlab (macOS), marksman (Markdown/notes), tinymist + typstyle (Typst), hoogle (cabal, local Haskell search), shellcheck, enchant (spellcheck)
 - Emacs pdf-tools build deps: poppler, automake
 - Treesitter: tree-sitter CLI (parser compilation for Neovim)
-- Git: gh, lazygit, git-delta
+- Git: gh, lazygit, git-delta, difftastic (`git dft`), jj (jujutsu), git-absorb; gh-dash extension (post-install, after `gh auth login`)
 - Databases: PostgreSQL, SQLite
 - Containers: Docker + lazydocker — **opt-in**, set `INSTALL_DOCKER=1`
-- Fonts: Source Code Pro (default editor and terminal face), Symbols Nerd Font (icons), plus Iosevka Comfy, JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts as Emacs fontaine presets
+- Fonts: Source Code Pro Nerd Font (editor and terminal face), Symbols Nerd Font (icons), plus Iosevka Comfy, JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts for optional manual font selection
 - Home-grown editor packages (cloned into `~/workspace`, not chezmoi-managed):
   `fp-repl`, `dune-transient`, `mli-lens` (Emacs, `~/workspace/elisp/`) and
   `lectern.nvim` (Neovim, `~/workspace/nvim/`).  The editor config is guarded
@@ -84,7 +84,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - LaTeX: MacTeX (mactex-no-gui)
 - Window management: AeroSpace (tiling WM)
 - Menu bar: Ice
-- Apps: Ghostty (cask), Raycast
+- Apps: Ghostty (cask), Raycast, Zotero + Skim (papers; vimtex forward/inverse search)
 
 ## Post-Install Checklist
 
@@ -92,6 +92,9 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - [ ] `nvim '+Lazy sync' +qa` — install Neovim plugins
 - [ ] Log out/in for Docker group changes (Linux, only if `INSTALL_DOCKER=1`)
 - [ ] `gh auth login` — authenticate GitHub CLI
+- [ ] `gh extension install dlvhdr/gh-dash` — PR/issue dashboard (tmux `prefix G`)
+- [ ] Zotero: install the Better BibTeX plugin; *Export Library → Better BibLaTeX*, "Keep updated", to `~/notes/references.bib` (Emacs citar and Neovim `<leader>nc` read it)
+- [ ] macOS: grant Ghostty Accessibility so `cmd-\`` (quick terminal) works from any app
 - [ ] `slack login` — authorize Slack CLI when developing or managing a Slack app
 - [ ] `jupyter-lab --version` — verify the uv-installed JupyterLab works
 - [ ] `mlenv test-project ml` — test ML project bootstrapping
