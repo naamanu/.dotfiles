@@ -49,6 +49,18 @@ All bindings use prefix `C-a` unless noted as no-prefix.
 | `prefix + C-s` | Save session with resurrect |
 | `prefix + C-r` | Restore session with resurrect |
 
+### Popovers
+
+Floating tools over the current pane (in its directory), closing with the program.
+
+| Key | Action |
+| :--- | :--- |
+| `prefix + g` / `prefix + G` | lazygit / gh-dash |
+| `prefix + t` | Scratch shell |
+| `prefix + f` | yazi |
+| `prefix + N` | Today's journal note in Neovim |
+| `prefix + s` | sesh: switch/create a session (tmux sessions + zoxide dirs) |
+
 ### Windows
 
 | Key | Action |
