@@ -33,6 +33,7 @@ return {
       python = { "ruff_organize_imports", "ruff_format" },
       haskell = { "ormolu" },
       lua = { "stylua" },
+      typst = { "typstyle" },
       sh = { "shfmt" },
       bash = { "shfmt" },
       sql = { "sql_formatter" },
@@ -50,6 +51,12 @@ return {
       scss = { "prettier" },
     },
     format_on_save = function(bufnr)
+      -- Denote notes are shared with Emacs: prettier would flatten the
+      -- aligned front matter and touch every file Emacs wrote.
+      local notes = require("naamanu.core.notes").dir() .. "/"
+      if vim.startswith(vim.api.nvim_buf_get_name(bufnr), notes) then
+        return nil
+      end
       return {
         timeout_ms = 3000,
         lsp_format = js_like_filetypes[vim.bo[bufnr].filetype] and "never" or "fallback",

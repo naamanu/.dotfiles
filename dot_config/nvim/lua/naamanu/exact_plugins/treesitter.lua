@@ -16,6 +16,7 @@ local ensure_installed = {
   "go",
   "haskell",
   "html",
+  "java",
   "javascript",
   "json",
   "latex",
@@ -45,6 +46,10 @@ local ensure_installed = {
 -- Treesitter indentexpr only where the indent queries beat the runtime indent
 -- scripts. Python and Markdown are worse under treesitter; YAML has no queries.
 local no_ts_indent = { python = true, markdown = true, yaml = true }
+
+-- vimtex's syntax is what its motions, text objects and concealment read;
+-- treesitter highlighting on top would disable them (:h vimtex-faq-treesitter).
+local no_ts_highlight = { tex = true }
 
 return {
   -- Treesitter.  The `main` branch is the maintained rewrite: setup() only
@@ -76,6 +81,9 @@ return {
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
         callback = function(ev)
+          if no_ts_highlight[ev.match] then
+            return
+          end
           if pcall(vim.treesitter.start, ev.buf) and not no_ts_indent[ev.match] then
             vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
           end

@@ -12,6 +12,7 @@ local groups = {
   { "<leader>r", group = "rename" },
   { "<leader>R", group = "REST/HTTP" },
   { "<leader>s", group = "split" },
+  { "<leader>T", group = "test" },
   { "<leader>u", group = "ui/toggle" },
   { "<leader>x", group = "trouble" },
   { "<leader><tab>", group = "tabs/sessions" },

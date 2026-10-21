@@ -6,3 +6,4 @@ require("naamanu.core.lazy")
 require("naamanu.core.lsp") -- native vim.lsp.config/enable; after lazy so lazy-loaded modules resolve
 
 require("naamanu.core.workflows")
+require("naamanu.core.notes") -- Denote-compatible notes, shared with Emacs

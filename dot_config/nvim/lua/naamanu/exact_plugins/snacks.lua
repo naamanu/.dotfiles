@@ -31,7 +31,7 @@ return {
     indent = { enabled = true },
     input = { enabled = true },
     scope = { enabled = true },
-    dashboard = { enabled = true },
+    dashboard = { enabled = false },
     scratch = { enabled = true },
     -- Emacs parity: dirvish-side sidebar, pixel-scroll, spacious gutters.
     explorer = { enabled = true, replace_netrw = false },

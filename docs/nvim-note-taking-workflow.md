@@ -13,6 +13,17 @@ If you want heavyweight task capture, agenda views, and citation workflows, the 
 
 ---
 
+## 0. `~/notes` is a Denote directory shared with Emacs
+
+Notes created with `<leader>nn` are byte-compatible with Emacs `denote`
+(`denote-file-type 'markdown-yaml`): `ID--title-slug__tag1_tag2.md`, the
+same aligned YAML front matter, `[title](denote:ID)` links, journal entries in
+`journal/`. Either editor can create, link, rename and backlink any note.
+The keys are listed in `nvim.md` → *Notes*. Set `NOTES_DIR` / `BIBLIOGRAPHY`
+to move the directory or the shared Zotero export.
+
+---
+
 ## 1. The right use case
 
 Use Neovim notes for:

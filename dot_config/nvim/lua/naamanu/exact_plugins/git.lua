@@ -51,6 +51,37 @@ return {
 
   -- LazyGit: snacks.lazygit (<leader>gg, bound in snacks.lua).
 
+  -- GitHub through snacks (needs an authenticated `gh`): issue/PR pickers
+  -- with previews and actions (checkout, diff, comment, merge), and opening
+  -- the current file/selection on the forge.
+  {
+    "folke/snacks.nvim",
+    keys = {
+      {
+        "<leader>gi",
+        function()
+          Snacks.picker.gh_issue()
+        end,
+        desc = "GitHub issues",
+      },
+      {
+        "<leader>gP",
+        function()
+          Snacks.picker.gh_pr()
+        end,
+        desc = "GitHub pull requests",
+      },
+      {
+        "<leader>gB",
+        function()
+          Snacks.gitbrowse()
+        end,
+        mode = { "n", "x" },
+        desc = "Open on GitHub (file/selection)",
+      },
+    },
+  },
+
   -- Diffview
   {
     "sindrets/diffview.nvim",

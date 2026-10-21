@@ -634,6 +634,9 @@ local function repl_send(lines)
     text = "\27[200~" .. text .. "\27[201~"
   elseif (spec.ft == "haskell" or spec.ft == "lhaskell") and #lines > 1 then
     text = ":{\n" .. text .. "\n:}"
+  elseif spec.ft == "ocaml" and not vim.trim(text):match(";;$") then
+    -- utop evaluates a phrase only at `;;`; source files rarely carry them.
+    text = text .. " ;;"
   end
   vim.api.nvim_chan_send(vim.bo[term.buf].channel, text .. "\n")
   if vim.api.nvim_win_is_valid(current) then
@@ -660,6 +663,76 @@ end
 --- Send the whole buffer.
 function M.repl_send_buffer()
   repl_send(vim.api.nvim_buf_get_lines(0, 0, -1, false))
+end
+
+--- Send the top-level form under the cursor: the outermost treesitter node
+--- below the root (an OCaml `let`, a Haskell equation or signature, a Racket
+--- s-expression, an SML declaration). Falls back to the paragraph.
+function M.repl_send_form()
+  local lines
+  local ok, node = pcall(vim.treesitter.get_node, { ignore_injections = true })
+  if ok and node then
+    while node:parent() and node:parent():parent() do
+      node = node:parent()
+    end
+    local first, _, last, last_col = node:range()
+    -- A node ending at column 0 stops before its last line.
+    if last_col == 0 and last > first then
+      last = last - 1
+    end
+    lines = vim.api.nvim_buf_get_lines(0, first, last + 1, false)
+  else
+    lines = vim.api.nvim_buf_get_lines(0, vim.fn.line("'{") - 1, vim.fn.line("'}"), false)
+  end
+  -- Paragraph bounds, and some grammars, include the surrounding blank lines.
+  while #lines > 1 and vim.trim(lines[#lines]) == "" do
+    table.remove(lines)
+  end
+  while #lines > 1 and vim.trim(lines[1]) == "" do
+    table.remove(lines, 1)
+  end
+  repl_send(lines)
+end
+
+--- Rebuild (or re-test) on every save, in an overseer task: dune's own
+--- watcher for OCaml, ghcid for Haskell, watchexec for everything else.
+function M.run_watch(tests)
+  local kind, root = project_kind(vim.api.nvim_buf_get_name(0))
+  if not kind then
+    vim.notify("No supported project root found", vim.log.levels.WARN)
+    return
+  end
+
+  local function watchexec(exts, cmd)
+    if vim.fn.executable("watchexec") == 0 then
+      return nil
+    end
+    return vim.list_extend({ "watchexec", "--clear", "--exts", exts, "--" }, cmd)
+  end
+
+  local cmd
+  if kind == "ocaml" then
+    cmd = tests and { "dune", "build", "@runtest", "--watch" } or { "dune", "build", "--watch" }
+  elseif kind == "haskell" then
+    if vim.fn.executable("ghcid") == 1 then
+      cmd = { "ghcid", "--command", "cabal repl", tests and "--test=:main" or nil }
+    else
+      cmd =
+        watchexec("hs,cabal", tests and { "cabal", "test", "all" } or { "cabal", "build", "all" })
+    end
+  elseif kind == "rust" then
+    cmd = watchexec("rs,toml", tests and { "cargo", "test" } or { "cargo", "check" })
+  elseif kind == "racket" then
+    cmd = watchexec("rkt", { "raco", tests and "test" or "make", "." })
+  elseif kind == "python" then
+    cmd = watchexec("py", M.python_command({ "-m", "pytest", "-x", "-q" }, root))
+  end
+
+  if not cmd then
+    vim.notify("No watch command for " .. kind .. " (install watchexec)", vim.log.levels.WARN)
+    return
+  end
+  run({ name = kind .. (tests and ": watch tests" or ": watch"), cmd = cmd, cwd = root })
 end
 
 return M

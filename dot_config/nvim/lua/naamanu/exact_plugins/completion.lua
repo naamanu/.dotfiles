@@ -4,7 +4,8 @@ return {
   dependencies = {
     "rafamadriz/friendly-snippets",
   },
-  event = "InsertEnter",
+  -- CmdlineEnter too: blink also completes the : and / command lines.
+  event = { "InsertEnter", "CmdlineEnter" },
   opts = {
     keymap = {
       preset = "none",
@@ -69,6 +70,20 @@ return {
     },
     signature = {
       enabled = true,
+    },
+    -- `:` shows the menu as you type (commands, options, paths); `/` and `?`
+    -- complete words from the buffer only on <Tab>. Ghost text previews the
+    -- top match either way.
+    cmdline = {
+      keymap = { preset = "cmdline" },
+      completion = {
+        menu = {
+          auto_show = function()
+            return vim.fn.getcmdtype() == ":"
+          end,
+        },
+        ghost_text = { enabled = true },
+      },
     },
   },
 }

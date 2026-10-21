@@ -192,6 +192,10 @@ local servers = {
   { "jsonls", "vscode-json-language-server" },
   { "yamlls", "yaml-language-server" },
   { "millet", "millet-ls" },
+  { "marksman", "marksman" },
+  { "tinymist", "tinymist" },
+  { "texlab", "texlab" },
+  { "ast_grep", "ast-grep" },
   { "racket_langserver", "racket", racket_langserver_installed },
 }
 

@@ -77,6 +77,23 @@ o.fileencoding = "utf-8"
 -- No `options`/`blank`, so restoring a session does not replay stale settings.
 o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,globals,skiprtp"
 
+-- Start on a plain empty buffer: no intro screen (the snacks dashboard is
+-- off too, plugins/snacks.lua).
+vim.opt.shortmess:append("I")
+
+-- Panels (edgy.nvim docks, Trouble, overseer) open and close without
+-- scrolling the main windows.
+o.splitkeep = "screen"
+
+-- Built-in ui2 (experimental in 0.12): the cmdline and messages render in
+-- their own windows. Long output collapses to a `[+N]` marker instead of the
+-- hit-enter prompt; g< (or <CR> right after a : command) opens it in the
+-- pager. Guarded so an older Neovim still starts.
+local ui2_ok, ui2 = pcall(require, "vim._core.ui2")
+if ui2_ok then
+  ui2.enable({ msg = { targets = "cmd" } })
+end
+
 -- Disable unused providers
 vim.g.loaded_perl_provider = 0
 

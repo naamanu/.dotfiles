@@ -33,7 +33,8 @@ lua/naamanu/
     lazy.lua              lazy.nvim bootstrap; imports naamanu.plugins
     lsp.lua               capabilities, diagnostics, LspAttach, PythonEnv, server gate
     tasks.lua             project build/test commands (overseer) and the REPL
-    workflows.lua         terminal agent and notes
+    workflows.lua         terminal agent, docs lookup (<leader>fD)
+    notes.lua             Denote-compatible notes, journal, citations (shared with Emacs)
   exact_plugins/          (applied as lua/naamanu/plugins/)
     cloak.lua
     colorscheme.lua
@@ -49,9 +50,12 @@ lua/naamanu/
     navigation.lua
     overseer.lua
     render-markdown.lua
+    testing.lua           neotest (python, haskell, go, rust adapters)
     snacks.lua            snacks modules, <leader>u toggles
     treesitter.lua
     ui.lua                lualine, which-key groups, dropbar, rainbow, trouble
+    windows.lua           edgy.nvim panel docks
+    writing.lua           vimtex (Skim), typst-preview
 ```
 
 ---
@@ -74,7 +78,7 @@ lua/naamanu/
 | Editor | nvim-autopairs, nvim-surround, builtin `gc` comments, todo-comments, flash.nvim, undotree, treesj, snacks.zen |
 | Agent | shared terminal agent (`<leader>a` group) |
 | UI | snacks.nvim (indent, scope, scroll, statuscolumn, terminal), lualine, which-key, trouble.nvim, dropbar.nvim (breadcrumbs), rainbow-delimiters.nvim |
-| Theme | modus-themes.nvim, `modus_vivendi` tinted variant — same as Emacs; Ghostty supplies Source Code Pro + Symbols Nerd Font |
+| Theme | modus-themes.nvim, `modus_vivendi` tinted variant — same as Emacs; Ghostty supplies Source Code Pro (SauceCodePro Nerd Font) + Symbols Nerd Font |
 
 Native LSP configuration (vim.lsp.config/enable) lives in `lua/naamanu/core/lsp.lua`, required from `core/init.lua` after lazy.nvim. The nvim-treesitter `main` branch needs the `tree-sitter` CLI on PATH to compile parsers (`brew install tree-sitter-cli`).
 
@@ -97,6 +101,10 @@ Native LSP configuration (vim.lsp.config/enable) lives in `lua/naamanu/core/lsp.
 | TypeScript / JavaScript / React | vtsls, eslint-lsp |
 | Vue / CSS | vtsls, css-lsp |
 | JSON / YAML | json-lsp, yaml-language-server |
+| Markdown | marksman |
+| Typst | tinymist |
+| LaTeX / BibTeX | texlab (+ vimtex for build/view) |
+| Any (with `sgconfig.yml`) | ast-grep |
 
 Ruff handles Python lint/fix actions. basedpyright owns Python hover and type intelligence (matching the Emacs setup); Ruff hover is disabled to avoid duplicate hover providers.
 
@@ -110,11 +118,12 @@ Ruff handles Python lint/fix actions. basedpyright owns Python hover and type in
 | OCaml | ocamlformat |
 | Haskell | ormolu |
 | Lua | stylua |
+| Typst | typstyle |
 | Shell/Bash | shfmt |
 | SQL | sql-formatter |
 | JS, TS, JSX, TSX, Vue, JSON, YAML, Markdown, HTML, CSS, SCSS | prettier |
 
-Format on save is enabled with a 3s timeout. JS/TS/Vue formatting uses Prettier directly and does not fall back to LSP formatting.
+Format on save is enabled with a 3s timeout, except inside `$NOTES_DIR` (prettier would rewrite the Denote front matter Emacs writes). JS/TS/Vue formatting uses Prettier directly and does not fall back to LSP formatting.
 
 ---
 
@@ -217,6 +226,41 @@ Project-aware tasks support Node package scripts, Python (`uv run python`, pytes
 | `<leader>gd` / `<leader>gD` | Diff this / diff against previous |
 | `<leader>gg` | LazyGit |
 | `<leader>go` / `<leader>gc` / `<leader>gh` | Diffview open / close / file history |
+| `<leader>gi` / `<leader>gP` | GitHub issues / pull requests (snacks gh picker) |
+| `<leader>gB` | Open file or selection on GitHub |
+
+### Notes — `<leader>n` (Denote, shared with Emacs)
+
+| Key | Action |
+| :--- | :--- |
+| `<leader>nn` | New note: title, then tags (space separated, `<Tab>` completes) |
+| `<leader>nj` | Today's journal entry in `journal/` (created if missing) |
+| `<leader>nf` / `<leader>nt` | Find note by title / by tag |
+| `<leader>ns` | Grep notes |
+| `<leader>nl` | Insert `[title](denote:ID)` link |
+| `<leader>nb` | Backlinks |
+| `<leader>nR` | Retitle / retag and rename the file (keeps the ID) |
+| `<leader>nc` / `<leader>nP` | Insert `[@key]` citation / open paper (PDF, DOI or URL) |
+| `gf` / `<CR>` | Follow a `denote:` link (inside `$NOTES_DIR`) |
+
+### Tests — `<leader>T` (neotest)
+
+| Key | Action |
+| :--- | :--- |
+| `<leader>Tt` / `Tf` / `TT` | Nearest / file / project |
+| `<leader>Tl` / `Td` / `Tx` | Re-run last / debug nearest (dap) / stop |
+| `<leader>Ts` / `To` / `TO` | Summary / output / output panel |
+| `<leader>Tw` | Watch file |
+
+OCaml, SML and Racket use overseer (`<leader>on`) and the watch keys below.
+
+### Writing and docs
+
+| Key | Action |
+| :--- | :--- |
+| `<leader>cp` | Typst live preview (typst buffers) |
+| `<localleader>ll` / `lv` | vimtex compile / view in Skim (tex buffers; `:h vimtex-default-mappings`) |
+| `<leader>fD` | Docs for word/selection: hoogle, ocaml.org, `raco docs`, devdocs, docs.rs |
 
 ### Trouble
 
@@ -301,6 +345,7 @@ explicitly rather than `DEV_AGENT` — that probe prefers `codex`, which lacks
 | `<leader>uw` `us` `ul` `ur` | Toggle wrap / spelling / line numbers / relative numbers |
 | `<leader>ui` `ut` `uz` `uD` | Toggle inlay hints / treesitter highlight / zoom / diagnostics |
 | `<leader>uv` / `<leader>uV` | Toggle diagnostic virtual text / virtual lines (current line) |
+| `<leader>uC` | Theme picker with live preview: every family in both its dark and light variant. `<CR>` pins Neovim to that variant regardless of the desktop; "follow theme-mode" keeps the family but drops the pin; `<Esc>` restores |
 
 ### REPL
 
@@ -313,6 +358,14 @@ OCaml `dune utop`/`utop`, Haskell `cabal repl`/`stack ghci`/`ghci`, Racket
 | `<localleader>r` | Toggle the REPL for this buffer's language |
 | `<localleader>e` | Send the current line, or the visual selection |
 | `<localleader>b` | Send the whole buffer |
+| `<localleader>f` | Send the top-level form (treesitter); OCaml gets `;;` appended |
+| `<localleader>w` / `W` | Watch: rebuild / re-test on save (dune `--watch`, ghcid, watchexec) |
+| `<localleader>s` | OCaml: switch `.ml` / `.mli` |
+| `]H` / `[H` | OCaml: next / previous typed hole (then `<leader>la` → Construct) |
+
+### Command line and panels
+
+The built-in ui2 (`vim._core.ui2`) draws the cmdline and messages: long output collapses to a `[+N]` marker instead of a hit-enter prompt; `g<` opens it in the pager. blink.cmp completes `:` as you type (and `/` on `<Tab>`). Trouble, quickfix, help, overseer and test panels dock at the bottom/right via edgy: `<leader>ue` toggles the docks, `<leader>uE` picks one.
 
 ---
 
