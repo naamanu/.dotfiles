@@ -58,7 +58,6 @@ Floating tools over the current pane (in its directory), closing with the progra
 | `prefix + g` / `prefix + G` | lazygit / gh-dash |
 | `prefix + t` | Scratch shell |
 | `prefix + f` | yazi |
-| `prefix + N` | Today's journal note in Neovim |
 | `prefix + s` | sesh: switch/create a session (tmux sessions + zoxide dirs) |
 
 ### Windows
