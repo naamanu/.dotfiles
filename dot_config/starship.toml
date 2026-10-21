@@ -4,15 +4,19 @@
 
 # Timeout for starship to scan files (milliseconds)
 scan_timeout = 30
-command_timeout = 500
+# Generous on purpose. A tmux restore starts every pane's shell in the same
+# second, and git under that contention overshot 500ms -- starship then
+# printed a "timed out" WARN into each restored pane. The prompt still renders
+# as soon as git answers; this only bounds the pathological case.
+command_timeout = 2000
 
 # One prompt per line, no blank line between them.
 add_newline = false
 
-# Active modus palette. Switched by theme-mode(1), which for light mode points
+# Active palette (Kanagawa, matching Ghostty). Switched by theme-mode(1), which for light mode points
 # STARSHIP_CONFIG at a generated copy of this file with this one line rewritten
 # -- starship cannot select a palette from the environment.
-palette = "modus_dark"
+palette = "kanagawa_dark"
 
 # One line, no frame: where am I, what branch, is it dirty, prompt.
 # username/hostname only surface over SSH or as root (see their modules).
@@ -80,28 +84,28 @@ format = '[($virtualenv)]($style) '
 [time]
 disabled = true
 
-# Modus palettes. Every value is the colour Neovim actually renders for the
-# matching highlight group under modus_vivendi (tinted) / modus_operandi, read
-# out of nvim_get_hl -- the same source the fish and tmux themes use.
+# Kanagawa palettes. Every value is the colour Neovim actually renders for the
+# matching highlight group under kanagawa-wave / kanagawa-lotus, read out of
+# nvim_get_hl -- the same source the tmux themes use.
 #
 # These deliberately shadow starship's built-in colour names, which is why not
-# one style string above had to change: "bold green" now resolves to the modus
-# green rather than ANSI 32.
+# one style string above had to change: "bold green" now resolves to the
+# kanagawa green rather than ANSI 32.
 
-[palettes.modus_dark]
-green = "#00c06f"           # DiagnosticOk
-red = "#ff7f9f"             # DiagnosticError
-blue = "#79a8ff"            # Keyword
-cyan = "#4ae2f0"            # Identifier
-yellow = "#dfaf7a"          # DiagnosticWarn
-purple = "#b6a0ff"          # Statement
-"bright-black" = "#989898"  # NonText
+[palettes.kanagawa_dark]
+green = "#98bb6c"           # DiagnosticOk
+red = "#e82424"             # DiagnosticError
+blue = "#7e9cd8"            # Function
+cyan = "#7fb4ca"            # Special
+yellow = "#e6c384"          # Identifier
+purple = "#957fb8"          # Keyword
+"bright-black" = "#727169"  # Comment
 
-[palettes.modus_light]
-green = "#00663f"
-red = "#a0132f"
-blue = "#0031a9"
-cyan = "#005e8b"
-yellow = "#7a4f2f"
-purple = "#531ab6"
-"bright-black" = "#595959"
+[palettes.kanagawa_light]
+green = "#6f894e"
+red = "#c84053"
+blue = "#4d699b"
+cyan = "#6693bf"
+yellow = "#77713f"
+purple = "#624c83"
+"bright-black" = "#8a8980"
