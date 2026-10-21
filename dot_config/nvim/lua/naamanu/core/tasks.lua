@@ -198,6 +198,11 @@ local function project_kind(startpath)
     return "rust", root
   end
 
+  root = find_root({ "mvnw", "gradlew", "pom.xml", "build.gradle", "build.gradle.kts" }, startpath)
+  if root then
+    return "java", root
+  end
+
   root = python_root(startpath)
   if root then
     return "python", root
@@ -466,6 +471,13 @@ function M.run_python_tests(startpath)
   run({ name = "python: pytest", cmd = cmd, cwd = root })
 end
 
+local function java_command(root, testing)
+  if exists(root .. "/pom.xml") or exists(root .. "/mvnw") then
+    return { exists(root .. "/mvnw") and "./mvnw" or "mvn", testing and "test" or "package" }
+  end
+  return { exists(root .. "/gradlew") and "./gradlew" or "gradle", testing and "test" or "build" }
+end
+
 function M.run_project_build(startpath)
   local kind, root = project_kind(startpath or vim.api.nvim_buf_get_name(0))
   if not kind then
@@ -474,6 +486,7 @@ function M.run_project_build(startpath)
   end
 
   local commands = {
+    java = java_command(root, false),
     rust = { "cargo", "build" },
     python = exists(root .. "/pyproject.toml") and M.python_command({ "-m", "build" }, root) or nil,
     ocaml = { "dune", "build" },
@@ -504,6 +517,7 @@ function M.run_project_tests(startpath)
   end
 
   local commands = {
+    java = java_command(root, true),
     rust = { "cargo", "test" },
     python = M.python_command({ "-m", "pytest" }, root),
     ocaml = { "dune", "runtest" },
@@ -544,7 +558,9 @@ end
 -- <localleader>r; <localleader>e sends the line or selection and <localleader>b
 -- the buffer through nvim_chan_send. No plugin; keys are in core/keymaps.lua.
 local function repl_command(ft, startpath)
-  if ft == "ocaml" then
+  if ft == "java" then
+    return "jshell", start_dir(startpath)
+  elseif ft == "ocaml" then
     local root = find_root({ "dune-project", "dune-workspace" }, startpath)
     if root then
       return "dune utop", root

@@ -49,6 +49,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
   config, which needs Neovim ≥ 0.10 and tree-sitter CLI ≥ 0.22; Emacs likewise
   comes from the classic snap, since apt ships 29 and the config targets 30)
 - Languages: Node.js (fnm), Python (uv), Rust (rustup, with rust-analyzer/clippy/rustfmt), Go, Lua
+- Java: OpenJDK 21, Maven, Gradle, Eclipse JDT LS (Homebrew on macOS; install JDT LS separately on Linux). Both editors use JDT LS; project wrappers take precedence for builds/tests.
 - C/C++: clang/clangd, clang-format, bear, lldb
 - FP: OCaml (opam, dune, merlin, ocaml-lsp, utop), Haskell (ghc, cabal, HLS, ormolu),
   Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl), Idris 2
@@ -164,3 +165,22 @@ dev-doctor --json       # machine-readable report
 ```
 
 Resolution order is project environment, `~/.local/bin`, then system PATH. Use project lockfiles and direnv for project-specific versions; global tools follow stable releases while editor plugins remain pinned.
+
+### Java workflow
+
+Open a fresh shell after setup; restart Emacs/Neovim to pick up `JAVA_HOME`.
+Java 21 is the default in fish and zsh; project `.envrc` files may select another JDK.
+Homebrew also installs JDK dependencies for its tooling. On macOS the Java 21 JDK
+is registered under `~/Library/Java/JavaVirtualMachines` for `java_home` discovery.
+
+- Neovim: open a `.java` file to start JDT LS. Existing LSP keys apply;
+  formatting uses Conform's LSP fallback. `SPC o b` builds, `SPC o n` tests,
+  and `,r` opens JShell. Maven/Gradle wrappers are preferred when present.
+- Emacs: `java-ts-mode` + Eglot provide completion, diagnostics and navigation.
+  `C-c l f` formats; `M-x compile` runs the detected Maven/Gradle test command.
+  Java build files also identify projects outside Git. Use `M-x ansi-term`
+  with `jshell` for a Java REPL.
+- Editor debugging adapters and JUnit test-explorer extensions are not installed;
+  run tests through Maven/Gradle and use the JDK's `jdb` when needed.
+- Linux bootstrap installs distribution JDK/build tools; install Eclipse JDT LS
+  separately and expose its `bin/jdtls` launcher on PATH.

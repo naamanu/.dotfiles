@@ -175,6 +175,7 @@ end
 -- tool degrades silently instead of erroring. { config name, binary, extra check }.
 -- Installing a server: lsp/<name>.lua + a row here + the binary in setup.sh.
 local servers = {
+  { "jdtls", "jdtls" },
   { "clangd", "clangd" },
   { "rust_analyzer", "rust-analyzer" },
   { "gopls", "gopls" },

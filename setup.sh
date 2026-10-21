@@ -231,6 +231,13 @@ if [ "$PLATFORM" = "mac" ]; then
     echo "Installing C/C++, OCaml, FP and Lisp toolchains..."
     # clangd comes from the Xcode CLT; brew llvm is keg-only, so install
     # clang-format standalone to get it on PATH.  lldb-dap (for Emacs dape)
+    brew_install openjdk@21 maven gradle jdtls
+    # Register the JDK for macOS discovery without requiring a system-wide link.
+    mkdir -p "$HOME/Library/Java/JavaVirtualMachines"
+    if [ ! -e "$HOME/Library/Java/JavaVirtualMachines/openjdk-21.jdk" ]; then
+        ln -s "$(brew --prefix openjdk@21)/libexec/openjdk.jdk" \
+            "$HOME/Library/Java/JavaVirtualMachines/openjdk-21.jdk"
+    fi
     # is linked out of the keg below.
     brew_install llvm bear clang-format
     brew_install ocaml opam dune
@@ -610,6 +617,19 @@ elif [ "$PLATFORM" = "linux" ]; then
     fi
 
     $PKG_INSTALL lua5.4 || $PKG_INSTALL lua || true
+
+    # Java: distribution JDK/build tools; JDT LS availability varies by distro.
+    if [ "$PKG_MGR" = "apt" ]; then
+        install_pkg openjdk-21-jdk maven gradle
+    elif [ "$PKG_MGR" = "dnf" ]; then
+        install_pkg java-21-openjdk-devel maven gradle
+    elif [ "$PKG_MGR" = "pacman" ]; then
+        install_pkg jdk21-openjdk maven gradle
+    fi
+    if ! command -v jdtls >/dev/null 2>&1; then
+        echo "Install Eclipse JDT LS (Java 21+) and put its bin/jdtls launcher on PATH."
+        FAILED_PACKAGES+=(jdtls)
+    fi
 
     echo ""
     echo "Installing C/C++, OCaml, and Lisp toolchains..."
