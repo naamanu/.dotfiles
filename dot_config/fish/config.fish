@@ -72,6 +72,13 @@ command -q rg; and abbr -a grep rg
 
 # Git
 abbr -a g git
+command -q difft; and abbr -a dft 'git dft'
+if command -q jj
+    abbr -a jjl 'jj log'
+    abbr -a jjd 'jj diff'
+    abbr -a jjs 'jj status'
+end
+command -q just; and abbr -a j just
 
 # Navigation
 abbr -a .. 'cd ..'
