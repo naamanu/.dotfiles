@@ -124,7 +124,7 @@ regen_starship_light() {
     local src="$HOME/.config/starship.toml"
     [ -r "$src" ] || return 0
     mkdir -p "$(dirname "$STARSHIP_LIGHT")"
-    sed 's/^palette = .*/palette = "kanagawa_light"/' "$src" > "$STARSHIP_LIGHT"
+    sed 's/^palette = .*/palette = "monokai_light"/' "$src" > "$STARSHIP_LIGHT"
 }
 
 # btop has no light/dark notion of its own, only a named theme. Both are
@@ -346,14 +346,14 @@ check() {
 
     # starship picks its palette from whichever config the shell points at.
     if [ "$mode" = light ]; then
-        if [ -r "$STARSHIP_LIGHT" ] && grep -q '^palette = "kanagawa_light"' "$STARSHIP_LIGHT"; then
-            row starship "kanagawa_light (generated)" "ok"
+        if [ -r "$STARSHIP_LIGHT" ] && grep -q '^palette = "monokai_light"' "$STARSHIP_LIGHT"; then
+            row starship "monokai_light (generated)" "ok"
         else
             row starship "light config missing" "MISMATCH"; MISMATCH=1
         fi
     else
-        if grep -q '^palette = "kanagawa_dark"' "$HOME/.config/starship.toml" 2>/dev/null; then
-            row starship "kanagawa_dark" "ok"
+        if grep -q '^palette = "monokai_dark"' "$HOME/.config/starship.toml" 2>/dev/null; then
+            row starship "monokai_dark" "ok"
         else
             row starship "no modus palette" "MISMATCH"; MISMATCH=1
         fi
