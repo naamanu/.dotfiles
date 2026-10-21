@@ -1,7 +1,8 @@
 # Emacs Setup
 
-Near-stock Emacs 31: the default theme, mode line and keybindings, with only
-what this work needs on top. Everything lives in `~/.emacs.d/init.el`.
+Near-stock Emacs 31: the default theme, mode line and keybindings (stock
+Menlo face at 16pt, matching Ghostty), with only what this work needs on top.
+Everything lives in `~/.emacs.d/init.el`.
 
 ## What is added
 
@@ -10,6 +11,8 @@ what this work needs on top. Everything lives in `~/.emacs.d/init.el`.
 | Vim keys | evil, evil-collection, evil-surround, evil-commentary, evil-org |
 | Finding things | vertico, orderless, marginalia, consult; built-in completion-preview |
 | Haskell | haskell-mode (+ interactive-haskell-mode / GHCi), eglot + hls (ormolu on save) |
+| Python | built-in python-mode, eglot + basedpyright, ruff format on save, `run-python` REPL |
+| C / C++ | built-in c-mode/c++-mode, eglot + clangd (clang-format on save) |
 | OCaml | tuareg, eglot + ocamllsp (ocamlformat on save), ocaml-eglot, utop, dune; home-grown fp-repl, dune-transient, ocaml-spec-kit |
 | Notes | denote, denote-journal, denote-markdown, consult-denote, markdown-mode; Org agenda + capture |
 
@@ -23,6 +26,7 @@ what this work needs on top. Everything lives in `~/.emacs.d/init.el`.
 | `C-c n f` / `s` | Find note / grep notes |
 | `C-c n l` / `b` / `r` | Insert link / backlinks / rename from front matter |
 | `C-c a` / `C-c c` (also `SPC a` / `SPC c`) | Org agenda / capture |
+| `C-c C-p`, `C-c C-c`, `C-c C-r` (Python) | Start REPL / send buffer / send region |
 | `C-c C-l`, `C-c C-z` (Haskell) | Load into GHCi / switch to GHCi |
 | `C-c C-e`, `C-c C-b` (OCaml) | utop: eval phrase / buffer |
 | `C-c b` (OCaml) | dune menu (dune-transient) |

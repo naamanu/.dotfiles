@@ -85,6 +85,7 @@ default theme, mode line and keys. **One file, `init.el`** (~330 lines), plus
 
 - evil (+ evil-collection/surround/commentary/org) and a small `SPC` leader;
   vertico/orderless/marginalia/consult; built-in `completion-preview-mode`.
+- Python: eglot + basedpyright, ruff format on save. C/C++: eglot + clangd.
 - Haskell: haskell-mode + interactive-haskell-mode, eglot + hls.
 - OCaml: tuareg, eglot + ocamllsp, ocaml-eglot, utop/dune (from the opam
   switch's site-lisp), and the home-grown `fp-repl`, `dune-transient`,
@@ -93,7 +94,9 @@ default theme, mode line and keys. **One file, `init.el`** (~330 lines), plus
   `core/notes.lua`), denote-journal/markdown, consult-denote; Org agenda +
   capture over `~/org`. Keys: `C-c n` notes, `C-c a` agenda, `C-c c` capture.
 
-Eglot formats on save (ormolu via hls, ocamlformat via ocamllsp). No theme:
+Eglot formats on save when the server can (ormolu via hls, ocamlformat via
+ocamllsp, clang-format via clangd); Python uses ruff directly. Font: stock
+Menlo at 16pt (`set-face-attribute 'default`). No theme:
 `my/apply-theme-mode` is a no-op so theme-mode's push stays harmless, and
 `theme-mode --check` reports Emacs as "stock theme".
 

@@ -5,7 +5,8 @@
 ;; plus only what Emacs lacks for this work --
 ;;   - evil (Vim keys) and vertico/consult for finding things,
 ;;   - Haskell and OCaml tooling (eglot with hls / ocamllsp, the same servers
-;;     Neovim uses; GHCi, utop, dune),
+;;     Neovim uses; GHCi, utop, dune), plus simple Python (basedpyright, ruff)
+;;     and C/C++ (clangd) setups,
 ;;   - notes: Denote over ~/notes (shared with Neovim) and Org agenda/capture.
 ;; The previous, larger modular config is in the dotfiles git history.
 
@@ -40,6 +41,10 @@
       auto-save-file-name-transforms `((".*" ,(expand-file-name "auto-save/" my/var-dir) t))
       create-lockfiles nil
       indent-tabs-mode nil)
+
+;; Stock font (Menlo on macOS), 16pt -- the same size as Ghostty.  Applies
+;; to every frame, including those emacsclient opens on a daemon.
+(set-face-attribute 'default nil :height 160)
 
 ;; Remember minibuffer history, recent files and the place in each file.
 (setq savehist-file (expand-file-name "history" my/var-dir)
@@ -134,6 +139,43 @@
 ;; Built-in (Emacs 30+): the top candidate as inline ghost text; TAB accepts.
 (global-completion-preview-mode 1)
 
+;; --- Python and C/C++ ------------------------------------------------------
+
+;; Python: basedpyright (the server Neovim uses) through Eglot, ruff for
+;; formatting, the built-in REPL (C-c C-p starts it, C-c C-c sends the
+;; buffer, C-c C-r the region).
+(defun my/ruff-format-buffer ()
+  "Format the buffer with `ruff format', keeping it untouched on errors."
+  (when (executable-find "ruff")
+    (let ((out (generate-new-buffer " *ruff*"))
+          (file (or buffer-file-name "stdin.py")))
+      (unwind-protect
+          (when (zerop (call-process-region (point-min) (point-max) "ruff" nil out nil
+                                            "format" "--stdin-filename" file "-"))
+            (replace-buffer-contents out))
+        (kill-buffer out)))))
+
+(defun my/python-mode-defaults ()
+  "Defaults for Python buffers."
+  (setq-local compile-command
+              (if (locate-dominating-file default-directory "pyproject.toml")
+                  "uv run pytest"
+                "python3 -m pytest"))
+  (add-hook 'before-save-hook #'my/ruff-format-buffer nil t)
+  (my/eglot-ensure-when-executable "basedpyright-langserver"))
+(add-hook 'python-mode-hook #'my/python-mode-defaults)
+(add-hook 'python-ts-mode-hook #'my/python-mode-defaults)
+
+;; C/C++: clangd through Eglot (it reads compile_commands.json; generate one
+;; with `bear -- make' or CMake's -DCMAKE_EXPORT_COMPILE_COMMANDS=ON).
+;; M-x compile runs `make' by default.
+(defun my/c-mode-defaults ()
+  "Defaults for C and C++ buffers."
+  (setq-local c-basic-offset 4)
+  (my/eglot-ensure-when-executable "clangd"))
+(dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook))
+  (add-hook hook #'my/c-mode-defaults))
+
 ;; --- Haskell and OCaml -----------------------------------------------------
 
 (defun my/eglot-ensure-when-executable (command)
@@ -141,11 +183,13 @@
   (when (executable-find command)
     (eglot-ensure)))
 
-;; Format through the server on save: ormolu via hls, ocamlformat via
-;; ocamllsp (only when the project has an .ocamlformat).
+;; Format through the server on save where the server can format: ormolu
+;; via hls, ocamlformat via ocamllsp (with an .ocamlformat), clang-format via
+;; clangd.  basedpyright cannot, so Python uses ruff below instead.
 (defun my/eglot-format-on-save ()
-  "Format the buffer through Eglot before saving, in this buffer only."
-  (add-hook 'before-save-hook #'eglot-format-buffer nil t))
+  "Format through Eglot before saving, when the server supports it."
+  (when (eglot-server-capable :documentFormattingProvider)
+    (add-hook 'before-save-hook #'eglot-format-buffer nil t)))
 
 (use-package eglot
   :ensure nil
@@ -153,7 +197,11 @@
   :custom
   (eglot-autoshutdown t)
   (eglot-events-buffer-config '(:size 0 :format short))
-  :hook (eglot-managed-mode . my/eglot-format-on-save))
+  :hook (eglot-managed-mode . my/eglot-format-on-save)
+  :config
+  ;; Pin basedpyright: the built-in list would also accept ruff's server.
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode) . ("basedpyright-langserver" "--stdio"))))
 
 (defun my/haskell-mode-defaults ()
   "Defaults for Haskell buffers."
