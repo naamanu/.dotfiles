@@ -4,6 +4,10 @@
       "rev": "fd780920613e541cbdfac41bf711583ed49f9249",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
+    "monokai.nvim": {
+      "rev": "759be78d722e306e4a3aac9cc0738f1be86a1ab8",
+      "src": "https://github.com/tanvirtin/monokai.nvim"
+    },
     "nvim-treesitter": {
       "rev": "29212d826054bb2948fa9d3a99eca9bf6a050eb2",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",

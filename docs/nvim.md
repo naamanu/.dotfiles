@@ -1,8 +1,8 @@
 # Neovim Setup
 
 Near-stock Neovim 0.12: the stock look and keys, built-in LSP, completion,
-snippets, comments and undotree, and five plugins for what Neovim cannot do
-itself. Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml and
+snippets, comments and undotree, five plugins for what Neovim cannot do
+itself, and one theme (monokai.nvim). Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml and
 Haskell**.
 
 ## Structure
@@ -35,6 +35,7 @@ lua/naamanu/
 | snacks.nvim | picker (files, grep, LSP symbols, GitHub) and terminals |
 | gitsigns.nvim | hunks in the sign column, stage/reset/blame |
 | vim-tmux-navigator | `C-h/j/k/l` across windows and tmux panes |
+| monokai.nvim | classic Monokai (+ Pro, Soda, Ristretto), matching Ghostty and Emacs |
 
 Updates: `:lua vim.pack.update()`, review the diff, `:write` to apply, then
 `chezmoi add ~/.config/nvim/nvim-pack-lock.json`.
@@ -85,7 +86,7 @@ Stock keys still apply: `grn` rename, `gra` code action, `grr` references,
 | `<localleader>s`, `]H` / `[H` | OCaml: .ml/.mli switch, typed holes |
 | `<C-/>` | Terminal (right) |
 | `<leader>aa` / `ac` | Terminal agent / copy context reference |
-| `<leader>uC` | Theme picker (built-in colorschemes; pin light/dark) |
+| `<leader>uC` | Theme picker (built-in colorschemes + Monokai; pin light/dark) |
 | `<leader>uu` | Undo tree |
 | `<leader><tab>s` / `o` | Save / open session for this directory |
 

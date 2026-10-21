@@ -26,9 +26,10 @@ function M.mode()
   return vim.trim(line) == "light" and "light" or "dark"
 end
 
--- Neovim-only theme family, from the colorschemes that ship with Neovim (no
--- theme plugins). Families with both halves follow the shared light/dark
--- mode; a dark-only family shows `default` in light mode.
+-- Neovim-only theme family: the colorschemes that ship with Neovim plus
+-- monokai.nvim (the one theme plugin). Families with both halves follow the
+-- shared light/dark mode; a dark-only family shows `default` in light mode
+-- unless pinned.
 M.families = {
   default = { dark = "default", light = "default" },
   retrobox = { dark = "retrobox", light = "retrobox" },
@@ -40,6 +41,10 @@ M.families = {
   unokai = { dark = "unokai" },
   zaibatsu = { dark = "zaibatsu" },
   slate = { dark = "slate" },
+  monokai = { dark = "monokai" },
+  ["monokai-pro"] = { dark = "monokai_pro" },
+  ["monokai-soda"] = { dark = "monokai_soda" },
+  ["monokai-ristretto"] = { dark = "monokai_ristretto" },
 }
 
 -- One-line descriptions for the picker.
@@ -54,6 +59,10 @@ M.descriptions = {
   unokai = "monokai-like (dark only)",
   zaibatsu = "high-contrast purple (dark only)",
   slate = "classic Vim slate (dark only)",
+  monokai = "the classic Monokai, as in Ghostty and Emacs (dark only)",
+  ["monokai-pro"] = "Monokai Pro (dark only)",
+  ["monokai-soda"] = "Monokai Soda, higher contrast (dark only)",
+  ["monokai-ristretto"] = "Monokai Pro Ristretto, warm (dark only)",
 }
 
 local function family_file()

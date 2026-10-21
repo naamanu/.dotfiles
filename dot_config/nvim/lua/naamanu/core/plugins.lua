@@ -8,6 +8,8 @@
 --   snacks.nvim       picker (files, grep, LSP, GitHub) and terminals
 --   gitsigns.nvim     hunks in the sign column, stage/reset/blame
 --   vim-tmux-navigator  C-h/j/k/l across Neovim windows and tmux panes
+--   monokai.nvim      the classic Monokai (plus Pro/Soda/Ristretto), matching
+--                     Ghostty's Monokai Classic and Emacs's monokai-theme
 
 -- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
 -- Registered before vim.pack.add so it also fires on the first install.
@@ -34,6 +36,7 @@ vim.pack.add({
   "https://github.com/folke/snacks.nvim",
   "https://github.com/lewis6991/gitsigns.nvim",
   "https://github.com/christoomey/vim-tmux-navigator",
+  "https://github.com/tanvirtin/monokai.nvim",
 }, { confirm = false })
 
 local map = function(mode, lhs, rhs, desc)
