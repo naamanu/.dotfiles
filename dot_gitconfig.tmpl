@@ -48,6 +48,12 @@
 	cp = cherry-pick
 	d = diff
 	dc = diff --cached
+	# Syntax-aware diffs with difftastic, on demand; delta stays the pager.
+	dft = -c diff.external=difft diff
+	dftc = -c diff.external=difft diff --cached
+	dlog = -c diff.external=difft log -p --ext-diff
+	# Fold staged fixes into the commits they belong to, then autosquash.
+	absorb-rebase = absorb --and-rebase
 	f = fetch
 	l = log --oneline --graph --decorate
 	p = push
