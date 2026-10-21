@@ -1,6 +1,6 @@
 ---
 name: dotfiles-add-tool
-description: Use when adding a new external tool to the dotfiles — a CLI, language server, formatter, debugger, font, or Emacs/Neovim package — so it lands everywhere it needs to (setup.sh, Emacs health check, INSTALL.md, editor config) instead of only on the current machine.
+description: Use when adding a new external tool to the dotfiles — a CLI, language server, formatter, debugger, font, or Emacs/Neovim package — so it lands everywhere it needs to (setup.sh, INSTALL.md, editor config) instead of only on the current machine.
 ---
 
 # Adding a tool to the dotfiles
@@ -16,16 +16,11 @@ every checkpoint that applies, in the chezmoi source tree, then sync.
    LSP-formatters / macOS-only). Match the existing `install_pkg` /
    `brew_install` / `install_optional_pkg` idiom, and handle both platforms
    or use the platform-specific branch. `bash -n setup.sh` after.
-3. **Emacs health check** — if Emacs invokes the binary, add a row to
-   `my/emacs-health-checks` in `dot_emacs.d/elisp/core.el` (`required` only
-   if core workflows break without it). Skip Python modules installed
-   per-project with `uv add --dev` — dape and friends resolve those through
-   the project environment.
+3. **Emacs** — Emacs is a single, deliberately small `init.el` (Haskell,
+   OCaml, notes only). There is no health-check table any more; only wire a
+   tool into Emacs if it serves those three.
 4. **Editor wiring** — as applicable:
-   - Emacs LSP: `eglot-server-programs` entry (dev.el) + `my/eglot-ensure-when-executable`
-     in the language's hook (langs.el)
-   - Emacs formatter: `apheleia-mode-alist` (dev.el)
-   - Emacs package: `use-package` form in the right module + name added to
+   - Emacs: a `use-package` form in `init.el` + the name in
      `package-selected-packages` in machine-local `~/.emacs.d/custom.el`
    - Neovim LSP: `lsp.config(...)` + `mason_servers` entry in `core/lsp.lua`,
      mason package in `ensure_installed` (plugins/lsp.lua); the two editors
@@ -36,8 +31,7 @@ every checkpoint that applies, in the chezmoi source tree, then sync.
    - Neovim plugin: spec file in `lua/naamanu/plugins/`, then
      `nvim --headless "+Lazy! sync" +qa` and sync `lazy-lock.json` too
 5. **`INSTALL.md`** — add it to the "What Gets Installed" list.
-6. **Verify**: `emacs --batch -l ~/.emacs.d/init.el` exits 0; re-run the
-   health check if you changed it.
+6. **Verify**: `emacs --batch -l ~/.emacs.d/init.el` exits 0.
 7. **Sync**: `chezmoi add` any `$HOME` files you edited; confirm with
    `chezmoi status`. Commit one tool per commit when asked.
 

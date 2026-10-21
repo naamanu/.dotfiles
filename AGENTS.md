@@ -53,8 +53,7 @@ apply that directory while a live-only spec exists un-added.
 | Tool | Command |
 | :--- | :--- |
 | Emacs | `emacs --batch -l ~/.emacs.d/init.el` — must exit 0 with no warnings (`--batch` implies `-q`; init.el loads early-init.el and activates packages itself in that case) |
-| Emacs (daemon) | `emacs --daemon=check && emacsclient -s check -e '(car custom-enabled-themes)' && emacsclient -s check -e '(kill-emacs)'` |
-| Emacs (interactive) | `C-c e h` (`M-x my/emacs-health-check`) for external tools and grammars |
+| Emacs (daemon) | `emacs --daemon=check && emacsclient -s check -e '(featurep (quote evil))' && emacsclient -s check -e '(kill-emacs)'` |
 | Neovim | `nvim --headless +qa`; deprecations: `nvim --headless '+checkhealth vim.deprecated' '+qa'` |
 | Neovim (plugins) | `nvim --headless "+Lazy! sync" +qa` after spec changes |
 | fish | `fish -n <file>` |
@@ -70,8 +69,7 @@ apply that directory while a live-only spec exists un-added.
   prefix: `fix: restore python lsp config`, `simplify tmux theme`.
 - Lua is formatted with Stylua. Shell should be explicit and side-effect free.
 - Adding an external tool dependency? Follow the `dotfiles-add-tool` skill:
-  it must land in `setup.sh`, the Emacs health check (if Emacs uses it), and
-  `INSTALL.md` together.
+  it must land in `setup.sh` and `INSTALL.md` together.
 - Python tooling is uv-first: project environments via `uv`/`.envrc` (envrc +
   direnv), per-project dev deps like debugpy via `uv add --dev`.
 - **Both editors use the same LSP server per language** (basedpyright, vtsls,
@@ -81,87 +79,44 @@ apply that directory while a live-only spec exists un-added.
 
 ## Emacs configuration (`dot_emacs.d/`)
 
-Emacs 31 (the `emacs-app` cask on macOS), `use-package` with
-`use-package-always-ensure t` (built-in packages get `:ensure nil`),
-completion via vertico/orderless/marginalia/consult + corfu/cape/embark, LSP
-via eglot, tree-sitter major modes throughout (`treesit-enabled-modes t`).
+Deliberately close to stock Emacs 31 (the `emacs-app` cask on macOS): the
+default theme, mode line and keys. **One file, `init.el`** (~330 lines), plus
+`early-init.el` (package archives, quickstart, frame chrome). It adds only:
 
-### Startup and module load order
+- evil (+ evil-collection/surround/commentary/org) and a small `SPC` leader;
+  vertico/orderless/marginalia/consult; built-in `completion-preview-mode`.
+- Haskell: haskell-mode + interactive-haskell-mode, eglot + hls.
+- OCaml: tuareg, eglot + ocamllsp, ocaml-eglot, utop/dune (from the opam
+  switch's site-lisp), and the home-grown `fp-repl`, `dune-transient`,
+  `ocaml-spec-kit` (mli-lens) from `~/workspace/elisp/`.
+- Notes: Denote (markdown-yaml in `~/notes`, byte-compatible with Neovim's
+  `core/notes.lua`), denote-journal/markdown, consult-denote; Org agenda +
+  capture over `~/org`. Keys: `C-c n` notes, `C-c a` agenda, `C-c c` capture.
 
-`early-init.el` sets `package-archives` and turns on `package-quickstart`;
-package.el then activates everything itself before init.el (no manual
-`package-initialize`). init.el loads `custom.el` first, then the `elisp/`
-modules in dependency order — **keys.el must stay last** so every keymap it
-binds into already exists — and finally dispatches `my/setup-appearance`:
-immediately in a GUI session, from `server-after-make-frame-hook` under
-`emacs --daemon` (fonts, padding, ligatures and icons need a graphical frame
-to probe, so the font checks are functions, never constants).
+Eglot formats on save (ormolu via hls, ocamlformat via ocamllsp). No theme:
+`my/apply-theme-mode` is a no-op so theme-mode's push stays harmless, and
+`theme-mode --check` reports Emacs as "stock theme".
 
-1. `core.el` — editor defaults, repeat-mode, Dired/dirvish, theme, lin, fontaine/pulsar,
-   `my/setup-appearance`, `my/emacs-health-check`
-2. `completion.el` — minibuffer and in-buffer completion stack
-3. `dev.el` — project.el helpers, eglot, apheleia, magit/forge, envrc, vterm, dape
-4. `langs.el` — tree-sitter (pinned `treesit-language-source-alist`) and per-language hooks
-5. `notes.el` — org, denote (+ consult-denote, denote-journal/markdown/org), citar,
-   AUCTeX, cdlatex/org-fragtog, olivetti, jinx, org-present
-6. `vim.el` — evil, evil-collection, evil-surround, evil-commentary, evil-org
-   (file is `vim.el`, not `evil.el`, so it cannot shadow the evil package)
-7. `keys.el` — every global binding, including the evil `SPC` leader;
-   prefixes documented in its Commentary
-
-`local-pre.el` / `local-post.el` (machine-local, not in chezmoi) load around
-everything; `custom.el` holds only `package-selected-packages`.
+The previous modular config (core/completion/dev/langs/notes/vim/keys.el) is
+in git history before this change and in
+`~/.local/share/emacs-config-backup-2026-10-21/` on this machine.
 
 ### Rules
 
-- **New package** → `use-package` form in the right module AND the package
-  name added to `package-selected-packages` in `~/.emacs.d/custom.el`
-  (machine-local; keeps `package-autoremove` safe). `M-x package-install`
-  maintains that list itself; the manual step is for packages first declared
-  in a module and installed by `use-package-always-ensure`, which does not.
-- **New external binary** → row in `my/emacs-health-checks` (core.el) and in
-  `setup.sh`. Exception: Python modules (e.g. debugpy) are per-project via
-  `uv add --dev`, not health-checked globally.
-- **New language** → grammar in `treesit-language-source-alist` (pinned to the
-  `:commit` the Emacs 31 mode declares in its own `add-to-list`), a
-  `my/<lang>-mode-defaults` hook setting `compile-command` +
-  `my/eglot-ensure-when-executable`, and an `apheleia-mode-alist` entry if
-  applicable. Mode remaps and `auto-mode-alist` come from
-  `treesit-enabled-modes`; do not hand-roll them.
-- **`eglot-server-programs`**: Emacs 31's built-in list already carries every
-  server in use, with the `:language-id` each expects (tuareg-mode →
-  "ocaml", tsx-ts-mode → "typescriptreact"). Only add an entry for a server
-  the built-in list lacks (vtsls), and give it explicit `:language-id`s; a
-  bare `(mode . ("server"))` entry shadows the built-in one and sends the
-  mode name as the language id.
-- Keybindings live in `keys.el` only, on the established `C-c` prefix maps.
-  The evil leader (`SPC`) mirrors those maps; a new `C-c x` prefix map also
-  gets a `<leader> x` line in the Leader section (end of keys.el).
-- Never add `flymake` to `eglot-stay-out-of` (regexp-matched; silently kills
-  all LSP diagnostics — see the NOTE in dev.el).
+- **New package** → a `use-package` form in `init.el` AND the name in
+  `package-selected-packages` in `~/.emacs.d/custom.el` (machine-local; keeps
+  `package-autoremove` safe).
+- Keep it small: anything stock Emacs already does well stays stock.
+- `evil` is `:pin melpa`: the ELPA 1.15.0 release breaks on Emacs 31
+  (`void-variable evil-mode-buffers`). Keep the pin until a newer release
+  lands on NonGNU ELPA.
+- Home-grown packages load from `~/workspace/elisp/` by `:load-path`, each
+  guarded with `:if (file-directory-p ...)`, so a machine without the
+  checkouts still starts. They are NOT chezmoi-managed; `setup.sh` clones them.
 - Home-grown Neovim plugins load from `~/workspace/nvim/` by lazy `dir =`
-  (e.g. `exact_plugins/lectern.lua`). The spec file returns `{}` when the
-  checkout is absent, so a fresh machine still starts — the Lua equivalent of
-  the Emacs `:if (file-directory-p ...)` guard. Repo: naamanu/lectern.nvim,
-  cloned by `setup.sh` alongside the `~/workspace/elisp/` packages.
-- Three home-grown packages load from `~/workspace/elisp/` by `:load-path`
-  (langs.el): `fp-repl`, `dune-transient` and `mli-lens`.  Each `use-package`
-  form is guarded with `:if (file-directory-p ...)`, so a machine without
-  those checkouts still starts cleanly.  They are NOT chezmoi-managed; their
-  repos are naamanu/fp-repl, naamanu/dune-transient and naamanu/mli-lens, and
-  `setup.sh` clones all three (with lectern.nvim) in the post-install section.
-- `utop-eros` (naamanu/utop-eros) is superseded by `fp-repl`, which covers
-  OCaml, Haskell, Racket and SML behind one set of keys.  Do NOT wire both:
-  they advise the same utop functions twice.
-- `evil` is `:pin melpa` (vim.el): the ELPA 1.15.0 release breaks on Emacs 31
-  (`void-variable evil-mode-buffers` in post-command-hook). Keep the pin
-  until a release newer than 1.15.0 lands on NonGNU ELPA.
-- `dirvish` is `:pin melpa` (core.el): NonGNU's tarball keeps its extensions
-  (`dirvish-side`, `dirvish-vc`, ...) in a subdirectory package.el does not
-  add to `load-path`; MELPA flattens them.
+  (e.g. `exact_plugins/lectern.lua`), returning `{}` when absent.
 
-After verifying: `chezmoi add ~/.emacs.d/init.el ~/.emacs.d/early-init.el
-~/.emacs.d/elisp/*.el`.
+After verifying: `chezmoi add ~/.emacs.d/init.el ~/.emacs.d/early-init.el`.
 
 ---
 

@@ -40,9 +40,9 @@ is about to pick one of these up, stop.
 The root `AGENTS.md` in the chezmoi source repo has a section per editor —
 read the relevant one before editing:
 
-- **Emacs**: module load order (keys.el last), new packages also go in
-  `package-selected-packages` in machine-local `custom.el`, new external
-  binaries also go in `my/emacs-health-checks` (core.el) and `setup.sh`.
+- **Emacs**: one small `init.el` (stock look, evil, Haskell/OCaml, notes).
+  New packages also go in `package-selected-packages` in machine-local
+  `custom.el`.
 - **Neovim**: native LSP API constraints, treesitter main-branch semantics,
   snacks conventions. After any plugin-spec change run
   `nvim --headless "+Lazy! sync" +qa` and `chezmoi add` the spec file AND

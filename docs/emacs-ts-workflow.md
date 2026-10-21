@@ -1,5 +1,7 @@
 # Emacs TypeScript Workflow
 
+> **Note:** this guide describes the previous, larger Emacs config (removed 2026-10-21). The current setup is in `emacs.md`; the old config is in git history.
+
 This document is a hands-on walkthrough of building a small TypeScript project entirely inside the Emacs setup in this dotfiles repository.
 
 It is the TypeScript companion to [Emacs Development Workflow](emacs-dev-workflow.md), which covers the same ground using Python. Read either one first; the navigation, search, and Git sections apply to both.
@@ -296,7 +298,7 @@ Review with `C-c a d`, the agenda Dashboard: today's schedule, inbox, `NEXT` act
 
 Write up the design decision you just made — why `topWords` breaks ties alphabetically, say — tag it `typescript`, and link it from the project note. Save with `C-x C-s`; until you do, `C-c n n` has only made a buffer.
 
-Org and Denote buffers get org-modern for clean rendering, Olivetti for centred text, and Jinx for spellcheck (`M-$` to correct). See [the notes workflow guide](emacs-org-workflow.md) for the full picture.
+Org and Denote buffers use standard theme styling and Jinx for spellcheck (`M-$` to correct). Toggle optional Olivetti centring with `C-c t o`. See [the notes workflow guide](emacs-org-workflow.md) for the full picture.
 
 ---
 

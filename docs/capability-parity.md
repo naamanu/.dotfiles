@@ -1,10 +1,15 @@
 # Emacs and Neovim capability contract
 
+> **Note (2026-10-21):** Emacs no longer aims for parity. It is now a
+> near-stock setup for Haskell, OCaml and notes only (`emacs.md`); Neovim is
+> the full environment. Rows below that describe other Emacs features refer
+> to the previous config.
+
 The editors share external binaries and workflows while keeping native interaction styles. Emacs uses built-in projects, Eglot, Apheleia, Dape, Magit, Denote and Citar. Neovim uses native LSP, Conform, nvim-dap, Gitsigns/Diffview, Snacks and Overseer.
 
 ## Tool ownership
 
-Tools resolve in this order: project environment (`direnv`, `.venv`, `node_modules/.bin`, opam switch), `~/.local/bin`, then the system PATH. Neovim does not install language tools privately. Run `dev-doctor --all` from a terminal, `C-c e h` in Emacs, or `:checkhealth` in Neovim.
+Tools resolve in this order: project environment (`direnv`, `.venv`, `node_modules/.bin`, opam switch), `~/.local/bin`, then the system PATH. Neovim does not install language tools privately. Run `dev-doctor --all` from a terminal, or `:checkhealth` in Neovim.
 
 `setup.sh` installs tools; `setup.sh --check` is read-only. Editor plugins remain pinned by their package metadata or `lazy-lock.json`. Projects own compiler and dependency versions.
 
@@ -54,12 +59,12 @@ Missing optional binaries leave editing usable and are reported by the doctor.
 
 ## Shared look
 
-Both editors use **Modus Vivendi Tinted** (modus-themes / modus-themes.nvim) and
-the same faces: **Source Code Pro** (SauceCodePro Nerd Font) for text with **Symbols Nerd Font Mono** for
-icons — Emacs via fontaine + a fontset fallback, Neovim via Ghostty's
-`font-family` list. Both show indent guides, breadcrumbs, rainbow delimiters,
-TODO highlighting, git gutters, a current-line highlight and a 100-column
-guide.
+Emacs is deliberately near-stock: the default theme and mode line, with
+only evil, vertico/consult, Haskell/OCaml tooling and Denote + Org notes on
+top (see `emacs.md`). Neovim picks its theme family with `<leader>uC`
+(light/dark follows theme-mode unless pinned). Ghostty, tmux, starship and
+btop use Kanagawa; text is **Source Code Pro** (SauceCodePro Nerd Font) with
+Symbols Nerd Font Mono for icons.
 
 Set `DEV_AGENT` to a command name to override agent selection. Otherwise both editors choose `codex`, then `claude`. Context commands copy an explicit `@file:start-end` reference and open a project-root terminal; paste intentionally rather than sending data silently.
 

@@ -1,5 +1,7 @@
 # Emacs — Getting Started (Hands-On)
 
+> **Note:** this guide describes the previous, larger Emacs config (removed 2026-10-21). The current setup is in `emacs.md`; the old config is in git history.
+
 A do-along lesson for *this* configuration: a deliberately small, keyboard-driven
 setup for **note-taking, research, and software engineering**. Open Emacs, keep a
 real project handy, and work through each section — every one ends with a short
@@ -46,7 +48,7 @@ Almost everything hangs off seven prefixes. Learn these and you can find the res
 | `C-c c` / `C-c a` | **Capture** / **Agenda**                                 |
 | `C-c d`         | **Debug** (dape)                                           |
 | `C-c f`         | Language **REPLs** (OCaml `o`, Python `p`, Racket `r`, SML `m`, Haskell `h`, Elisp `e`) |
-| `C-c t`         | **Toggles** — theme (`t`), font preset (`f`), sidebar (`s`), line numbers |
+| `C-c t`         | **Toggles** — theme (`t`), frame font (`f`), sidebar (`s`), line numbers |
 | `C-c TAB`       | **Tabs** — one workspace per project (`gt` / `gT` to switch) |
 | `C-c '`         | **Terminal** — toggle the project shell on the right        |
 | `C-x g`         | **Magit** (git) — `'` for Forge pull requests              |
@@ -257,8 +259,8 @@ link pointing at it.
 Note that `C-c n n` creates the *buffer*; the file reaches disk when you save
 with `C-x C-s`. An abandoned note leaves nothing behind.
 
-Writing aids: org buffers render through org-modern, open in a centered column
-(olivetti), and `M-$` corrects the word at point (jinx).
+Org uses the active theme's standard rendering. `C-c t o` toggles optional
+Olivetti centring, and `M-$` corrects the word at point (Jinx).
 
 **Presenting:** any org file with top-level headings is already a deck. `M-x
 org-present`, then `<right>`/`<left>` to move and `C-c C-q` to quit.

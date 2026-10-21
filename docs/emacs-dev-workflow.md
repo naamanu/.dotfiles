@@ -1,5 +1,7 @@
 # Emacs Development Workflow
 
+> **Note:** this guide describes the previous, larger Emacs config (removed 2026-10-21). The current setup is in `emacs.md`; the old config is in git history.
+
 This document is a practical guide to using the Emacs setup in this dotfiles repository as an actual daily software development environment.
 
 It is not a generic Emacs manual. It is a walkthrough of how this specific config is meant to be used.

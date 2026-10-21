@@ -1,10 +1,12 @@
 # Emacs Notes Workflow
 
+> **Note:** this guide describes the previous, larger Emacs config (removed 2026-10-21). The current setup is in `emacs.md`; the old config is in git history.
+
 This document covers the notes side of the Emacs setup in this repository:
 
 - inbox capture and tasks (Org)
 - durable, linked notes (Denote)
-- writing comfort (org-modern, olivetti, jinx)
+- writing comfort (on-demand olivetti, jinx)
 - presentations (org-present)
 - terminal-agent assistance via the shared DEV_AGENT
 
@@ -109,13 +111,11 @@ and link the two. Small, densely linked notes beat large ones.
 
 ## 3. Writing
 
-Org buffers get three things automatically:
+Org buffers use the active theme's standard rendering and Jinx for
+just-in-time spellcheck; `M-$` corrects the word at point.
 
-- **org-modern** — clean rendering of headings, blocks, checkboxes, timestamps
-- **olivetti** — text centred at ~90 columns
-- **jinx** — just-in-time spellcheck; `M-$` corrects the word at point
-
-Toggle centring with `C-c t o` and line wrapping with `C-c t w`.
+Toggle optional Olivetti centring at about 90 columns with `C-c t o`,
+and line wrapping with `C-c t w`.
 
 ---
 

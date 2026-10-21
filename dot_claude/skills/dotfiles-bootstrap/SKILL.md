@@ -41,19 +41,11 @@ installs packages ONLY — all config files come from `chezmoi apply`.
 
 ## Emacs first run
 
-1. Launch Emacs — `use-package` auto-installs all packages from ELPA/MELPA
-   on the first start (needs network; takes a few minutes).
-2. `C-c e g` (`M-x my/install-missing-grammars`) — compile tree-sitter
-   grammars (needs a C compiler).
-3. `C-c e h` (`M-x my/emacs-health-check`) — shows which external tools are
-   missing and what each is for. LSPs/formatters are optional per language.
-4. LaTeX previews in Org need a TeX distribution providing `latex` and
-   `dvisvgm` (macOS: `brew install texlive`, no sudo needed).
-5. gptel reads the Anthropic key from `~/.authinfo.gpg` (never env vars):
-   `machine api.anthropic.com login apikey password sk-ant-...`
-6. Machine-local overrides go in `~/.emacs.d/local-pre.el` /
-   `local-post.el` — created by hand, never managed by chezmoi.
-7. Python debugging (dape) is per-project: `uv add --dev debugpy`.
+1. Launch Emacs — `use-package` auto-installs its ~17 packages from
+   ELPA/MELPA on the first start (needs network).
+2. Emacs is deliberately near-stock: evil, vertico/consult, Haskell and OCaml
+   tooling, Denote + Org notes. OCaml's utop/dune elisp comes from the opam
+   switch (`opam install utop dune`); hls and ocamllsp must be on PATH.
 
 ## Verifying a bootstrap
 

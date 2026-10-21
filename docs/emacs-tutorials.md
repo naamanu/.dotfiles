@@ -1,5 +1,7 @@
 # Emacs Tutorials
 
+> **Note:** this guide describes the previous, larger Emacs config (removed 2026-10-21). The current setup is in `emacs.md`; the old config is in git history.
+
 **New here? Start with the hands-on lesson:**
 
 - **[Getting Started (Hands-On)](emacs-getting-started.md)** — a do-along walkthrough of navigation, code, notes, and research using this exact config.
