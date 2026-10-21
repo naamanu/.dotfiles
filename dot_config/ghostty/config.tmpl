@@ -1,9 +1,9 @@
 # Ghostty Terminal Configuration
 
 # Font configuration
-# Same faces as Emacs: Source Code Pro (Nerd Font build) for text, Symbols Nerd
-# Font for symbols. Match the font size on each platform.
-font-family = "SauceCodePro Nerd Font"
+# Menlo for text (the same face as Emacs), Symbols Nerd Font for the icons it
+# lacks. Match the font size on each platform.
+font-family = "Menlo"
 font-family = "Symbols Nerd Font Mono"
 font-size = {{ if eq .chezmoi.os "darwin" }}16{{ else }}15{{ end }}
 font-thicken = true
@@ -26,7 +26,9 @@ window-save-state = always
 # theme-mode(1) sets, so the terminal turns over with everything else and needs
 # no push of its own. theme-mode also reads this line to generate btop's
 # palettes, so btop follows whatever pair is named here.
-theme = light:Kanagawa Lotus,dark:Kanagawa Wave
+# Monokai Classic in both modes: Neovim is pinned to the dark-only unokai
+# (its Monokai), so the terminal stays dark with it.
+theme = light:Monokai Classic,dark:Monokai Classic
 # Translucent so the desktop blur reads through the terminal. `background-blur`
 # is honoured on macOS and KDE/Wayland; on GNOME/X11 it is a no-op and Blur My
 # Shell provides the blur instead, whitelisted to com.mitchellh.ghostty by
