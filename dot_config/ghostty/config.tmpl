@@ -1,12 +1,11 @@
 # Ghostty Terminal Configuration
 
 # Font configuration
-# Same faces as Emacs: Source Code Pro (Nerd Font build, named SauceCodePro)
-# for text, Symbols Nerd Font for icons.
+# Same faces as Emacs: Source Code Pro (Nerd Font build) for text, Symbols Nerd
+# Font for symbols. Match the font size on each platform.
 font-family = "SauceCodePro Nerd Font"
 font-family = "Symbols Nerd Font Mono"
-# macOS and Linux use different display scaling.
-font-size = {{ if eq .chezmoi.os "darwin" }}17{{ else }}15{{ end }}
+font-size = {{ if eq .chezmoi.os "darwin" }}16{{ else }}15{{ end }}
 font-thicken = true
 
 # Window configuration
@@ -25,8 +24,9 @@ window-save-state = always
 # Theme and colors
 # Both halves at once: Ghostty follows the desktop colour-scheme, which
 # theme-mode(1) sets, so the terminal turns over with everything else and needs
-# no push of its own.
-theme = light:Modus Operandi,dark:Modus Vivendi Tinted
+# no push of its own. theme-mode also reads this line to generate btop's
+# palettes, so btop follows whatever pair is named here.
+theme = light:Kanagawa Lotus,dark:Kanagawa Wave
 # Translucent so the desktop blur reads through the terminal. `background-blur`
 # is honoured on macOS and KDE/Wayland; on GNOME/X11 it is a no-op and Blur My
 # Shell provides the blur instead, whitelisted to com.mitchellh.ghostty by
@@ -50,3 +50,11 @@ copy-on-select = true
 # Cursor
 cursor-style = block
 cursor-style-blink = true
+{{- if eq .chezmoi.os "darwin" }}
+
+# Quick terminal: a dropdown from the top of the screen, from any app.
+# (Global keybinds need Ghostty to have Accessibility permission.)
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-autohide = true
+{{- end }}
