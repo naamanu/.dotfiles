@@ -25,11 +25,11 @@ every checkpoint that applies, in the chezmoi source tree, then sync.
    - Neovim LSP: `lsp.config(...)` + `mason_servers` entry in `core/lsp.lua`,
      mason package in `ensure_installed` (plugins/lsp.lua); the two editors
      should use the SAME server per language (e.g. basedpyright, vtsls)
-   - Neovim formatter/linter: conform (plugins/formatting.lua) / nvim-lint
-     (plugins/linting.lua) — skip linters whose LSP already publishes diagnostics
-   - Neovim language: parser in `ensure_installed` (plugins/treesitter.lua)
-   - Neovim plugin: spec file in `lua/naamanu/plugins/`, then
-     `nvim --headless "+Lazy! sync" +qa` and sync `lazy-lock.json` too
+   - Neovim formatter: `core/format.lua` (only if the language server does
+     not format)
+   - Neovim language: parser in `parsers` (core/plugins.lua)
+   - Neovim plugin: add to `vim.pack.add` in `core/plugins.lua` (only if
+     0.12 has no built-in for it), restart, sync `nvim-pack-lock.json` too
 5. **`INSTALL.md`** — add it to the "What Gets Installed" list.
 6. **Verify**: `emacs --batch -l ~/.emacs.d/init.el` exits 0.
 7. **Sync**: `chezmoi add` any `$HOME` files you edited; confirm with

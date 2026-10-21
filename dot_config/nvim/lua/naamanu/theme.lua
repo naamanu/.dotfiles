@@ -26,70 +26,34 @@ function M.mode()
   return vim.trim(line) == "light" and "light" or "dark"
 end
 
--- Neovim-only theme family; every family has a light and a dark half so the
--- shared mode still picks between them. Other tools stay on modus.
+-- Neovim-only theme family, from the colorschemes that ship with Neovim (no
+-- theme plugins). Families with both halves follow the shared light/dark
+-- mode; a dark-only family shows `default` in light mode.
 M.families = {
-  modus = {
-    dark = "modus_vivendi",
-    light = "modus_operandi",
-    setup = function(scheme)
-      require("modus-themes").setup({
-        style = scheme,
-        variants = {
-          modus_vivendi = "tinted", -- matches Emacs (modus-vivendi-tinted)
-        },
-        dim_inactive = false,
-        styles = {
-          comments = { italic = true },
-          keywords = { italic = true },
-        },
-      })
-    end,
-  },
-  kanagawa = { dark = "kanagawa-wave", light = "kanagawa-lotus" },
-  catppuccin = { dark = "catppuccin-mocha", light = "catppuccin-latte" },
-  ["rose-pine"] = { dark = "rose-pine-main", light = "rose-pine-dawn" },
-  tokyonight = { dark = "tokyonight-night", light = "tokyonight-day" },
-  -- Schemes with one name for both halves pick the variant from 'background'.
-  gruvbox = { dark = "gruvbox", light = "gruvbox" },
-  everforest = { dark = "everforest", light = "everforest" },
-  melange = { dark = "melange", light = "melange" },
-  vscode = { dark = "vscode", light = "vscode" },
-  nightfox = { dark = "nightfox", light = "dayfox" },
-  carbonfox = { dark = "carbonfox", light = "dawnfox" },
-  github = { dark = "github_dark_dimmed", light = "github_light" },
-  onedark = {
-    dark = "onedark",
-    light = "onedark",
-    setup = function(_, mode)
-      require("onedark").setup({ style = mode == "light" and "light" or "dark" })
-    end,
-  },
-  ["kanagawa-dragon"] = { dark = "kanagawa-dragon", light = "kanagawa-lotus" },
-  ["catppuccin-macchiato"] = { dark = "catppuccin-macchiato", light = "catppuccin-latte" },
-  ["rose-pine-moon"] = { dark = "rose-pine-moon", light = "rose-pine-dawn" },
-  ["tokyonight-storm"] = { dark = "tokyonight-storm", light = "tokyonight-day" },
+  default = { dark = "default", light = "default" },
+  retrobox = { dark = "retrobox", light = "retrobox" },
+  lunaperche = { dark = "lunaperche", light = "lunaperche" },
+  quiet = { dark = "quiet", light = "quiet" },
+  wildcharm = { dark = "wildcharm", light = "wildcharm" },
+  habamax = { dark = "habamax" },
+  sorbet = { dark = "sorbet" },
+  unokai = { dark = "unokai" },
+  zaibatsu = { dark = "zaibatsu" },
+  slate = { dark = "slate" },
 }
 
 -- One-line descriptions for the picker.
 M.descriptions = {
-  modus = "WCAG-AAA contrast, matches Emacs",
-  kanagawa = "muted ink painting (wave / lotus)",
-  ["kanagawa-dragon"] = "kanagawa, darker and earthier",
-  catppuccin = "soft pastels (mocha / latte)",
-  ["catppuccin-macchiato"] = "catppuccin, medium dark",
-  ["rose-pine"] = "calm, low contrast (main / dawn)",
-  ["rose-pine-moon"] = "rose-pine, cooler dark",
-  tokyonight = "vivid neon (night / day)",
-  ["tokyonight-storm"] = "tokyonight, softer dark",
-  gruvbox = "retro warm, high character",
-  everforest = "green, soft, very easy on the eyes",
-  melange = "warm, cozy, earth tones",
-  vscode = "VS Code Dark+ / Light+",
-  nightfox = "balanced blues (nightfox / dayfox)",
-  carbonfox = "IBM Carbon-inspired dark (dawnfox light)",
-  github = "GitHub dimmed / light",
-  onedark = "Atom One Dark / Light",
+  default = "Neovim's own theme",
+  retrobox = "gruvbox-like, warm",
+  lunaperche = "muted, balanced",
+  quiet = "near-monochrome, keywords bold",
+  wildcharm = "vivid accents",
+  habamax = "soft grey-blue (dark only)",
+  sorbet = "pastel on deep blue (dark only)",
+  unokai = "monokai-like (dark only)",
+  zaibatsu = "high-contrast purple (dark only)",
+  slate = "classic Vim slate (dark only)",
 }
 
 local function family_file()
@@ -106,12 +70,12 @@ local function read_selection()
   end
   local name, pin = line:match("^([^:]+):?(%a*)$")
   if not (name and M.families[name]) then
-    return "modus", nil
+    return "default", nil
   end
   return name, (pin == "dark" or pin == "light") and pin or nil
 end
 
---- Chosen family, defaulting to modus when unset or unknown.
+--- Chosen family, defaulting to `default` when unset or unknown.
 function M.family()
   return (read_selection())
 end
@@ -135,18 +99,9 @@ function M.apply(mode, family_name)
     mode = M.pin() or mode
   end
   mode = (mode == "light") and "light" or "dark"
-  local family = M.families[family_name or M.family()] or M.families.modus
-  local scheme = family[mode]
+  local family = M.families[family_name or M.family()] or M.families.default
   vim.o.background = mode
-  if family.setup then
-    pcall(family.setup, scheme, mode)
-  end
-  -- A family whose plugin is missing (not yet synced) falls back to modus.
-  if not pcall(vim.cmd.colorscheme, scheme) then
-    scheme = M.families.modus[mode]
-    M.families.modus.setup(scheme, mode)
-    vim.cmd.colorscheme(scheme)
-  end
+  pcall(vim.cmd.colorscheme, family[mode] or "default")
   return mode
 end
 
@@ -206,13 +161,16 @@ function M.pick()
   table.sort(names)
   for _, name in ipairs(names) do
     for _, mode in ipairs({ "dark", "light" }) do
-      items[#items + 1] = {
-        text = name .. " " .. mode,
-        family = name,
-        mode = mode,
-        scheme = M.families[name][mode],
-        desc = M.descriptions[name] or "",
-      }
+      -- Dark-only families have no light entry.
+      if M.families[name][mode] then
+        items[#items + 1] = {
+          text = name .. " " .. mode,
+          family = name,
+          mode = mode,
+          scheme = M.families[name][mode],
+          desc = M.descriptions[name] or "",
+        }
+      end
     end
   end
   local current = 1

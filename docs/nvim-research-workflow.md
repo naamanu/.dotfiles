@@ -1,5 +1,7 @@
 # Neovim Research Workflow
 
+> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
+
 This guide explains how to use the current Neovim setup for research-style work without turning Neovim into a notebook UI.
 
 Use Neovim for:

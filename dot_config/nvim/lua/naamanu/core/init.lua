@@ -1,9 +1,14 @@
--- Load core modules in order
+-- Load order: options and keys first, then plugins (vim.pack), the theme,
+-- LSP (servers enabled only when their binary is on PATH), format-on-save,
+-- and the plugin-free helpers.
 require("naamanu.core.options")
 require("naamanu.core.keymaps")
 require("naamanu.core.autocmds")
-require("naamanu.core.lazy")
-require("naamanu.core.lsp") -- native vim.lsp.config/enable; after lazy so lazy-loaded modules resolve
+require("naamanu.core.plugins")
 
-require("naamanu.core.workflows")
-require("naamanu.core.notes") -- Denote-compatible notes, shared with Emacs
+local theme = require("naamanu.theme")
+theme.apply(theme.mode())
+
+require("naamanu.core.lsp")
+require("naamanu.core.format")
+require("naamanu.core.workflows") -- terminal agent, docs lookup

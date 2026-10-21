@@ -22,29 +22,9 @@ local function apply_code_action(kind)
   })
 end
 
--- blink.cmp registers its completion capabilities on `*` from its own
--- plugin/ file, but it loads on InsertEnter -- after the first buffer's
--- servers have already sent `initialize`. Merge them in before_init instead:
--- it runs when the first server starts, so blink (~7 ms) stays off the
--- startup path, and the first client still gets the same resolveSupport
--- (detail, data) and itemDefaults as the rest. blink's tables win the merge
--- so its resolveSupport list is not clobbered by the builtin default.
-lsp.config("*", {
-  before_init = function(params)
-    -- params.capabilities is the client's own table: merge in place so what
-    -- the server receives and what client.capabilities reports stay equal.
-    local caps = params.capabilities
-    local merged =
-      vim.tbl_deep_extend("force", caps, require("blink.cmp").get_lsp_capabilities({}, false))
-    for key, value in pairs(merged) do
-      caps[key] = value
-    end
-  end,
-})
-
 -- Diagnostics: short text at the end of every line but the current one,
 -- which gets the full message beneath it instead. Borders come from
--- 'winborder' (options.lua). Toggles live under <leader>u (plugins/snacks.lua).
+-- 'winborder' (options.lua).
 local severity = vim.diagnostic.severity
 vim.diagnostic.config({
   virtual_text = { spacing = 4, prefix = "●", current_line = false },
@@ -149,60 +129,23 @@ vim.api.nvim_create_user_command("PythonEnv", function()
   vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "Python environment" })
 end, { desc = "Report the Python interpreter the LSP is using" })
 
--- racket-langserver is a raco package, not a binary: a `racket` on PATH says
--- nothing about it. Look for the package directory in the user scope (macOS,
--- Linux) and in the installation scope next to the racket binary.
-local function racket_langserver_installed()
-  local racket = vim.fn.exepath("racket")
-  if racket == "" then
-    return false
-  end
-  local patterns = {
-    "~/Library/Racket/*/pkgs/racket-langserver",
-    "~/.local/share/racket/*/pkgs/racket-langserver",
-    vim.fn.fnamemodify(racket, ":h:h") .. "/share/racket/pkgs/racket-langserver",
-    vim.fn.fnamemodify(vim.fn.resolve(racket), ":h:h") .. "/share/racket/pkgs/racket-langserver",
-  }
-  for _, pattern in ipairs(patterns) do
-    if #vim.fn.glob(pattern, false, true) > 0 then
-      return true
-    end
-  end
-  return false
-end
-
 -- Enable servers whose binary is present on the shared PATH, so a missing
 -- tool degrades silently instead of erroring. { config name, binary, extra check }.
 -- Installing a server: lsp/<name>.lua + a row here + the binary in setup.sh.
 local servers = {
-  { "jdtls", "jdtls" },
-  { "clangd", "clangd" },
-  { "rust_analyzer", "rust-analyzer" },
-  { "gopls", "gopls" },
-  { "bashls", "bash-language-server" },
-  { "dockerls", "docker-langserver" },
-  { "lua_ls", "lua-language-server" },
-  { "ruff", "ruff" },
   { "basedpyright", "basedpyright-langserver" },
-  { "ocamllsp", "ocamllsp" },
-  { "hls", "haskell-language-server-wrapper" },
+  { "ruff", "ruff" },
   { "vtsls", "vtsls" },
   { "eslint", "vscode-eslint-language-server" },
-  { "cssls", "vscode-css-language-server" },
-  { "jsonls", "vscode-json-language-server" },
-  { "yamlls", "yaml-language-server" },
-  { "millet", "millet-ls" },
-  { "marksman", "marksman" },
-  { "tinymist", "tinymist" },
-  { "texlab", "texlab" },
-  { "ast_grep", "ast-grep" },
-  { "racket_langserver", "racket", racket_langserver_installed },
+  { "clangd", "clangd" },
+  { "ocamllsp", "ocamllsp" },
+  { "hls", "haskell-language-server-wrapper" },
 }
 
 local enabled = {}
 for _, server in ipairs(servers) do
-  local name, binary, check = server[1], server[2], server[3]
-  if vim.fn.executable(binary) == 1 and (check == nil or check()) then
+  local name, binary = server[1], server[2]
+  if vim.fn.executable(binary) == 1 then
     enabled[#enabled + 1] = name
   end
 end
@@ -222,9 +165,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     map("gd", vim.lsp.buf.definition, "Go to definition")
     map("gD", vim.lsp.buf.declaration, "Go to declaration")
     map("<leader>la", vim.lsp.buf.code_action, "Code action")
-    vim.keymap.set("n", "<leader>lr", function()
-      return ":IncRename " .. vim.fn.expand("<cword>")
-    end, { buffer = event.buf, expr = true, desc = "LSP: Rename (live preview)" })
+    map("<leader>lr", vim.lsp.buf.rename, "Rename")
     map("<leader>ld", vim.diagnostic.open_float, "Line diagnostics")
     map("<leader>ls", vim.lsp.buf.signature_help, "Signature help")
     map("<leader>ci", function()
@@ -252,8 +193,22 @@ vim.api.nvim_create_autocmd("LspAttach", {
       end, 100)
     end, "Restart LSP clients")
 
-    -- Inlay hints on by default; <leader>ui (snacks) toggles them globally.
     local client = vim.lsp.get_client_by_id(event.data.client_id)
+
+    -- Built-in completion: the popup opens as you type (fuzzy matched,
+    -- docs beside it); <C-y> accepts, <C-n>/<C-p> move, <C-Space> forces it.
+    -- Snippets expand through vim.snippet; <Tab>/<S-Tab> jump fields.
+    if client and client:supports_method("textDocument/completion", event.buf) then
+      vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
+      vim.keymap.set(
+        "i",
+        "<C-Space>",
+        vim.lsp.completion.get,
+        { buffer = event.buf, desc = "Complete" }
+      )
+    end
+
+    -- Inlay hints on by default.
     if client and client:supports_method("textDocument/inlayHint", event.buf) then
       vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
       map("<leader>lh", function()

@@ -1,5 +1,7 @@
 # Neovim Starting Projects
 
+> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
+
 This guide explains how to start a new project so that this Neovim setup becomes productive immediately.
 
 The important principle is simple:

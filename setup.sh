@@ -1018,12 +1018,12 @@ if [ -x "$HOME/.tmux/plugins/tpm/bin/install_plugins" ]; then
     "$HOME/.tmux/plugins/tpm/bin/install_plugins" || FAILED_PACKAGES+=("tmux plugins")
 fi
 
-# Clone the home-grown editor packages.  These are NOT chezmoi-managed: the
-# Emacs `use-package` forms (langs.el) and the Neovim spec (exact_plugins/
-# lectern.lua) are guarded on these directories, so a machine without them
-# still starts cleanly — cloning them here is what turns the features on.
+# Clone the home-grown Emacs packages.  These are NOT chezmoi-managed: the
+# `use-package` forms in init.el are guarded on these directories, so a
+# machine without them still starts cleanly — cloning them here is what
+# turns the features on.
 # HTTPS, not SSH: this runs before `gh auth login` on a fresh machine.
-for repo in elisp/fp-repl elisp/dune-transient elisp/mli-lens nvim/lectern.nvim; do
+for repo in elisp/fp-repl elisp/dune-transient elisp/mli-lens; do
     dest="$HOME/workspace/$repo"
     name="${repo##*/}"
     if [ ! -d "$dest" ]; then
@@ -1253,7 +1253,7 @@ echo "Manual next steps:"
 step=0
 next_step() { step=$((step + 1)); echo "  $step. $1"; }
 next_step "Restart your terminal (or log out and back in)"
-next_step "Install Neovim plugins:  nvim '+Lazy sync' +qa"
+next_step "Start nvim once: vim.pack installs its 5 plugins and the treesitter parsers"
 next_step "After gh auth login:  gh extension install dlvhdr/gh-dash  (tmux prefix G)"
 if [ "$PLATFORM" = "mac" ]; then
     next_step "Zotero: install Better BibTeX, auto-export the library to ~/notes/references.bib"

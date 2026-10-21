@@ -59,8 +59,14 @@ o.mouse = "a"
 o.updatetime = 250
 o.timeoutlen = 300
 
--- Completion
-o.completeopt = "menu,menuone,noinsert"
+-- Completion (built-in, LSP-driven; core/lsp.lua): fuzzy matching, nothing
+-- inserted until chosen, documentation in a popup beside the menu.
+o.completeopt = "menuone,noselect,popup,fuzzy"
+-- Show the menu while typing words too, not only after `.`/`::`: the LSP
+-- (omnifunc, set on attach) first, then words from the current buffer.
+o.autocomplete = true
+o.complete = "o,."
+opt.wildoptions:append("fuzzy")
 
 -- Scrolling
 o.scrolloff = 8
@@ -77,13 +83,18 @@ o.fileencoding = "utf-8"
 -- No `options`/`blank`, so restoring a session does not replay stale settings.
 o.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,globals,skiprtp"
 
--- Start on a plain empty buffer: no intro screen (the snacks dashboard is
--- off too, plugins/snacks.lua).
+-- Start on a plain empty buffer: no intro screen.
 vim.opt.shortmess:append("I")
 
--- Panels (edgy.nvim docks, Trouble, overseer) open and close without
--- scrolling the main windows.
+-- Splits (terminals, quickfix) open and close without scrolling the main
+-- windows.
 o.splitkeep = "screen"
+
+-- :grep uses ripgrep and fills the quickfix list.
+if vim.fn.executable("rg") == 1 then
+  o.grepprg = "rg --vimgrep --smart-case"
+  o.grepformat = "%f:%l:%c:%m"
+end
 
 -- Built-in ui2 (experimental in 0.12): the cmdline and messages render in
 -- their own windows. Long output collapses to a `[+N]` marker instead of the

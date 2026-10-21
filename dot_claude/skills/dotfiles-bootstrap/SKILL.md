@@ -19,7 +19,7 @@ installs packages ONLY — all config files come from `chezmoi apply`.
 ## Post-install checklist (in order)
 
 1. Restart the terminal (or `source ~/.zprofile` on macOS).
-2. `nvim '+Lazy sync' +qa` — install Neovim plugins.
+2. `nvim` once — vim.pack installs the plugins and treesitter parsers.
 3. In tmux: `prefix + I` — install tmux plugins.
 4. `gh auth login` — GitHub CLI; Emacs Forge reuses this token.
 5. `git clone git@github.com:naamanu/notes.git ~/workspace/learn/notes` — the
@@ -30,14 +30,12 @@ installs packages ONLY — all config files come from `chezmoi apply`.
 
 ## Neovim first run
 
-1. `nvim` — lazy.nvim bootstraps itself and installs all plugins; treesitter
-   parsers compile automatically on first start (needs the `tree-sitter` CLI,
-   installed by setup.sh; macOS: `brew install tree-sitter-cli`).
-2. `:MasonToolsInstallSync` — install LSP servers/formatters (basedpyright,
-   vtsls, rust-analyzer, etc.) without waiting for the background installer.
-3. `:checkhealth` — confirm treesitter parsers, LSP, and providers.
-4. cc-nvim (`<leader>a` group) uses the local checkout at `~/projects/cc-nvim`
-   when present, otherwise the GitHub copy.
+1. `nvim` — the built-in vim.pack installs the 5 plugins at the revisions in
+   `nvim-pack-lock.json`, and nvim-treesitter compiles the parsers (needs the
+   `tree-sitter` CLI from setup.sh; macOS: `brew install tree-sitter-cli`).
+2. Language servers come from setup.sh, never from inside Neovim: basedpyright,
+   ruff, vtsls, eslint, clangd, ocamllsp, hls. Missing ones are skipped.
+3. `:checkhealth vim.lsp vim.pack` — confirm servers and plugins.
 
 ## Emacs first run
 

@@ -5,7 +5,7 @@ local keymap = vim.keymap
 -- Clear search highlights
 keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlights" })
 
--- Window navigation is provided by vim-tmux-navigator (plugins/navigation.lua),
+-- Window navigation is provided by vim-tmux-navigator (core/plugins.lua),
 -- which moves between Neovim windows and tmux panes with the same keys.
 
 -- Window resize
@@ -119,7 +119,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 })
 
 -- REPL (core/tasks.lua): filetype -> utop/ghci/racket/sml/ipython in a snacks
--- terminal, mirroring Emacs fp-repl. <localleader> is ","; group in plugins/ui.lua.
+-- terminal, mirroring Emacs fp-repl. <localleader> is ",".
 keymap.set("n", "<localleader>r", function()
   require("naamanu.core.tasks").repl()
 end, { desc = "REPL toggle" })
@@ -141,3 +141,20 @@ end, { desc = "Watch: rebuild on save" })
 keymap.set("n", "<localleader>W", function()
   require("naamanu.core.tasks").run_watch(true)
 end, { desc = "Watch: re-test on save" })
+
+-- Build, test and run (core/tasks.lua), each in a terminal at the bottom:
+-- the project kind (dune, cabal/stack, uv/pytest, package.json, cmake/make)
+-- is detected from the root markers.
+local function task(fn, ...)
+  local args = { ... }
+  return function()
+    require("naamanu.core.tasks")[fn](unpack(args))
+  end
+end
+keymap.set("n", "<leader>ob", task("run_project_build"), { desc = "Build project" })
+keymap.set("n", "<leader>on", task("run_project_tests"), { desc = "Test project" })
+keymap.set("n", "<leader>os", task("run_package_script"), { desc = "Run package.json script" })
+keymap.set("n", "<leader>od", task("run_named_package_script", "dev"), { desc = "npm run dev" })
+keymap.set("n", "<leader>op", task("run_python_file"), { desc = "Run Python file" })
+keymap.set("n", "<leader>oT", task("run_python_tests"), { desc = "Run pytest" })
+keymap.set("n", "<leader>oC", task("compile_c_family_file"), { desc = "Compile C/C++ file" })

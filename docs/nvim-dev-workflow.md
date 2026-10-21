@@ -1,5 +1,7 @@
 # Neovim Development Workflow
 
+> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
+
 This guide describes the daily engineering loop for the current Neovim config in this repository.
 
 The setup is centered on a few tools:

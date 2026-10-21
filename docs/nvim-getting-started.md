@@ -1,5 +1,7 @@
 # Neovim — Getting Started (Hands-On)
 
+> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
+
 A do-along lesson for *this* configuration: a `lazy.nvim` setup built around
 **Telescope** (find), **Oil** (files), **native LSP** (code), **Overseer** (tasks),
 and **snacks/which-key** (glue) — for note-taking, research, and software

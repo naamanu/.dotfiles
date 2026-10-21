@@ -89,7 +89,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 ## Post-Install Checklist
 
 - [ ] Restart terminal (or log out/in)
-- [ ] `nvim '+Lazy sync' +qa` — install Neovim plugins
+- [ ] `nvim` — first start installs the plugins (vim.pack) and treesitter parsers
 - [ ] Log out/in for Docker group changes (Linux, only if `INSTALL_DOCKER=1`)
 - [ ] `gh auth login` — authenticate GitHub CLI
 - [ ] `gh extension install dlvhdr/gh-dash` — PR/issue dashboard (tmux `prefix G`)
@@ -117,7 +117,7 @@ docker run hello-world
 
 ### Neovim: Plugins not loading
 ```sh
-nvim '+Lazy clean' '+Lazy sync'
+nvim '+lua vim.pack.update()'   # review, then :write to apply
 ```
 
 ### tmux: Plugin not loading

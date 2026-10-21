@@ -43,9 +43,6 @@ read the relevant one before editing:
 - **Emacs**: one small `init.el` (stock look, evil, Haskell/OCaml, notes).
   New packages also go in `package-selected-packages` in machine-local
   `custom.el`.
-- **Neovim**: native LSP API constraints, treesitter main-branch semantics,
-  snacks conventions. After any plugin-spec change run
-  `nvim --headless "+Lazy! sync" +qa` and `chezmoi add` the spec file AND
-  `lazy-lock.json`. CAUTION: the plugins dir is `exact_plugins/` in source —
-  `chezmoi apply` DELETES live plugin files that have no source counterpart,
-  so never apply that directory while a live-only spec exists un-added.
+- **Neovim**: near-stock; every plugin is in `core/plugins.lua`
+  (`vim.pack`). After a plugin change restart Neovim and `chezmoi add`
+  `core/plugins.lua` AND `nvim-pack-lock.json`. Native LSP API only.

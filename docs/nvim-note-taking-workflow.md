@@ -1,5 +1,7 @@
 # Neovim Note-Taking Workflow
 
+> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
+
 This guide explains how to use this Neovim setup for lightweight note-taking without turning the editor into a separate personal knowledge system.
 
 The emphasis here is:

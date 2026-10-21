@@ -77,20 +77,15 @@ local function shell_command(command)
   return { "sh", "-lc", command }
 end
 
-local function task(spec)
-  return vim.tbl_deep_extend("force", {
-    components = {
-      { "open_output", direction = "bottom", focus = false, on_start = true },
-      "default",
-    },
-  }, spec)
-end
-
+-- Build/test/watch commands run in a terminal at the bottom of the screen
+-- (snacks.terminal), one per command and directory, toggled by re-running.
+-- The output stays after the command exits; `q` closes it.
 local function run(spec)
-  local overseer = require("overseer")
-  local instance = overseer.new_task(task(spec))
-  instance:start()
-  overseer.open({ enter = false })
+  Snacks.terminal.open(spec.cmd, {
+    cwd = spec.cwd,
+    auto_close = false,
+    win = { position = "bottom", height = 0.3, title = spec.name },
+  })
 end
 
 local function package_root(startpath)
@@ -694,7 +689,7 @@ function M.repl_send_form()
   repl_send(lines)
 end
 
---- Rebuild (or re-test) on every save, in an overseer task: dune's own
+--- Rebuild (or re-test) on every save, in a terminal: dune's own
 --- watcher for OCaml, ghcid for Haskell, watchexec for everything else.
 function M.run_watch(tests)
   local kind, root = project_kind(vim.api.nvim_buf_get_name(0))

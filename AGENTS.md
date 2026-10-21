@@ -36,10 +36,6 @@ Before and after, `chezmoi status` / `chezmoi diff` show drift. If a diff
 shows changes you did not make, stop and surface them — another session or a
 hand edit may be ahead of the source tree; do not blindly re-apply over it.
 
-CAUTION: `dot_config/nvim/lua/naamanu/exact_plugins/` is an `exact_`
-directory — `chezmoi apply` DELETES live files under
-`~/.config/nvim/lua/naamanu/plugins/` that have no source counterpart. Never
-apply that directory while a live-only spec exists un-added.
 
 ## Machine-local files — never add these to chezmoi
 
@@ -55,7 +51,7 @@ apply that directory while a live-only spec exists un-added.
 | Emacs | `emacs --batch -l ~/.emacs.d/init.el` — must exit 0 with no warnings (`--batch` implies `-q`; init.el loads early-init.el and activates packages itself in that case) |
 | Emacs (daemon) | `emacs --daemon=check && emacsclient -s check -e '(featurep (quote evil))' && emacsclient -s check -e '(kill-emacs)'` |
 | Neovim | `nvim --headless +qa`; deprecations: `nvim --headless '+checkhealth vim.deprecated' '+qa'` |
-| Neovim (plugins) | `nvim --headless "+Lazy! sync" +qa` after spec changes |
+| Neovim (plugins) | first start installs from `vim.pack.add`; updates: `:lua vim.pack.update()`, review, `:write`; then `chezmoi add ~/.config/nvim/nvim-pack-lock.json` |
 | fish | `fish -n <file>` |
 | tmux | `tmux -L test -f ~/.tmux.conf start-server` |
 | shell scripts | `bash -n setup.sh`; `shellcheck` when available |
@@ -116,8 +112,6 @@ in git history before this change and in
 - Home-grown packages load from `~/workspace/elisp/` by `:load-path`, each
   guarded with `:if (file-directory-p ...)`, so a machine without the
   checkouts still starts. They are NOT chezmoi-managed; `setup.sh` clones them.
-- Home-grown Neovim plugins load from `~/workspace/nvim/` by lazy `dir =`
-  (e.g. `exact_plugins/lectern.lua`), returning `{}` when absent.
 
 After verifying: `chezmoi add ~/.emacs.d/init.el ~/.emacs.d/early-init.el`.
 
@@ -125,74 +119,57 @@ After verifying: `chezmoi add ~/.emacs.d/init.el ~/.emacs.d/early-init.el`.
 
 ## Neovim configuration (`dot_config/nvim/`)
 
-Neovim 0.12+, lazy.nvim, ~36 plugins. `stylua.toml` (2 spaces, width 100)
-formats the tree: run `stylua ~/.config/nvim` before `chezmoi add`.
+Deliberately near-stock Neovim 0.12. Tooling covers **Python, TS/JS, C/C++,
+SQL, OCaml and Haskell** only. `stylua.toml` (2 spaces, width 100) formats
+the tree: run `stylua lua lsp after` from `~/.config/nvim` (stylua only finds
+the config from the cwd) before `chezmoi add`.
 
-### Load order
+### Layout and load order
 
 `init.lua` (`vim.loader.enable()`, leaders) → `lua/naamanu/core/init.lua`:
-options → keymaps → autocmds → lazy → **lsp** (after lazy so lazy-loaded
-plugin modules resolve from server callbacks) → workflows. Plugin specs are
-auto-imported from `lua/naamanu/plugins/*.lua`, one file per concern.
-`core/tasks.lua` is the bespoke project build/test command layer consumed by
-the overseer keymaps, and holds the REPL (`<localleader>r/e/b`).
-Per-server LSP tables live in `lsp/<name>.lua` at the config root (the native
-runtimepath `lsp/` directory, `:h lsp-config`); `core/lsp.lua` keeps only what
-is shared. `after/ftplugin/<ft>.lua` holds per-filetype settings.
+options → keymaps → autocmds → **plugins** → theme → lsp → format → workflows.
 
-### Non-obvious constraints
+- `core/plugins.lua` — the ONLY plugin list: one `vim.pack.add` (built-in
+  package manager; revisions in `nvim-pack-lock.json`) with each plugin's
+  setup and keys: nvim-treesitter (`main` branch, parsers for the languages
+  above), oil.nvim, snacks.nvim (picker + terminal only), gitsigns.nvim,
+  vim-tmux-navigator. Plus the built-in `nvim.undotree` package.
+- `core/lsp.lua` — native `vim.lsp.config`/`enable`; servers in
+  `lsp/<name>.lua` (basedpyright, ruff, vtsls, eslint, clangd, ocamllsp,
+  hls), enabled only when the binary is on PATH. Completion is built in:
+  `vim.lsp.completion` (autotrigger) + `'autocomplete'` with `complete=o,.`.
+- `core/format.lua` — format on save without conform: project prettier for
+  TS/JS/JSON, sql-formatter for SQL, LSP formatting otherwise.
+- `core/tasks.lua` — build/test/watch commands (run in a snacks terminal)
+  and the REPL (`<localleader>r/e/b/f`).
+- `theme.lua` — shared light/dark mode from theme-mode(1) plus a family
+  picker (`<leader>uC`) over Neovim's built-in colorschemes; no theme plugins.
 
-- **LSP is the native API** (`vim.lsp.config`/`vim.lsp.enable`; tables in
-  `lsp/<name>.lua`, shared parts in `core/lsp.lua`; no nvim-lspconfig, no
-  mason). nvim-lspconfig concepts like `on_new_config` and
-  `single_file_support` DO NOT EXIST here and fail silently — do not
-  reintroduce them. Servers are enabled by the gate table at the bottom of
-  `core/lsp.lua` only when their binary is on PATH (racket-langserver is
-  gated on the raco package directory), so missing tools degrade silently.
-  `vim.lsp.enable` loads every enabled `lsp/<name>.lua` at startup, so keep
-  plugin requires (schemastore) inside `on_init`, as jsonls/yamlls do.
-- **blink capabilities are merged in `before_init`** on the `*` config, not
-  by an eager `require("blink.cmp")` at startup. A server file only sets
-  `capabilities` for something else (ruff pins `positionEncodings` to utf-16
-  so it matches basedpyright); completion support is already covered.
-- **Python interpreter** for basedpyright is resolved per client in
-  `lsp/basedpyright.lua`'s `on_init` from `core/lsp.lua`'s `python_path`
-  (deep-copies `client.settings`, then re-sends didChangeConfiguration).
-  `:PythonEnv` reports the result. Keep that block intact; it is why imports
-  resolve when Neovim is started outside the project root.
-- **nvim-treesitter is the `main` rewrite branch** (pinned). Its `setup()`
-  only accepts `install_dir`; master-branch option tables
-  (`ensure_installed`/`highlight`/`indent`/`incremental_selection`) are
-  silently ignored. Parsers install via `ts.install()` in
-  `plugins/treesitter.lua` and need the `tree-sitter` CLI on PATH.
-  Highlighting starts per buffer via a FileType autocmd calling
-  `vim.treesitter.start`.
-- **Python is basedpyright + ruff** (ruff owns imports/formatting, hover
-  disabled). Do not add `ty` or a second Python diagnostics source (e.g.
-  ruff in nvim-lint) — it doubles every message.
-- **Prefer a snacks module over a new plugin** (picker, ui_select, zen,
-  lazygit, notifier, scratch are in use). Exception: fidget stays — snacks
-  has no LSP progress display.
-- Completion is blink.cmp with native `vim.snippet` — no LuaSnip, no
-  nvim-cmp. Commenting is builtin `gc` — no Comment.nvim.
-- which-key groups are declared in `plugins/ui.lua`; never bind a bare key
-  that is also a group prefix (hence `<leader>uu` undotree, `<leader>nh`
-  notifier history).
+### Rules
+
+- **Prefer built-ins.** A plugin is added only when 0.12 cannot do the job
+  (completion, snippets, comments, undotree, cmdline UI, LSP are built in).
+- **LSP is the native API** — no nvim-lspconfig, no mason. nvim-lspconfig
+  concepts like `on_new_config`/`single_file_support` silently do nothing.
+  `vim.lsp.enable` loads every enabled `lsp/<name>.lua` at startup.
+- **nvim-treesitter is the `main` branch**: `setup()` takes only
+  `install_dir`; parsers install via `install()`; highlighting starts per
+  buffer via `vim.treesitter.start`. Needs the `tree-sitter` CLI.
+- **Python is basedpyright + ruff** (ruff formats; basedpyright never does).
+- hls must be started with `--lsp` (`lsp/hls.lua`); without it the wrapper
+  runs its setup tester and exits.
 
 ### Adding things
 
-- **Plugin** → new/existing file in `lua/naamanu/plugins/`, then
-  `nvim --headless "+Lazy! sync" +qa`; sync the spec file AND
-  `lazy-lock.json` to chezmoi.
-- **LSP server** → new `lsp/<name>.lua` returning the `vim.lsp.config`
-  table (`cmd`, `filetypes`, `root_markers`, `settings`), a `{ name, binary }`
-  row in the `servers` gate table in `core/lsp.lua`, and the binary installed
-  by `setup.sh` (see the `dotfiles-add-tool` skill). Nothing installs servers
-  from inside Neovim.
-- **Language** → parser in `ensure_installed` (plugins/treesitter.lua),
-  formatter in `plugins/formatting.lua` (conform), server as above, test
-  commands in `core/tasks.lua` if overseer should know it, REPL command in
-  `repl_command` (core/tasks.lua), indentation in `after/ftplugin/<ft>.lua`.
+- **Plugin** → add it to `vim.pack.add` in `core/plugins.lua` with its setup
+  in the same file, restart, then `chezmoi add` `core/plugins.lua` AND
+  `nvim-pack-lock.json`. Removing one: delete it from the list, then
+  `:lua vim.pack.del({ "name" })`.
+- **LSP server** → `lsp/<name>.lua`, a `{ name, binary }` row in the
+  `servers` table in `core/lsp.lua`, and the binary in `setup.sh`.
+- **Language** → parser in `parsers` (core/plugins.lua), server as above,
+  formatter in `core/format.lua` if the server does not format, build/test
+  commands and REPL in `core/tasks.lua`.
 
 ---
 

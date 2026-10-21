@@ -1,5 +1,7 @@
 # Neovim Tutorials
 
+> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
+
 This tutorial set explains how to use the Neovim setup in this repository as an actual working environment.
 
 These are practical guides for this exact config, not generic Neovim documentation.
