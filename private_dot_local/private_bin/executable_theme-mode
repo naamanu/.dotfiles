@@ -15,9 +15,11 @@
 # them poll, so each has to be pushed at, and each has its own way in.
 #
 # Ghostty needs nothing here. Its config names both themes at once
-# (theme = light:...,dark:...) and follows the desktop colour-scheme, which
-# this script sets (GNOME via gsettings, macOS via System Events) -- so it is
-# driven, just not by a push.
+# (theme = light:...,dark:...) and follows the desktop colour-scheme. On GNOME
+# this script sets that scheme, so Ghostty is driven, just not by a push. On
+# macOS the system appearance is deliberately left alone -- switching the
+# editor theme must not restyle every window on the desktop -- so there
+# Ghostty follows whatever appearance macOS is set to, independently of this.
 
 set -u
 
@@ -61,16 +63,10 @@ current_mode() {
 # The wallpaper needs no case of its own: desktop-wallpaper(1) writes both
 # picture-uri and picture-uri-dark, and GNOME picks by colour-scheme.
 push_desktop() {
-    # macOS: the appearance is the only desktop knob, and Ghostty's
-    # window-theme = auto follows it. The first run may raise a one-time
-    # Automation permission prompt for System Events.
-    if [ "$(uname -s)" = Darwin ]; then
-        command -v osascript >/dev/null 2>&1 || return 0
-        local dark=true
-        [ "$1" = light ] && dark=false
-        osascript -e "tell application \"System Events\" to tell appearance preferences to set dark mode to $dark" >/dev/null 2>&1 || true
-        return 0
-    fi
+    # macOS: not touched. The only knob is the system-wide appearance, and
+    # flipping it restyles every app on the desktop, not just the themed
+    # surfaces this script owns. The desktop stays the user's to set.
+    [ "$(uname -s)" = Darwin ] && return 0
     command -v gsettings >/dev/null 2>&1 || return 0
     local scheme icons gtk
     case "$1" in
@@ -128,7 +124,7 @@ regen_starship_light() {
     local src="$HOME/.config/starship.toml"
     [ -r "$src" ] || return 0
     mkdir -p "$(dirname "$STARSHIP_LIGHT")"
-    sed 's/^palette = .*/palette = "modus_light"/' "$src" > "$STARSHIP_LIGHT"
+    sed 's/^palette = .*/palette = "kanagawa_light"/' "$src" > "$STARSHIP_LIGHT"
 }
 
 # btop has no light/dark notion of its own, only a named theme. Both are
@@ -274,11 +270,12 @@ check() {
     echo "shared mode: $mode   ($STATE_FILE)"
     echo
 
-    # Desktop, and through it Ghostty.
+    # Desktop, and through it Ghostty. On macOS the desktop is not managed
+    # (see push_desktop), so it is reported but never counted as a mismatch.
     if [ "$(uname -s)" = Darwin ]; then
         local g
         if [ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" = Dark ]; then g=dark; else g=light; fi
-        status_for "$mode" "$g"; row desktop "$g" "$STATUS"
+        row desktop "$g" "- (not managed)"
     elif command -v gsettings >/dev/null 2>&1; then
         local cs; cs="$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null | tr -d \"\'\")"
         local g; case "$cs" in prefer-light) g=light ;; prefer-dark) g=dark ;; *) g="${cs:-unset}" ;; esac
@@ -287,9 +284,14 @@ check() {
         row desktop "no gsettings" "-"
     fi
 
-    # Ghostty is static: it either names both themes or it does not.
+    # Ghostty is static: it either names both themes or it does not. On
+    # macOS "follows desktop" means it follows the unmanaged appearance.
     if grep -q '^theme = light:.*,dark:' "$HOME/.config/ghostty/config" 2>/dev/null; then
-        row ghostty "follows desktop" "ok"
+        if [ "$(uname -s)" = Darwin ]; then
+            row ghostty "follows desktop" "- (not managed)"
+        else
+            row ghostty "follows desktop" "ok"
+        fi
     else
         row ghostty "not following desktop" "MISMATCH"; MISMATCH=1
     fi
@@ -312,11 +314,18 @@ check() {
         row tmux "no server" "-"
     fi
 
-    local socks=0 nmode="" sock
+    local socks=0 nmode="" npin="" sock
     while IFS= read -r sock; do
         socks=$((socks + 1))
         nmode="$(nvim --server "$sock" --remote-expr 'luaeval("vim.o.background")' 2>/dev/null)"
-        status_for "$mode" "$nmode"; row nvim "$nmode  ($(basename "$sock"))" "$STATUS"
+        # A Neovim pinned to one half (<leader>uC) is expected to differ.
+        npin="$(nvim --server "$sock" --remote-expr \
+            'luaeval("(function() local ok, t = pcall(require, [[naamanu.theme]]) return ok and t.pin and t.pin() or [[]] end)()")' 2>/dev/null)"
+        if [ -n "$npin" ]; then
+            status_for "$npin" "$nmode"; row nvim "$nmode pinned  ($(basename "$sock"))" "$STATUS"
+        else
+            status_for "$mode" "$nmode"; row nvim "$nmode  ($(basename "$sock"))" "$STATUS"
+        fi
     done < <(nvim_sockets)
     [ "$socks" -eq 0 ] && row nvim "not running" "-"
 
@@ -325,21 +334,26 @@ check() {
         local etheme emode
         etheme="$(emacsclient -s "$esock" --eval '(format "%s" (car custom-enabled-themes))' 2>/dev/null | tr -d \"\\\"\")"
         case "$etheme" in *operandi*) emode=light ;; *vivendi*) emode=dark ;; *) emode="$etheme" ;; esac
-        status_for "$mode" "$emode"; row emacs "$etheme" "$STATUS"
+        # No theme enabled: the stock Emacs theme, which theme-mode leaves alone.
+        if [ "$etheme" = "nil" ]; then
+            row emacs "stock theme" "- (not managed)"
+        else
+            status_for "$mode" "$emode"; row emacs "$etheme" "$STATUS"
+        fi
     else
         row emacs "no server" "-"
     fi
 
     # starship picks its palette from whichever config the shell points at.
     if [ "$mode" = light ]; then
-        if [ -r "$STARSHIP_LIGHT" ] && grep -q '^palette = "modus_light"' "$STARSHIP_LIGHT"; then
-            row starship "modus_light (generated)" "ok"
+        if [ -r "$STARSHIP_LIGHT" ] && grep -q '^palette = "kanagawa_light"' "$STARSHIP_LIGHT"; then
+            row starship "kanagawa_light (generated)" "ok"
         else
             row starship "light config missing" "MISMATCH"; MISMATCH=1
         fi
     else
-        if grep -q '^palette = "modus_dark"' "$HOME/.config/starship.toml" 2>/dev/null; then
-            row starship "modus_dark" "ok"
+        if grep -q '^palette = "kanagawa_dark"' "$HOME/.config/starship.toml" 2>/dev/null; then
+            row starship "kanagawa_dark" "ok"
         else
             row starship "no modus palette" "MISMATCH"; MISMATCH=1
         fi
