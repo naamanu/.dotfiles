@@ -92,9 +92,54 @@ alt-shift-semicolon = 'mode service'
 [mode.service.binding]
 esc = ['reload-config', 'mode main']
 r = ['flatten-workspace-tree', 'mode main']
+f = ['layout floating tiling', 'mode main']
 backspace = ['close-all-windows-but-current', 'mode main']
+# Join the focused window with its neighbour into one container.
+h = ['join-with left', 'mode main']
+j = ['join-with down', 'mode main']
+k = ['join-with up', 'mode main']
+l = ['join-with right', 'mode main']
+# Enter mode resize: hjkl to resize in steps, esc back to main.
+minus = 'mode resize'
 
-# App-to-workspace assignments (optional, customize as needed)
-# [[on-window-detected]]
-# if.app-id = 'com.mitchellh.ghostty'
-# run = 'move-node-to-workspace 1'
+[mode.resize.binding]
+h = 'resize width -50'
+j = 'resize height +50'
+k = 'resize height -50'
+l = 'resize width +50'
+esc = 'mode main'
+enter = 'mode main'
+
+# App-to-workspace routing: 1 terminal/editors, 2 browsers, 3 research
+# (papers and the PDF viewer), 4 chat. Everything else opens where you are.
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'org.gnu.Emacs'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'org.mozilla.firefox'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'org.zotero.zotero'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'net.sourceforge.skim-app.skim'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'com.hnc.Discord'
+run = 'move-node-to-workspace 4'
