@@ -92,9 +92,12 @@ default theme, mode line and keys. **One file, `init.el`** (~330 lines), plus
 
 Eglot formats on save when the server can (ormolu via hls, ocamlformat via
 ocamllsp, clang-format via clangd); Python uses ruff directly. Font: stock
-Menlo at 16pt (`set-face-attribute 'default`). No theme:
-`my/apply-theme-mode` is a no-op so theme-mode's push stays harmless, and
-`theme-mode --check` reports Emacs as "stock theme".
+Menlo at 16pt (`set-face-attribute 'default`). Theme: monokai-theme, dark in
+both modes; `my/apply-theme-mode` is a no-op and `theme-mode --check` reports
+it as fixed. monokai-theme 3.5.3 boxes the mode line with `:style
+unspecified`, which Emacs 31 rejects in GUI frames: init.el loads the theme
+without enabling it, strips that pair (`my/drop-unspecified-box-style`), then
+enables it. Test themes in a GUI frame — batch/daemon checks miss face errors.
 
 The previous modular config (core/completion/dev/langs/notes/vim/keys.el) is
 in git history before this change and in

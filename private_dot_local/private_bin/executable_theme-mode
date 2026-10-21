@@ -337,6 +337,9 @@ check() {
         # No theme enabled: the stock Emacs theme, which theme-mode leaves alone.
         if [ "$etheme" = "nil" ]; then
             row emacs "stock theme" "- (not managed)"
+        elif [ "$emode" = "$etheme" ]; then
+            # A theme that is neither modus half (e.g. monokai) is fixed.
+            row emacs "$etheme (fixed)" "- (not managed)"
         else
             status_for "$mode" "$emode"; row emacs "$etheme" "$STATUS"
         fi

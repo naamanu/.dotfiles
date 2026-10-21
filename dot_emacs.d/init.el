@@ -63,10 +63,38 @@
   (add-to-list 'exec-path-from-shell-variables "OPAM_SWITCH_PREFIX")
   (exec-path-from-shell-initialize))
 
-;; theme-mode(1) pushes the shared light/dark mode to every editor.  This
-;; Emacs keeps the stock theme, so there is nothing to switch.
+;; monokai-theme.el lacks the `lexical-binding' cookie Emacs 31 warns about
+;; on every load (the theme does not depend on it); silence that one warning.
+(require 'warnings)
+(add-to-list 'warning-suppress-types '(files missing-lexbind-cookie))
+(add-to-list 'warning-suppress-log-types '(files missing-lexbind-cookie))
+
+;; Monokai (the classic TextMate port), matching Ghostty's Monokai Classic and
+;; Neovim's Monokai.  Dark in both modes, like the terminal.
+(defun my/drop-unspecified-box-style (spec)
+  "Return face SPEC without `:style unspecified' pairs.
+monokai-theme 3.5.3 boxes the mode line with `:style unspecified', which
+Emacs 31 rejects in graphical frames (\"Invalid face box\"), so enabling the
+theme failed and Emacs stayed on the stock look."
+  (cond ((not (consp spec)) spec)
+        ((and (eq (car spec) :style) (eq (car-safe (cdr spec)) 'unspecified))
+         (my/drop-unspecified-box-style (cddr spec)))
+        (t (cons (my/drop-unspecified-box-style (car spec))
+                 (my/drop-unspecified-box-style (cdr spec))))))
+
+(use-package monokai-theme
+  :config
+  ;; Load without enabling, repair the face specs, then enable.
+  (load-theme 'monokai t t)
+  (dolist (setting (get 'monokai 'theme-settings))
+    (when (eq (car setting) 'theme-face)
+      (setcar (nthcdr 3 setting) (my/drop-unspecified-box-style (nth 3 setting)))))
+  (enable-theme 'monokai))
+
+;; theme-mode(1) pushes the shared light/dark mode to every editor.  Monokai
+;; has no light variant, so there is nothing to switch.
 (defun my/apply-theme-mode (_mode)
-  "No-op: the stock theme is used regardless of the shared mode."
+  "No-op: Monokai is used regardless of the shared mode."
   nil)
 
 ;; --- Vim keys --------------------------------------------------------------

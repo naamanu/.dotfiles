@@ -1,7 +1,8 @@
 # Emacs Setup
 
-Near-stock Emacs 31: the default theme, mode line and keybindings (stock
-Menlo face at 16pt, matching Ghostty), with only what this work needs on top.
+Near-stock Emacs 31: the default mode line and keybindings, the classic
+Monokai theme (monokai-theme, matching Ghostty's Monokai Classic) and the
+stock Menlo face at 16pt, with only what this work needs on top.
 Everything lives in `~/.emacs.d/init.el`.
 
 ## What is added
