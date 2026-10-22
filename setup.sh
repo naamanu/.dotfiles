@@ -1008,8 +1008,8 @@ fi
 
 # Install the plugins .tmux.conf declares. TPM documents this as `prefix + I'
 # inside a running session, which is easy to never get round to -- and a
-# machine that skips it gets no clipboard yank (tmux-yank) and no session
-# save/restore (tmux-resurrect), with nothing on screen to explain why.
+# machine that skips it gets no clipboard yank (tmux-yank), with nothing on
+# screen to explain why.
 # install_plugins is the same operation headless, and is a no-op for plugins
 # that are already cloned. Dotfiles were applied in step 3, so .tmux.conf is
 # in place by now.

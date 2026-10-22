@@ -248,5 +248,3 @@ Abbreviations expand visibly at the prompt (interactive shells only).
 | `C-v`            | Rectangle selection (in copy mode)             |
 | `y`              | Copy selection and exit (in copy mode)         |
 | `C-a + U`        | Update plugins (TPM; install is automatic)     |
-| `C-a + C-s`      | Save session now (continuum saves every 15m)   |
-| `C-a + C-r`      | Restore session (automatic on server start)    |

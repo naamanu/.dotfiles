@@ -14,7 +14,6 @@
 | tmux-plugins/tpm | Plugin manager |
 | tmux-plugins/tmux-sensible | Sensible defaults |
 | tmux-plugins/tmux-yank | System clipboard integration in copy mode |
-| tmux-plugins/tmux-resurrect | Manual session save and restore |
 
 ---
 
@@ -46,8 +45,6 @@ All bindings use prefix `C-a` unless noted as no-prefix.
 | Key | Action |
 | :--- | :--- |
 | `prefix + R` | Reload `~/.tmux.conf` |
-| `prefix + C-s` | Save session with resurrect |
-| `prefix + C-r` | Restore session with resurrect |
 
 ### Popovers
 

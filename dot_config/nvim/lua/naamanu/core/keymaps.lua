@@ -84,40 +84,6 @@ keymap.set("n", "<leader><tab>o", function()
   vim.cmd.source(vim.fn.fnameescape(file))
 end, { desc = "Open session (cwd)" })
 
--- tmux-resurrect restarts Neovim as `env NVIM_TMUX_RESTORE=1 nvim` (see
--- ~/.tmux.conf), so inside tmux the session is written on every exit and read
--- back only on that restore. A plain `nvim` typed at the prompt still starts
--- empty. Buffers under .git/ (commit messages, rebase todos) do not count, so
--- nvim as git's editor never overwrites the project session.
-local session_group = vim.api.nvim_create_augroup("tmux-session", { clear = true })
-
-vim.api.nvim_create_autocmd("VimLeavePre", {
-  group = session_group,
-  callback = function()
-    if not vim.env.TMUX then
-      return
-    end
-    for _, buf in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
-      if buf.name ~= "" and not buf.name:find("/.git/", 1, true) then
-        vim.cmd.mksession({ vim.fn.fnameescape(session_file()), bang = true })
-        return
-      end
-    end
-  end,
-})
-
-vim.api.nvim_create_autocmd("VimEnter", {
-  group = session_group,
-  nested = true, -- so the restored buffers fire FileType, LSP attach, etc.
-  callback = function()
-    local restoring = vim.env.NVIM_TMUX_RESTORE == "1"
-    vim.env.NVIM_TMUX_RESTORE = nil -- keep it out of :terminal children
-    if restoring and vim.fn.argc() == 0 and vim.fn.filereadable(session_file()) == 1 then
-      vim.cmd.source(vim.fn.fnameescape(session_file()))
-    end
-  end,
-})
-
 -- REPL (core/tasks.lua): filetype -> utop/ghci/racket/sml/ipython in a snacks
 -- terminal, mirroring Emacs fp-repl. <localleader> is ",".
 keymap.set("n", "<localleader>r", function()
