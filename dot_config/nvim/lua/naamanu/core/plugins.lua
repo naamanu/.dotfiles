@@ -8,6 +8,7 @@
 --   snacks.nvim       picker (files, grep, LSP, GitHub) and terminals
 --   gitsigns.nvim     hunks in the sign column, stage/reset/blame
 --   vim-tmux-navigator  C-h/j/k/l across Neovim windows and tmux panes
+--   nvim-dap          debugging (Delve for Go); configured in core/dap.lua
 --   monokai.nvim      the classic Monokai (plus Pro/Soda/Ristretto), matching
 --                     Ghostty's Monokai Classic and Emacs's monokai-theme
 
@@ -37,6 +38,7 @@ vim.pack.add({
   "https://github.com/lewis6991/gitsigns.nvim",
   "https://github.com/christoomey/vim-tmux-navigator",
   "https://github.com/tanvirtin/monokai.nvim",
+  "https://github.com/mfussenegger/nvim-dap",
 }, { confirm = false })
 
 local map = function(mode, lhs, rhs, desc)

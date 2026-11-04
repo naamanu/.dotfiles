@@ -8,6 +8,10 @@
       "rev": "759be78d722e306e4a3aac9cc0738f1be86a1ab8",
       "src": "https://github.com/tanvirtin/monokai.nvim"
     },
+    "nvim-dap": {
+      "rev": "cfa2d58f4537aca6ca83e2de1a0d9f1491121264",
+      "src": "https://github.com/mfussenegger/nvim-dap"
+    },
     "nvim-treesitter": {
       "rev": "29212d826054bb2948fa9d3a99eca9bf6a050eb2",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",

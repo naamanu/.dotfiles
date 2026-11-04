@@ -6,7 +6,7 @@
 ;;   - evil (Vim keys) and vertico/consult for finding things,
 ;;   - Haskell and OCaml tooling (eglot with hls / ocamllsp, the same servers
 ;;     Neovim uses; GHCi, utop, dune), plus simple Python (basedpyright, ruff)
-;;     C/C++ (clangd) and Go (gopls) setups,
+;;     C/C++ (clangd) and Go (gopls, dape + Delve for debugging) setups,
 ;;   - notes: Denote over ~/notes (shared with Neovim) and Org agenda/capture.
 ;; The previous, larger modular config is in the dotfiles git history.
 
@@ -235,6 +235,39 @@ theme failed and Emacs stayed on the stock look."
 (add-hook 'go-ts-mode-hook #'my/go-mode-defaults)
 (add-hook 'go-mod-ts-mode-hook #'my/go-mode-defaults)
 
+;; Debugging: dape, with Delve's DAP server for Go (the adapter Neovim's
+;; nvim-dap uses).  `dape' prompts for a configuration: `dlv' debugs the
+;; package, `dlv-test' its tests, `dlv-test-at-point' the test around point.
+;; Keys live under C-x C-a (dape's prefix) and SPC d.
+(defun my/go-test-at-point-args ()
+  "`-test.run' arguments selecting the Go test function around point."
+  (save-excursion
+    (end-of-line)
+    (if (re-search-backward "^func \\(\\(?:Test\\|Benchmark\\|Fuzz\\)[[:alnum:]_]*\\)(" nil t)
+        (vector "-test.run" (format "^%s$" (match-string-no-properties 1)))
+      [])))
+
+(use-package dape
+  :defer t
+  :commands (dape dape-breakpoint-toggle)
+  :custom
+  (dape-buffer-window-arrangement 'right)
+  (dape-inlay-hints t)
+  :config
+  (dape-breakpoint-global-mode 1)
+  ;; Test configs run the package of the current file, not the project root.
+  (dolist (spec '((dlv-test :mode "test" :program my/go-buffer-package)
+                  (dlv-test-at-point :mode "test" :program my/go-buffer-package
+                                     :args my/go-test-at-point-args)))
+    (let ((plist (copy-tree (alist-get 'dlv dape-configs))))
+      (cl-loop for (key value) on (cdr spec) by #'cddr
+               do (setq plist (plist-put plist key value)))
+      (setf (alist-get (car spec) dape-configs) plist))))
+
+(defun my/go-buffer-package ()
+  "The directory (Go package) of the current buffer's file."
+  (file-name-directory (expand-file-name (or buffer-file-name default-directory))))
+
 ;; --- Haskell and OCaml -----------------------------------------------------
 
 (defun my/eglot-ensure-when-executable (command)
@@ -422,6 +455,12 @@ theme failed and Emacs stayed on the stock look."
 
 ;; --- Leader (SPC in normal/visual state) -----------------------------------
 
+(defun my/dape-prefix ()
+  "Load dape and hand the following key to `dape-global-map'."
+  (interactive)
+  (require 'dape)
+  (set-transient-map dape-global-map))
+
 (with-eval-after-load 'evil
   (evil-define-key '(normal visual motion) 'global
     (kbd "<leader> SPC") #'execute-extended-command
@@ -431,6 +470,7 @@ theme failed and Emacs stayed on the stock look."
     (kbd "<leader> /")   #'consult-ripgrep
     (kbd "<leader> p")   project-prefix-map
     (kbd "<leader> n")   my/notes-map
+    (kbd "<leader> d")   #'my/dape-prefix
     (kbd "<leader> a")   #'org-agenda
     (kbd "<leader> c")   #'org-capture))
 

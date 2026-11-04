@@ -1,16 +1,16 @@
 # Neovim Setup
 
 Near-stock Neovim 0.12: the stock look and keys, built-in LSP, completion,
-snippets, comments and undotree, five plugins for what Neovim cannot do
-itself, and one theme (monokai.nvim). Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml and
-Haskell**.
+snippets, comments and undotree, six plugins for what Neovim cannot do
+itself, and one theme (monokai.nvim). Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml,
+Haskell and Go**.
 
 ## Structure
 
 ```text
 init.lua                  vim.loader, leaders (<Space>, local leader ",")
 nvim-pack-lock.json       plugin revisions (vim.pack)
-lsp/<server>.lua          basedpyright, ruff, vtsls, eslint, clangd, ocamllsp, hls
+lsp/<server>.lua          basedpyright, ruff, vtsls, eslint, clangd, ocamllsp, hls, gopls
 after/ftplugin/           per-filetype indentation and OCaml LSP extras
 lua/naamanu/
   theme.lua               shared light/dark mode + built-in colorscheme picker
@@ -22,6 +22,7 @@ lua/naamanu/
     plugins.lua           the only plugin list (vim.pack) and its setup
     lsp.lua               diagnostics, LspAttach keys, completion, server gate
     format.lua            format on save (prettier / sql-formatter / LSP)
+    dap.lua               debugging (nvim-dap + Delve)
     tasks.lua             project build/test/watch commands and the REPL
     workflows.lua         terminal agent, docs lookup
 ```
@@ -30,10 +31,11 @@ lua/naamanu/
 
 | Plugin | Why |
 | :--- | :--- |
-| nvim-treesitter (`main`) | parsers for python, ts/tsx/js, json, sql, ocaml, haskell, c/cpp |
+| nvim-treesitter (`main`) | parsers for python, ts/tsx/js, json, sql, ocaml, haskell, c/cpp, go |
 | oil.nvim | directories as editable buffers (`-`) |
 | snacks.nvim | picker (files, grep, LSP symbols, GitHub) and terminals |
 | gitsigns.nvim | hunks in the sign column, stage/reset/blame |
+| nvim-dap | debugging; Go through Delve's DAP server (`dlv dap`) |
 | vim-tmux-navigator | `C-h/j/k/l` across windows and tmux panes |
 | monokai.nvim | classic Monokai (+ Pro, Soda, Ristretto), matching Ghostty and Emacs |
 
@@ -50,6 +52,7 @@ Updates: `:lua vim.pack.update()`, review the diff, `:write` to apply, then
 | SQL | — | sql-formatter |
 | OCaml | ocamllsp | ocamlformat (with `.ocamlformat`) |
 | Haskell | hls | ormolu |
+| Go | gopls | gofumpt (via gopls), imports organized first |
 
 `:FormatToggle` turns format-on-save off for the session; `<leader>cf`
 formats on demand.
@@ -84,6 +87,12 @@ Stock keys still apply: `grn` rename, `gra` code action, `grr` references,
 | `<localleader>e` / `b` / `f` | Send line or selection / buffer / top-level form |
 | `<localleader>w` / `W` | Rebuild / re-test on save |
 | `<localleader>s`, `]H` / `[H` | OCaml: .ml/.mli switch, typed holes |
+| `<F5>` / `<leader>dc` | Debug: start (pick a configuration) / continue |
+| `<F10>` / `<F11>` / `<F12>` | Step over / into / out (also `<leader>dn` / `di` / `do`) |
+| `<leader>db` / `dB` / `dC` | Breakpoint / conditional breakpoint / run to cursor |
+| `<leader>dt` | Debug the Go test under the cursor |
+| `<leader>dl` / `dq` | Re-run last / terminate |
+| `<leader>dr` / `ds` / `dh` | REPL / scopes / hover value |
 | `<C-/>` | Terminal (right) |
 | `<leader>aa` / `ac` | Terminal agent / copy context reference |
 | `<leader>uC` | Theme picker (built-in colorschemes + Monokai; pin light/dark) |

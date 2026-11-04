@@ -110,7 +110,7 @@ This document outlines the keybindings configured for Neovim, Emacs, and tmux.
 ## Neovim Keybindings
 
 Neovim is near-stock (built-in LSP, completion, snippets, comments, undotree;
-five plugins via `vim.pack`). The full key list is in `docs/nvim.md`.
+six plugins via `vim.pack`). The full key list is in `docs/nvim.md`.
 
 ---
 

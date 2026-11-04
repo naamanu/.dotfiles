@@ -48,7 +48,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
   release binaries into `~/.local` — the apt packages are too old for this
   config, which needs Neovim ≥ 0.10 and tree-sitter CLI ≥ 0.22; Emacs likewise
   comes from the classic snap, since apt ships 29 and the config targets 30)
-- Languages: Node.js (fnm), Python (uv), Rust (rustup, with rust-analyzer/clippy/rustfmt), Go (gopls, delve, goimports, gofumpt, golangci-lint; both editors use gopls), Lua
+- Languages: Node.js (fnm), Python (uv), Rust (rustup, with rust-analyzer/clippy/rustfmt), Go (gopls, delve, goimports, gofumpt, golangci-lint; both editors use gopls, and debug through Delve: nvim-dap / dape), Lua
 - Java: OpenJDK 21, Maven, Gradle, Eclipse JDT LS (Homebrew on macOS; install JDT LS separately on Linux). Both editors use JDT LS; project wrappers take precedence for builds/tests.
 - C/C++: clang/clangd, clang-format, bear, lldb
 - FP: OCaml (opam only: the compiler, dune, ocaml-lsp, odoc and utop all

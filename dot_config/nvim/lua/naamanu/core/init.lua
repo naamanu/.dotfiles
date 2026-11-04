@@ -11,4 +11,5 @@ theme.apply(theme.mode())
 
 require("naamanu.core.lsp")
 require("naamanu.core.format")
+require("naamanu.core.dap") -- debug adapters (Delve)
 require("naamanu.core.workflows") -- terminal agent, docs lookup
