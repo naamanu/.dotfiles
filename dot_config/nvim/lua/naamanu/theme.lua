@@ -26,8 +26,10 @@ function M.mode()
   return vim.trim(line) == "light" and "light" or "dark"
 end
 
--- Neovim-only theme family: the colorschemes that ship with Neovim plus
--- lsdr/monokai (the one theme plugin, the original TextMate Monokai, as shipped). Families with both halves follow the
+-- Theme families: the colorschemes that ship with Neovim plus monokai, the
+-- local colors/monokai-pro.lua built from Ghostty's "Monokai Pro" so
+-- the editor and the terminal share one palette. monokai is the default and,
+-- like Ghostty, dark in both modes. Families with both halves follow the
 -- shared light/dark mode; a dark-only family shows `default` in light mode
 -- unless pinned.
 M.families = {
@@ -41,7 +43,7 @@ M.families = {
   unokai = { dark = "unokai" },
   zaibatsu = { dark = "zaibatsu" },
   slate = { dark = "slate" },
-  monokai = { dark = "monokai" },
+  monokai = { dark = "monokai-pro", light = "monokai-pro" },
 }
 
 -- One-line descriptions for the picker.
@@ -56,7 +58,7 @@ M.descriptions = {
   unokai = "monokai-like (dark only)",
   zaibatsu = "high-contrast purple (dark only)",
   slate = "classic Vim slate (dark only)",
-  monokai = "the original TextMate Monokai, lsdr/monokai (dark only)",
+  monokai = "Ghostty's Monokai Pro (dark in both modes)",
 }
 
 local function family_file()
@@ -73,12 +75,12 @@ local function read_selection()
   end
   local name, pin = line:match("^([^:]+):?(%a*)$")
   if not (name and M.families[name]) then
-    return "default", nil
+    return "monokai", nil
   end
   return name, (pin == "dark" or pin == "light") and pin or nil
 end
 
---- Chosen family, defaulting to `default` when unset or unknown.
+--- Chosen family, defaulting to `monokai` (matches Ghostty) when unset or unknown.
 function M.family()
   return (read_selection())
 end
@@ -102,7 +104,7 @@ function M.apply(mode, family_name)
     mode = M.pin() or mode
   end
   mode = (mode == "light") and "light" or "dark"
-  local family = M.families[family_name or M.family()] or M.families.default
+  local family = M.families[family_name or M.family()] or M.families.monokai
   vim.o.background = mode
   pcall(vim.cmd.colorscheme, family[mode] or "default")
   return mode

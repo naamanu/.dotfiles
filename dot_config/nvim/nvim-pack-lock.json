@@ -4,10 +4,6 @@
       "rev": "fd780920613e541cbdfac41bf711583ed49f9249",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
-    "monokai": {
-      "rev": "81371691ca56a039fbd6391bea2a2bdde5d3fb40",
-      "src": "https://github.com/lsdr/monokai"
-    },
     "nvim-dap": {
       "rev": "cfa2d58f4537aca6ca83e2de1a0d9f1491121264",
       "src": "https://github.com/mfussenegger/nvim-dap"

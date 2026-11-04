@@ -136,8 +136,10 @@ options → keymaps → autocmds → **plugins** → theme → lsp → format �
   package manager; revisions in `nvim-pack-lock.json`) with each plugin's
   setup and keys: nvim-treesitter (`main` branch, parsers for the languages
   above), oil.nvim, snacks.nvim (picker + terminal only), gitsigns.nvim,
-  vim-tmux-navigator, and one theme, monokai.nvim (matching Ghostty's Monokai
-  Classic and Emacs). Plus the built-in `nvim.undotree` package.
+  vim-tmux-navigator. Plus the built-in `nvim.undotree` package. No theme
+  plugin: `colors/monokai-pro.lua` is built from Ghostty's "Monokai
+  Pro" palette (treesitter + LSP semantic groups included); keep the two
+  in step if either changes.
 - `core/lsp.lua` — native `vim.lsp.config`/`enable`; servers in
   `lsp/<name>.lua` (basedpyright, ruff, vtsls, eslint, clangd, ocamllsp,
   hls), enabled only when the binary is on PATH. Completion is built in:
@@ -147,8 +149,8 @@ options → keymaps → autocmds → **plugins** → theme → lsp → format �
 - `core/tasks.lua` — build/test/watch commands (run in a snacks terminal)
   and the REPL (`<localleader>r/e/b/f`).
 - `theme.lua` — shared light/dark mode from theme-mode(1) plus a family
-  picker (`<leader>uC`) over Neovim's built-in colorschemes and the four
-  monokai.nvim variants (all dark-only; pin dark to keep one in light mode).
+  picker (`<leader>uC`) over Neovim's built-in colorschemes and `monokai`
+  (the default; monokai-pro in both modes, like Ghostty).
 
 ### Rules
 

@@ -9,7 +9,6 @@
 --   gitsigns.nvim     hunks in the sign column, stage/reset/blame
 --   vim-tmux-navigator  C-h/j/k/l across Neovim windows and tmux panes
 --   nvim-dap          debugging (Delve for Go); configured in core/dap.lua
---   monokai           lsdr/monokai, the original TextMate Monokai, as shipped
 
 -- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
 -- Registered before vim.pack.add so it also fires on the first install.
@@ -36,7 +35,6 @@ vim.pack.add({
   "https://github.com/folke/snacks.nvim",
   "https://github.com/lewis6991/gitsigns.nvim",
   "https://github.com/christoomey/vim-tmux-navigator",
-  "https://github.com/lsdr/monokai",
   "https://github.com/mfussenegger/nvim-dap",
 }, { confirm = false })
 
