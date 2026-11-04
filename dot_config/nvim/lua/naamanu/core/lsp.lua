@@ -140,6 +140,7 @@ local servers = {
   { "clangd", "clangd" },
   { "ocamllsp", "ocamllsp" },
   { "hls", "haskell-language-server-wrapper" },
+  { "gopls", "gopls" },
 }
 
 local enabled = {}

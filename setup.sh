@@ -1182,6 +1182,8 @@ if command -v go &> /dev/null; then
     GOBIN="$HOME/.local/bin" go install golang.org/x/tools/gopls@latest || FAILED_PACKAGES+=(gopls)
     GOBIN="$HOME/.local/bin" go install github.com/go-delve/delve/cmd/dlv@latest || FAILED_PACKAGES+=(delve)
     GOBIN="$HOME/.local/bin" go install golang.org/x/tools/cmd/goimports@latest || FAILED_PACKAGES+=(goimports)
+    GOBIN="$HOME/.local/bin" go install mvdan.cc/gofumpt@latest || FAILED_PACKAGES+=(gofumpt)
+    GOBIN="$HOME/.local/bin" go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest || FAILED_PACKAGES+=(golangci-lint)
 fi
 
 if command -v rustup &> /dev/null; then

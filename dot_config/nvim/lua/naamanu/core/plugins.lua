@@ -2,7 +2,7 @@
 -- vim.pack (revisions pinned in nvim-pack-lock.json at the config root).
 -- Update with :lua vim.pack.update(), review, then :write to confirm.
 --
---   nvim-treesitter   parsers for python/ts/js/sql/ocaml/haskell (Neovim
+--   nvim-treesitter   parsers for python/ts/js/sql/ocaml/haskell/go (Neovim
 --                     ships only c, lua, markdown, vim, vimdoc, query)
 --   oil.nvim          directories as editable buffers
 --   snacks.nvim       picker (files, grep, LSP, GitHub) and terminals
@@ -59,6 +59,10 @@ local parsers = {
   "ocaml",
   "ocaml_interface",
   "haskell",
+  "go",
+  "gomod",
+  "gosum",
+  "gowork",
 }
 
 -- Treesitter indentexpr only where it beats the runtime indent scripts.

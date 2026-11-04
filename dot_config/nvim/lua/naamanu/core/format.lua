@@ -4,7 +4,8 @@
 --                language server (vtsls)
 --   SQL          sql-formatter on PATH
 --   Python       ruff (LSP); C/C++ clangd; OCaml ocamllsp (when the project
---                has an .ocamlformat); Haskell hls (ormolu)
+--                has an .ocamlformat); Haskell hls (ormolu);
+--                Go gopls (organize imports, then gofumpt)
 --
 -- <leader>cf formats on demand; :FormatToggle turns saving-formats off for
 -- the session.
@@ -42,6 +43,23 @@ local function pipe(buf, cmd)
   end
 end
 
+-- Apply gopls's organize-imports edit synchronously, so it lands before the
+-- write (an async code action would modify the buffer after saving).
+local function organize_imports(buf)
+  local client = vim.lsp.get_clients({ bufnr = buf, name = "gopls" })[1]
+  if not client then
+    return
+  end
+  local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
+  params.context = { only = { "source.organizeImports" }, diagnostics = {} }
+  local result = client:request_sync("textDocument/codeAction", params, 3000, buf)
+  for _, action in pairs(result and result.result or {}) do
+    if action.edit then
+      vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+    end
+  end
+end
+
 local function lsp_format(buf)
   vim.lsp.buf.format({
     bufnr = buf,
@@ -67,6 +85,8 @@ function M.format(buf)
       return pipe(buf, { "sql-formatter" })
     end
     return
+  elseif ft == "go" then
+    organize_imports(buf)
   end
 
   lsp_format(buf)

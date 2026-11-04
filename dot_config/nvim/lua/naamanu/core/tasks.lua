@@ -193,6 +193,11 @@ local function project_kind(startpath)
     return "rust", root
   end
 
+  root = find_root({ "go.work", "go.mod" }, startpath)
+  if root then
+    return "go", root
+  end
+
   root = find_root({ "mvnw", "gradlew", "pom.xml", "build.gradle", "build.gradle.kts" }, startpath)
   if root then
     return "java", root
@@ -483,6 +488,7 @@ function M.run_project_build(startpath)
   local commands = {
     java = java_command(root, false),
     rust = { "cargo", "build" },
+    go = { "go", "build", "./..." },
     python = exists(root .. "/pyproject.toml") and M.python_command({ "-m", "build" }, root) or nil,
     ocaml = { "dune", "build" },
     racket = { "raco", "make", "-v", "." },
@@ -514,6 +520,7 @@ function M.run_project_tests(startpath)
   local commands = {
     java = java_command(root, true),
     rust = { "cargo", "test" },
+    go = { "go", "test", "./..." },
     python = M.python_command({ "-m", "pytest" }, root),
     ocaml = { "dune", "runtest" },
     racket = { "raco", "test", "." },
@@ -556,6 +563,9 @@ local function repl_command(ft, startpath)
   if ft == "java" then
     return "jshell", start_dir(startpath)
   elseif ft == "ocaml" then
+    -- Through opam, as in Emacs: the switch's dune and utop even when Neovim
+    -- starts without opam env, and never a stray system dune or ocaml.
+    local opam = vim.fn.executable("opam") == 1 and "opam exec -- " or ""
     local root = find_root({ "dune-project", "dune-workspace" }, startpath)
     if root then
       return opam .. "dune utop", root
@@ -563,9 +573,6 @@ local function repl_command(ft, startpath)
     return opam .. "utop", start_dir(startpath)
   elseif ft == "haskell" or ft == "lhaskell" then
     local root = find_root_with_glob(
-    -- Through opam, as in Emacs: the switch's dune and utop even when Neovim
-    -- starts without opam env, and never a stray system dune or ocaml.
-    local opam = vim.fn.executable("opam") == 1 and "opam exec -- " or ""
       { "stack.yaml", "cabal.project", "package.yaml" },
       { "*.cabal" },
       startpath
@@ -720,6 +727,8 @@ function M.run_watch(tests)
     end
   elseif kind == "rust" then
     cmd = watchexec("rs,toml", tests and { "cargo", "test" } or { "cargo", "check" })
+  elseif kind == "go" then
+    cmd = watchexec("go,mod", { "go", tests and "test" or "build", "./..." })
   elseif kind == "racket" then
     cmd = watchexec("rkt", { "raco", tests and "test" or "make", "." })
   elseif kind == "python" then

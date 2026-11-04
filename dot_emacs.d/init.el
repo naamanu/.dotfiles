@@ -6,7 +6,7 @@
 ;;   - evil (Vim keys) and vertico/consult for finding things,
 ;;   - Haskell and OCaml tooling (eglot with hls / ocamllsp, the same servers
 ;;     Neovim uses; GHCi, utop, dune), plus simple Python (basedpyright, ruff)
-;;     and C/C++ (clangd) setups,
+;;     C/C++ (clangd) and Go (gopls) setups,
 ;;   - notes: Denote over ~/notes (shared with Neovim) and Org agenda/capture.
 ;; The previous, larger modular config is in the dotfiles git history.
 
@@ -203,6 +203,37 @@ theme failed and Emacs stayed on the stock look."
   (my/eglot-ensure-when-executable "clangd"))
 (dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook))
   (add-hook hook #'my/c-mode-defaults))
+
+;; Go: built-in go-ts-mode with gopls through Eglot (Eglot's default server
+;; list already maps it).  gopls formats with gofumpt on save and organizes
+;; imports first -- the settings Neovim's lsp/gopls.lua sends.  M-x compile
+;; runs `go build ./...'; C-u M-x compile to edit it (e.g. `go test ./...').
+(when (treesit-language-available-p 'go)
+  (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
+(when (treesit-language-available-p 'gomod)
+  (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
+
+(setq-default eglot-workspace-configuration
+              '(:gopls (:gofumpt t :staticcheck t :usePlaceholders t
+                        :analyses (:unusedparams t :unusedwrite t :nilness t :shadow t)
+                        :hints (:assignVariableTypes t :compositeLiteralFields t
+                                :constantValues t :functionTypeParameters t
+                                :parameterNames t :rangeVariableTypes t))))
+
+(defun my/go-organize-imports ()
+  "Apply gopls's organize-imports action; a no-op when there is none."
+  (when (eglot-managed-p)
+    (ignore-errors (eglot-code-action-organize-imports (point-min) (point-max)))))
+
+(defun my/go-mode-defaults ()
+  "Defaults for Go buffers."
+  (setq-local compile-command "go build ./...")
+  (setq-local indent-tabs-mode t)
+  ;; Depth -10: before `eglot-format-buffer', which my/eglot-format-on-save adds.
+  (add-hook 'before-save-hook #'my/go-organize-imports -10 t)
+  (my/eglot-ensure-when-executable "gopls"))
+(add-hook 'go-ts-mode-hook #'my/go-mode-defaults)
+(add-hook 'go-mod-ts-mode-hook #'my/go-mode-defaults)
 
 ;; --- Haskell and OCaml -----------------------------------------------------
 
