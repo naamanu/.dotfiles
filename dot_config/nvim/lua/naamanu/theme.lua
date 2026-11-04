@@ -27,7 +27,7 @@ function M.mode()
 end
 
 -- Neovim-only theme family: the colorschemes that ship with Neovim plus
--- monokai.nvim (the one theme plugin). Families with both halves follow the
+-- monokai-pro.nvim (the one theme plugin, used as shipped: no setup()). Families with both halves follow the
 -- shared light/dark mode; a dark-only family shows `default` in light mode
 -- unless pinned.
 M.families = {
@@ -41,10 +41,12 @@ M.families = {
   unokai = { dark = "unokai" },
   zaibatsu = { dark = "zaibatsu" },
   slate = { dark = "slate" },
-  monokai = { dark = "monokai" },
-  ["monokai-pro"] = { dark = "monokai_pro" },
-  ["monokai-soda"] = { dark = "monokai_soda" },
-  ["monokai-ristretto"] = { dark = "monokai_ristretto" },
+  monokai = { dark = "monokai-pro-classic" },
+  ["monokai-pro"] = { dark = "monokai-pro", light = "monokai-pro-light" },
+  ["monokai-machine"] = { dark = "monokai-pro-machine" },
+  ["monokai-octagon"] = { dark = "monokai-pro-octagon" },
+  ["monokai-ristretto"] = { dark = "monokai-pro-ristretto" },
+  ["monokai-spectrum"] = { dark = "monokai-pro-spectrum" },
 }
 
 -- One-line descriptions for the picker.
@@ -59,10 +61,12 @@ M.descriptions = {
   unokai = "monokai-like (dark only)",
   zaibatsu = "high-contrast purple (dark only)",
   slate = "classic Vim slate (dark only)",
-  monokai = "the classic Monokai, as in Ghostty and Emacs (dark only)",
-  ["monokai-pro"] = "Monokai Pro (dark only)",
-  ["monokai-soda"] = "Monokai Soda, higher contrast (dark only)",
+  monokai = "Monokai Classic, the exact palette Ghostty uses (dark only)",
+  ["monokai-pro"] = "Monokai Pro, with its light variant",
+  ["monokai-machine"] = "Monokai Pro Machine, blue-grey (dark only)",
+  ["monokai-octagon"] = "Monokai Pro Octagon, muted purple (dark only)",
   ["monokai-ristretto"] = "Monokai Pro Ristretto, warm (dark only)",
+  ["monokai-spectrum"] = "Monokai Pro Spectrum, near-black (dark only)",
 }
 
 local function family_file()

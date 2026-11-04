@@ -2,7 +2,7 @@
 
 Near-stock Neovim 0.12: the stock look and keys, built-in LSP, completion,
 snippets, comments and undotree, six plugins for what Neovim cannot do
-itself, and one theme (monokai.nvim). Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml,
+itself, and one theme (monokai-pro.nvim). Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml,
 Haskell and Go**.
 
 ## Structure
@@ -37,7 +37,7 @@ lua/naamanu/
 | gitsigns.nvim | hunks in the sign column, stage/reset/blame |
 | nvim-dap | debugging; Go through Delve's DAP server (`dlv dap`) |
 | vim-tmux-navigator | `C-h/j/k/l` across windows and tmux panes |
-| monokai.nvim | classic Monokai (+ Pro, Soda, Ristretto), matching Ghostty and Emacs |
+| monokai-pro.nvim | Monokai Classic, Ghostty's exact palette (+ the Monokai Pro filters), used as shipped |
 
 Updates: `:lua vim.pack.update()`, review the diff, `:write` to apply, then
 `chezmoi add ~/.config/nvim/nvim-pack-lock.json`.
