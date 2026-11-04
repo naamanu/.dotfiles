@@ -245,11 +245,13 @@ if [ "$PLATFORM" = "mac" ]; then
     # clang-format standalone to get it on PATH.  lldb-dap (for Emacs dape)
     # is linked out of the keg below.
     brew_install llvm bear clang-format
-    brew_install ocaml opam dune
+    # OCaml comes only from opam: a Homebrew ocaml/dune ahead of the switch on
+    # PATH builds against a different compiler than opam's libraries.
+    brew_install opam
     # Racket (minimal distribution; `raco pkg install' adds libraries),
     # Standard ML (SML/NJ REPL + millet language server), Common Lisp.
     brew_install minimal-racket smlnj millet
-    brew_install rocq idris2
+    brew_install idris2
     brew_install sbcl
     # Prefer the Xcode CLT copy: brew's llvm keg can be autoremoved, which
     # leaves a dangling link.
@@ -260,14 +262,14 @@ if [ "$PLATFORM" = "mac" ]; then
         ln -sf "$LLDB_DAP" "$HOME/.local/bin/lldb-dap"
     fi
 
-    # ocaml-lsp-server, ocamlformat and merlin are OPAM packages, not Homebrew
-    # formulae — installing them with brew always failed silently.
+    # dune, ocaml-lsp-server, odoc, ocamlformat, utop and Rocq are OPAM
+    # packages, all built by the switch's compiler.
     if command -v opam &> /dev/null; then
         if [ ! -d "$HOME/.opam" ]; then
             opam init -a --disable-sandboxing --shell-setup || true
         fi
         eval "$(opam env 2>/dev/null)" || true
-        opam install -y ocaml-lsp-server ocamlformat merlin utop earlybird || true
+        opam install -y dune ocaml-lsp-server odoc ocamlformat utop earlybird rocq-prover || true
     fi
 
     echo ""
@@ -656,23 +658,20 @@ elif [ "$PLATFORM" = "linux" ]; then
     echo ""
     echo "Installing C/C++, OCaml, and Lisp toolchains..."
     if [ "$PKG_MGR" = "apt" ]; then
-        install_pkg clang clangd clang-format lldb bear ocaml opam
+        install_pkg clang clangd clang-format lldb bear opam
     elif [ "$PKG_MGR" = "dnf" ]; then
         # clang-tools-extra provides clangd and clang-format
-        install_pkg clang clang-tools-extra lldb bear ocaml opam
+        install_pkg clang clang-tools-extra lldb bear opam
     elif [ "$PKG_MGR" = "pacman" ]; then
         # clang provides clangd and clang-format
-        install_pkg clang llvm lldb bear ocaml opam
+        install_pkg clang llvm lldb bear opam
     fi
 
-    install_optional_pkg dune
-    install_optional_pkg ocaml-dune
     install_optional_pkg sbcl
     # Racket and Standard ML for the Emacs racket-mode / sml-mode setup;
     # millet (SML LSP) is a cargo install below.  Enchant backs Emacs jinx.
     install_optional_pkg racket
-    # Distribution package names retain Coq; Idris 2 availability varies.
-    install_optional_pkg coq
+    # Idris 2 availability varies; Rocq comes from opam below.
     install_optional_pkg idris2
     install_optional_pkg smlnj
     install_optional_pkg enchant-2
@@ -683,7 +682,7 @@ elif [ "$PLATFORM" = "linux" ]; then
             opam init -a --disable-sandboxing --shell-setup || true
         fi
         eval "$(opam env 2>/dev/null)" || true
-        opam install -y ocaml-lsp-server ocamlformat merlin utop earlybird || true
+        opam install -y dune ocaml-lsp-server odoc ocamlformat utop earlybird rocq-prover || true
     fi
 
     echo ""

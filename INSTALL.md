@@ -51,11 +51,11 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - Languages: Node.js (fnm), Python (uv), Rust (rustup, with rust-analyzer/clippy/rustfmt), Go, Lua
 - Java: OpenJDK 21, Maven, Gradle, Eclipse JDT LS (Homebrew on macOS; install JDT LS separately on Linux). Both editors use JDT LS; project wrappers take precedence for builds/tests.
 - C/C++: clang/clangd, clang-format, bear, lldb
-- FP: OCaml (opam, dune, merlin, ocaml-lsp, utop), Haskell (ghc, cabal, HLS, ormolu),
-  Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl), Idris 2
-- Proof assistants: Coq/Rocq (`rocq` on macOS, optional `coq` distro package on
-  Linux); Isabelle Emacs build (`Isabelle2025-2-vsce`) with downloaded components
-  and a built HOL image. This first-time build is substantial. Idris 2 is an
+- FP: OCaml (opam only: the compiler, dune, ocaml-lsp, odoc and utop all
+  come from the opam switch; no Homebrew/distro `ocaml` or `dune`), Haskell
+  (ghc, cabal, HLS, ormolu), Racket (minimal-racket), Standard ML (SML/NJ, millet), Lisp (sbcl), Idris 2
+- Proof assistants: Rocq (`rocq-prover` from opam); Isabelle Emacs build
+  (`Isabelle2025-2-vsce`) with downloaded components and a built HOL image. This first-time build is substantial. Idris 2 is an
   optional distro package on Linux if available.
 - Emacs proof interfaces: Proof General (MELPA), idris-mode (MELPA), and
   isar-mode + lsp-isar with lsp-mode/session-async. Isabelle checkouts live in

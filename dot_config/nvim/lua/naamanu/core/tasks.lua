@@ -558,11 +558,14 @@ local function repl_command(ft, startpath)
   elseif ft == "ocaml" then
     local root = find_root({ "dune-project", "dune-workspace" }, startpath)
     if root then
-      return "dune utop", root
+      return opam .. "dune utop", root
     end
-    return "utop", start_dir(startpath)
+    return opam .. "utop", start_dir(startpath)
   elseif ft == "haskell" or ft == "lhaskell" then
     local root = find_root_with_glob(
+    -- Through opam, as in Emacs: the switch's dune and utop even when Neovim
+    -- starts without opam env, and never a stray system dune or ocaml.
+    local opam = vim.fn.executable("opam") == 1 and "opam exec -- " or ""
       { "stack.yaml", "cabal.project", "package.yaml" },
       { "*.cabal" },
       startpath
