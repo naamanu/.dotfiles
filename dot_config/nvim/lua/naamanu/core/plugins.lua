@@ -71,11 +71,15 @@ local no_ts_indent = { python = true, markdown = true }
 
 require("nvim-treesitter").setup({})
 local installed = require("nvim-treesitter.config").get_installed("parsers")
+-- A parser without its highlights query counts as missing: the queries are
+-- symlinks into the plugin, and a moved plugin (e.g. the old lazy.nvim path)
+-- leaves them dangling -- treesitter then attaches with nothing to highlight.
 local missing = vim.tbl_filter(function(lang)
   return not vim.list_contains(installed, lang)
+    or #vim.treesitter.query.get_files(lang, "highlights") == 0
 end, parsers)
 if #missing > 0 then
-  require("nvim-treesitter").install(missing)
+  require("nvim-treesitter").install(missing, { force = true })
 end
 
 vim.api.nvim_create_autocmd("FileType", {
