@@ -266,14 +266,105 @@ require("incline").setup({
 
 -- --- Oil --------------------------------------------------------------------
 
+-- Replaces netrw for directories (`nvim .`, :e dir, `-`), dotfiles shown.
 require("oil").setup({
   default_file_explorer = true,
-  columns = {},
+  columns = { "icon", "permissions", "size", "mtime" },
   view_options = { show_hidden = true },
+  -- Renames/moves ask the LSP (workspace/willRenameFiles) to update imports;
+  -- the buffers it edits are saved automatically. 3s: gopls can be slow.
+  lsp_file_methods = { enabled = true, timeout_ms = 3000, autosave_changes = true },
+  -- Always a centered float, with a live preview of the entry under the
+  -- cursor on the right (preview_win.update_on_cursor_moved is on by default).
+  float = { padding = 2, max_width = 0.85, max_height = 0.8, preview_split = "right" },
+  keymaps = { q = { "actions.close", mode = "n" } }, -- also <C-c>
 })
-map("n", "-", "<cmd>Oil<CR>", "Open parent directory")
 
--- --- Snacks: picker and terminal only ---------------------------------------
+local function oil_float(dir)
+  require("oil").open_float(dir, { preview = {} })
+end
+map("n", "-", function()
+  oil_float()
+end, "File explorer (parent directory)")
+
+-- `nvim .`, `:e dir` and a bare `:Oil` put oil in a normal window. Move it into
+-- the float, leaving the previous buffer (or an empty one) behind.
+vim.api.nvim_create_autocmd("BufWinEnter", {
+  group = vim.api.nvim_create_augroup("oil-always-float", { clear = true }),
+  callback = function(ev)
+    if vim.bo[ev.buf].filetype ~= "oil" then
+      return
+    end
+    local win = vim.api.nvim_get_current_win()
+    if vim.api.nvim_win_get_config(win).relative ~= "" then
+      return -- already the float
+    end
+    vim.schedule(function()
+      if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= ev.buf then
+        return
+      end
+      local dir = require("oil").get_current_dir(ev.buf)
+      vim.api.nvim_win_call(win, function()
+        local alt = vim.fn.bufnr("#")
+        if alt > 0 and alt ~= ev.buf and vim.bo[alt].buflisted then
+          vim.cmd.buffer(alt)
+        else
+          vim.cmd.enew()
+        end
+      end)
+      oil_float(dir)
+    end)
+  end,
+  desc = "Open oil as a centered float",
+})
+
+-- autosave_changes only covers servers that answer willRenameFiles. Others
+-- (vtsls) update imports after the move, from didRenameFiles, by sending a
+-- workspace/applyEdit -- which would leave those buffers edited but unsaved.
+-- For 5s after an oil move/rename, save the buffers such an edit touches,
+-- but only ones that had no unsaved changes of their own.
+local rename_until = 0
+vim.api.nvim_create_autocmd("User", {
+  pattern = "OilActionsPost",
+  group = vim.api.nvim_create_augroup("oil-lsp-rename-save", { clear = true }),
+  callback = function(ev)
+    for _, action in ipairs(ev.data and ev.data.actions or {}) do
+      if action.type == "move" then
+        rename_until = vim.uv.now() + 5000
+        return
+      end
+    end
+  end,
+  desc = "Open a window for saving LSP import edits after an oil rename",
+})
+local apply_edit = vim.lsp.handlers["workspace/applyEdit"]
+vim.lsp.handlers["workspace/applyEdit"] = function(err, params, ctx, config)
+  if vim.uv.now() > rename_until or not (params and params.edit) then
+    return apply_edit(err, params, ctx, config)
+  end
+  local uris = vim.tbl_keys(params.edit.changes or {})
+  for _, change in ipairs(params.edit.documentChanges or {}) do
+    if change.textDocument then
+      uris[#uris + 1] = change.textDocument.uri
+    end
+  end
+  local clean = {}
+  for _, uri in ipairs(uris) do
+    local buf = vim.uri_to_bufnr(uri)
+    clean[buf] = not (vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].modified)
+  end
+  local result = apply_edit(err, params, ctx, config)
+  for buf, was_clean in pairs(clean) do
+    if was_clean and vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].modified then
+      vim.api.nvim_buf_call(buf, function()
+        vim.cmd("silent noautocmd update")
+      end)
+    end
+  end
+  return result
+end
+
+-- --- Snacks ---------------------------------------
 
 require("snacks").setup({
   picker = {

@@ -1,7 +1,10 @@
 -- Tabline: shown only with 2+ tabs. Each tab is the file in its active window,
 -- with its mini.icons icon, inside slanted separators:
 --
---     main.go    tasks.lua
+--     main.go    tasks.lua    ~/foo
+--
+-- An oil tab shows its directory (~/foo, no icon); a path longer than 20
+-- chars keeps its last 17, after "...".
 --
 -- Colors come from the colorscheme: TabLineSel (active), TabLine (inactive),
 -- TabLineFill (the bar, transparent). Tabs are clickable.
@@ -11,12 +14,24 @@ local M = {}
 local SEP_LEFT, SEP_RIGHT = "\u{e0ba}", "\u{e0bc}" -- lower-right / upper-left slants
 local MAX, KEEP = 20, 17 -- names longer than MAX are cut to KEEP + "…"
 
---- Full tail name of BUF (for the icon lookup) and the label to display.
+--- Directory of an oil buffer as ~/path, cut from the left when long.
+local function oil_dir(buf)
+  local dir = vim.api.nvim_buf_get_name(buf):gsub("^oil://", ""):gsub("/+$", "")
+  dir = dir == "" and "/" or vim.fn.fnamemodify(dir, ":~")
+  if vim.fn.strchars(dir) > MAX then
+    dir = "..." .. vim.fn.strcharpart(dir, vim.fn.strchars(dir) - KEEP)
+  end
+  return dir
+end
+
+--- Full tail name of BUF (for the icon lookup; nil = no icon) and the label.
 local function name_of(buf)
   if vim.bo[buf].buftype == "terminal" then
     return "terminal", "terminal"
   end
-  -- Oil buffers are oil:///dir/ -- show the directory's name.
+  if vim.bo[buf].filetype == "oil" then
+    return nil, oil_dir(buf)
+  end
   local full = vim.fn.fnamemodify((vim.api.nvim_buf_get_name(buf):gsub("/+$", "")), ":t")
   if full == "" then
     return full, "[No Name]"
@@ -29,7 +44,7 @@ local function name_of(buf)
 end
 
 local function icon_of(name)
-  if not _G.MiniIcons then
+  if not name or not _G.MiniIcons then
     return "", nil
   end
   local ok, icon, hl = pcall(MiniIcons.get, "file", name)
@@ -68,15 +83,15 @@ function M.render()
     local sep = active and "TabLineSelSep" or "TabLineSep"
     -- Active: the icon takes the tab's text color (readable on the bright bg).
     local ihl = active and "TabLineSel" or inactive_icon_hl(icon_hl)
-    parts[#parts + 1] = ("%%%dT%%#%s#%s%%#%s# %%#%s#%s %%#%s#%s %%#%s#%s%%T"):format(
+    local icon_cell = icon ~= "" and ("%%#%s#%s "):format(ihl, icon) or ""
+    parts[#parts + 1] = ("%%%dT%%#%s#%s%%#%s# %s%%#%s#%s %%#%s#%s%%T"):format(
       i,
       sep,
       SEP_LEFT,
       body,
-      ihl,
-      icon,
+      icon_cell,
       body,
-      name:gsub("%%", "%%%%"),
+      (name:gsub("%%", "%%%%")),
       sep,
       SEP_RIGHT
     )
