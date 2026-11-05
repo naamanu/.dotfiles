@@ -1,7 +1,7 @@
 local o = vim.o
 local opt = vim.opt
 
--- Line numbers
+-- Hybrid line numbers: relative everywhere, the real number on the cursor line.
 o.number = true
 o.relativenumber = true
 
@@ -27,7 +27,22 @@ o.cursorline = true
 -- Appearance. `background` belongs to theme.lua (the shared light/dark
 -- state); setting it here flashed dark before the theme loaded in light mode.
 o.termguicolors = true
+-- Always one sign column, so text does not shift when git or diagnostic signs
+-- appear.
 o.signcolumn = "yes"
+-- No command line until it is needed, and one statusline for the whole screen.
+o.cmdheight = 0
+o.laststatus = 3
+-- Popup menu: at most 10 rows, slightly see-through.
+o.pumheight = 10
+o.pumblend = 10
+-- Flash the matching bracket for 0.2s when one is typed.
+o.showmatch = true
+o.matchtime = 2
+-- Window title "file.go [+] - nvim", so terminal tabs show the file (tmux
+-- forwards it: set-titles in ~/.tmux.conf).
+o.title = true
+o.titlestring = "%t%( %M%) - nvim"
 o.colorcolumn = "100"
 opt.fillchars:append({ eob = " " })
 -- One border for every floating window (hover, diagnostics, signature help,
