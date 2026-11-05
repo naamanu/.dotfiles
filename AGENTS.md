@@ -165,8 +165,11 @@ then `:messages` and `v:errmsg`.
   `vim.lsp.config("*")` gives all of them file-rename capabilities
   (willRename/didRename). Binaries come from mason, except clangd (Xcode),
   ocamllsp (opam) and hls (ghcup/brew), which must match their compiler.
-  Completion is built in:
-  `vim.lsp.completion` (autotrigger) + `'autocomplete'` with `complete=o,.`.
+  The same `"*"` config adds blink.cmp's completion capabilities.
+- Completion is blink.cmp (`core/plugins.lua`, pinned `^1`): `enter`
+  preset (<CR> accepts), auto-brackets, docs after 200ms, no ghost text,
+  treesitter-highlighted menu with mini.icons kind icons, and the menu
+  auto-opens in the cmdline. `vim.lsp.completion`/`'autocomplete'` are off.
 - `core/format.lua` — format on save without conform: web files use oxfmt
   (project has `.oxfmtrc`) or prettierd/prettier (project uses prettier),
   else the LSP; stylua for Lua, shfmt for sh/bash, sql-formatter for SQL,
@@ -183,7 +186,8 @@ then `:messages` and `v:errmsg`.
 ### Rules
 
 - **Prefer built-ins.** A plugin is added only when 0.12 cannot do the job
-  (completion, snippets, comments, undotree, cmdline UI, LSP are built in).
+  (snippets, comments, undotree, cmdline UI, LSP are built in; completion
+  is the exception, blink.cmp).
 - **LSP is the native API with nvim-lspconfig as data only** — its
   `lsp/<name>.lua` files supply defaults; never the legacy
   `require("lspconfig").x.setup()`. Overrides go in `after/lsp/` (higher

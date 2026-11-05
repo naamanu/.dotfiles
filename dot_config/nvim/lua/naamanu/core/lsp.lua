@@ -180,13 +180,19 @@ vim.api.nvim_create_user_command("PythonEnv", function()
   vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "Python environment" })
 end, { desc = "Report the Python interpreter the LSP is using" })
 
--- Every server announces file-rename support, so renames in oil (or any
--- client of workspace/willRenameFiles + didRenameFiles) reach all of them.
-lsp.config("*", {
-  capabilities = {
-    workspace = { fileOperations = { didRename = true, willRename = true } },
-  },
-})
+-- Every server gets blink.cmp's completion capabilities (snippets, resolve,
+-- label details; core/plugins.lua) and announces file-rename support, so
+-- renames in oil (or any client of workspace/willRenameFiles +
+-- didRenameFiles) reach all of them. Without blink (not installed yet) the
+-- servers still start with Neovim's defaults.
+local capabilities = {
+  workspace = { fileOperations = { didRename = true, willRename = true } },
+}
+local blink_ok, blink = pcall(require, "blink.cmp")
+if blink_ok then
+  capabilities = blink.get_lsp_capabilities(capabilities)
+end
+lsp.config("*", { capabilities = capabilities })
 
 -- All servers are on. A server whose binary is missing (mason still
 -- installing it, or a toolchain not set up on this machine) is skipped
@@ -250,18 +256,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
     local client = vim.lsp.get_client_by_id(event.data.client_id)
 
-    -- Built-in completion: the popup opens as you type (fuzzy matched,
-    -- docs beside it); <C-y> accepts, <C-n>/<C-p> move, <C-Space> forces it.
-    -- Snippets expand through vim.snippet; <Tab>/<S-Tab> jump fields.
-    if client and client:supports_method("textDocument/completion", event.buf) then
-      vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
-      vim.keymap.set(
-        "i",
-        "<C-Space>",
-        vim.lsp.completion.get,
-        { buffer = event.buf, desc = "Complete" }
-      )
-    end
+    -- Completion is blink.cmp (core/plugins.lua), not vim.lsp.completion.
 
     -- Inlay hints on by default.
     if client and client:supports_method("textDocument/inlayHint", event.buf) then

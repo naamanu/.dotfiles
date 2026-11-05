@@ -74,13 +74,10 @@ o.mouse = "a"
 o.updatetime = 250
 o.timeoutlen = 300
 
--- Completion (built-in, LSP-driven; core/lsp.lua): fuzzy matching, nothing
--- inserted until chosen, documentation in a popup beside the menu.
+-- Completion as you type is blink.cmp (core/plugins.lua). These only shape
+-- the built-in menu for manual <C-x> completion: fuzzy, nothing inserted
+-- until chosen, docs in a popup.
 o.completeopt = "menuone,noselect,popup,fuzzy"
--- Show the menu while typing words too, not only after `.`/`::`: the LSP
--- (omnifunc, set on attach) first, then words from the current buffer.
-o.autocomplete = true
-o.complete = "o,."
 opt.wildoptions:append("fuzzy")
 
 -- Scrolling

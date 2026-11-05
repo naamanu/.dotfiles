@@ -20,6 +20,9 @@
 --                     goes first on PATH); mason-tool-installer keeps the list
 --   nvim-lspconfig    default server configs (lsp/*.lua); ours override them
 --                     from after/lsp/
+--   blink.cmp         completion menu (LSP, path, snippets, buffer, cmdline);
+--                     pinned to 1.x, its prebuilt fuzzy matcher is fetched
+--                     for the release tag
 
 -- :TSUpdate on PackChanged: nvim-treesitter's parsers must be rebuilt whenever
 -- the plugin is installed or updated (update() is what :TSUpdate runs; waited
@@ -59,6 +62,7 @@ vim.pack.add({
   "https://github.com/neovim/nvim-lspconfig",
   "https://github.com/folke/todo-comments.nvim",
   "https://github.com/brenoprata10/nvim-highlight-colors",
+  { src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
 }, { confirm = false })
 
 -- --- Mason -------------------------------------------------------------------
@@ -105,6 +109,58 @@ require("mason-tool-installer").setup({
 -- Symbols Nerd Font Mono, Ghostty's fallback font.
 require("mini.icons").setup()
 MiniIcons.mock_nvim_web_devicons()
+
+-- --- Completion (blink.cmp) -------------------------------------------------
+
+-- "enter" preset: <CR> accepts, <C-n>/<C-p> or <Up>/<Down> move, <C-Space>
+-- opens the menu or toggles docs, <C-e> closes, <Tab>/<S-Tab> jump snippet
+-- fields. Every language server gets blink's capabilities (core/lsp.lua).
+-- Menu entries are highlighted by treesitter (LSP items) and carry the
+-- mini.icons LSP-kind glyph and color, the same set as the rest of the UI.
+local function kind_icon(ctx)
+  local icon, hl = MiniIcons.get("lsp", ctx.kind)
+  return icon, hl
+end
+
+require("blink.cmp").setup({
+  keymap = { preset = "enter" },
+  appearance = { nerd_font_variant = "mono" },
+  completion = {
+    -- `(` added after accepting a function or method.
+    accept = { auto_brackets = { enabled = true } },
+    documentation = { auto_show = true, auto_show_delay_ms = 200 },
+    ghost_text = { enabled = false },
+    menu = {
+      draw = {
+        treesitter = { "lsp" },
+        components = {
+          kind_icon = {
+            text = function(ctx)
+              return (kind_icon(ctx))
+            end,
+            highlight = function(ctx)
+              return select(2, kind_icon(ctx))
+            end,
+          },
+          kind = {
+            highlight = function(ctx)
+              return select(2, kind_icon(ctx))
+            end,
+          },
+        },
+      },
+    },
+  },
+  -- : and / complete too, the menu opening as you type. Ghost text is off
+  -- here as well (blink's cmdline default turns it on).
+  cmdline = {
+    completion = {
+      menu = { auto_show = true },
+      ghost_text = { enabled = false },
+    },
+  },
+  fuzzy = { implementation = "prefer_rust_with_warning" },
+})
 
 local map = function(mode, lhs, rhs, desc)
   vim.keymap.set(mode, lhs, rhs, { desc = desc })
