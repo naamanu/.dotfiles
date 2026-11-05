@@ -309,6 +309,15 @@ local groups = {
   SnacksPickerLabel = { fg = c.yellow },
   SnacksPickerSelected = { fg = c.red, bold = true },
   OilDir = { fg = c.cyan },
+  MiniIconsAzure = { fg = c.cyan },
+  MiniIconsBlue = { fg = c.cyan },
+  MiniIconsCyan = { fg = c.cyan },
+  MiniIconsGreen = { fg = c.green },
+  MiniIconsGrey = { fg = c.grey },
+  MiniIconsOrange = { fg = c.orange },
+  MiniIconsPurple = { fg = c.purple },
+  MiniIconsRed = { fg = c.red },
+  MiniIconsYellow = { fg = c.yellow },
 }
 
 for name, spec in pairs(groups) do

@@ -10,6 +10,8 @@
 --   vim-tmux-navigator  C-h/j/k/l across Neovim windows and tmux panes
 --   nvim-dap          debugging (Delve for Go); configured in core/dap.lua
 --   tiny-cmdline.nvim the ui2 cmdline as a centered floating box
+--   mini.icons        file/filetype/LSP-kind icons; also stands in for
+--                     nvim-web-devicons, so plugins asking for it get these
 
 -- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
 -- Registered before vim.pack.add so it also fires on the first install.
@@ -38,7 +40,17 @@ vim.pack.add({
   "https://github.com/christoomey/vim-tmux-navigator",
   "https://github.com/mfussenegger/nvim-dap",
   "https://github.com/rachartier/tiny-cmdline.nvim",
+  "https://github.com/nvim-mini/mini.icons",
 }, { confirm = false })
+
+-- --- Icons ------------------------------------------------------------------
+
+-- Set up before the plugins that draw icons (snacks picker, oil). The mock
+-- answers require("nvim-web-devicons") with mini.icons, so plugins that only
+-- know devicons get the same icons without installing it. Glyphs come from
+-- Symbols Nerd Font Mono, Ghostty's fallback font.
+require("mini.icons").setup()
+MiniIcons.mock_nvim_web_devicons()
 
 local map = function(mode, lhs, rhs, desc)
   vim.keymap.set(mode, lhs, rhs, { desc = desc })
