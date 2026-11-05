@@ -313,6 +313,10 @@ local groups = {
   SnacksPickerLabel = { fg = c.yellow },
   SnacksPickerSelected = { fg = c.red, bold = true },
   OilDir = { fg = c.cyan },
+  -- incline.nvim window tags: a tile in the focused window, dim elsewhere.
+  InclineNormal = { fg = c.fg, bg = c.bg_line },
+  InclineNormalNC = { fg = c.comment },
+  InclineModified = { fg = c.orange, bold = true },
   MiniIconsAzure = { fg = c.cyan },
   MiniIconsBlue = { fg = c.cyan },
   MiniIconsCyan = { fg = c.cyan },

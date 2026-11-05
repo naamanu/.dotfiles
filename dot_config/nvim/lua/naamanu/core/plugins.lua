@@ -13,6 +13,7 @@
 --   mini.icons        file/filetype/LSP-kind icons; also stands in for
 --                     nvim-web-devicons, so plugins asking for it get these
 --   lualine.nvim      the global statusline
+--   incline.nvim      a file-name tag in each window's top-right corner
 
 -- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
 -- Registered before vim.pack.add so it also fires on the first install.
@@ -43,6 +44,7 @@ vim.pack.add({
   "https://github.com/rachartier/tiny-cmdline.nvim",
   "https://github.com/nvim-mini/mini.icons",
   "https://github.com/nvim-lualine/lualine.nvim",
+  "https://github.com/b0o/incline.nvim",
 }, { confirm = false })
 
 -- --- Icons ------------------------------------------------------------------
@@ -232,6 +234,34 @@ vim.api.nvim_create_autocmd("RecordingLeave", {
     end, 50)
   end,
   desc = "Clear the macro indicator from lualine",
+})
+
+-- --- Incline ----------------------------------------------------------------
+
+-- With one global statusline each split still needs to say which file it
+-- holds: a floating tag (icon, name, "[+]" when unsaved) in every window's
+-- top-right corner, hidden while the cursor is on that line.
+require("incline").setup({
+  window = {
+    placement = { vertical = "top", horizontal = "right" },
+    margin = { vertical = 0, horizontal = 1 },
+    padding = 1,
+  },
+  hide = { cursorline = true },
+  render = function(props)
+    local name = vim.api.nvim_buf_get_name(props.buf)
+    name = name ~= "" and vim.fs.basename((name:gsub("/+$", ""))) or "[No Name]"
+    local icon, icon_hl = "", nil
+    if _G.MiniIcons then
+      icon, icon_hl = MiniIcons.get("file", name)
+    end
+    return {
+      { icon, group = props.focused and icon_hl or "InclineNormalNC" },
+      " ",
+      { name, gui = props.focused and "bold" or nil },
+      vim.bo[props.buf].modified and { " [+]", group = "InclineModified" } or "",
+    }
+  end,
 })
 
 -- --- Oil --------------------------------------------------------------------
