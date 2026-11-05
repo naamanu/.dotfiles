@@ -21,6 +21,29 @@ keymap.set("n", "<leader>bp", "<cmd>bprevious<CR>", { desc = "Previous buffer" }
 keymap.set("n", "<leader>bd", function()
   Snacks.bufdelete()
 end, { desc = "Delete buffer" })
+-- Close every listed buffer not shown in any window. Modified ones are kept
+-- (no save prompts, nothing lost); the count is reported.
+keymap.set("n", "<leader>bh", function()
+  local closed, kept = 0, 0
+  Snacks.bufdelete({
+    filter = function(buf)
+      if not vim.bo[buf].buflisted or #vim.fn.win_findbuf(buf) > 0 then
+        return false
+      end
+      if vim.bo[buf].modified then
+        kept = kept + 1
+        return false
+      end
+      closed = closed + 1
+      return true
+    end,
+  })
+  local msg = ("Closed %d hidden buffer%s"):format(closed, closed == 1 and "" or "s")
+  if kept > 0 then
+    msg = msg .. (" (kept %d modified)"):format(kept)
+  end
+  vim.api.nvim_echo({ { msg } }, false, {})
+end, { desc = "Close hidden buffers" })
 
 -- Better indenting
 keymap.set("v", "<", "<gv", { desc = "Indent left" })
