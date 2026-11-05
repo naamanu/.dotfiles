@@ -16,6 +16,10 @@
 --   incline.nvim      a file-name tag in each window's top-right corner
 --   todo-comments.nvim  TODO/FIXME/HACK/... highlighted (needs plenary.nvim)
 --   nvim-highlight-colors  color literals painted as their own background
+--   mason.nvim        installs language servers and formatters (its bin dir
+--                     goes first on PATH); mason-tool-installer keeps the list
+--   nvim-lspconfig    default server configs (lsp/*.lua); ours override them
+--                     from after/lsp/
 
 -- :TSUpdate on PackChanged: nvim-treesitter's parsers must be rebuilt whenever
 -- the plugin is installed or updated (update() is what :TSUpdate runs; waited
@@ -50,9 +54,48 @@ vim.pack.add({
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/b0o/incline.nvim",
   "https://github.com/nvim-lua/plenary.nvim",
+  "https://github.com/mason-org/mason.nvim",
+  "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim",
+  "https://github.com/neovim/nvim-lspconfig",
   "https://github.com/folke/todo-comments.nvim",
   "https://github.com/brenoprata10/nvim-highlight-colors",
 }, { confirm = false })
+
+-- --- Mason -------------------------------------------------------------------
+
+-- Installed on start when missing, never auto-updated (:MasonToolsUpdate or
+-- :Mason when you want newer versions). clangd, ocamllsp and hls are left to
+-- their toolchains (Xcode, opam, ghcup/brew) so they match the compiler.
+require("mason").setup()
+require("mason-tool-installer").setup({
+  ensure_installed = {
+    -- language servers
+    "lua-language-server",
+    "vtsls",
+    "eslint-lsp",
+    "oxlint",
+    "tailwindcss-language-server",
+    "css-lsp",
+    "rust-analyzer",
+    "basedpyright",
+    "ruff",
+    "gopls",
+    -- formatters
+    "prettier",
+    "prettierd",
+    "oxfmt",
+    "stylua",
+    "shfmt",
+    "sql-formatter",
+  },
+  run_on_start = true,
+  auto_update = false,
+  integrations = {
+    ["mason-lspconfig"] = false,
+    ["mason-null-ls"] = false,
+    ["mason-nvim-dap"] = false,
+  },
+})
 
 -- --- Icons ------------------------------------------------------------------
 

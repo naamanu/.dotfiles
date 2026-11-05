@@ -5,8 +5,6 @@
 -- behind :PythonEnv); see the comment there for why basedpyright cannot be
 -- left to find the venv itself.
 return {
-  cmd = { "basedpyright-langserver", "--stdio" },
-  filetypes = { "python" },
   -- Nested = equal priority, so the *nearest* Python marker wins rather than
   -- a distant pyproject.toml outranking the manage.py next to the buffer.
   root_markers = {

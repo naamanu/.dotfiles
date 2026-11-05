@@ -8,14 +8,6 @@ local inlay_hints = {
 }
 
 return {
-  cmd = { "vtsls", "--stdio" },
-  filetypes = {
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-  },
-  root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
   settings = {
     vtsls = {
       -- Use the project's own typescript from node_modules when present,

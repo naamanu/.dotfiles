@@ -159,12 +159,18 @@ then `:messages` and `v:errmsg`.
   plugin: `colors/monokai-pro.lua` is built from Ghostty's "Monokai
   Pro" palette (treesitter + LSP semantic groups included); keep the two
   in step if either changes.
-- `core/lsp.lua` — native `vim.lsp.config`/`enable`; servers in
-  `lsp/<name>.lua` (basedpyright, ruff, vtsls, eslint, clangd, ocamllsp,
-  hls), enabled only when the binary is on PATH. Completion is built in:
+- `core/lsp.lua` — native `vim.lsp.config`/`enable` over nvim-lspconfig's
+  defaults; our overrides in `after/lsp/<name>.lua`. Every server in the
+  `vim.lsp.enable` list is on (Neovim skips one whose binary is missing);
+  `vim.lsp.config("*")` gives all of them file-rename capabilities
+  (willRename/didRename). Binaries come from mason, except clangd (Xcode),
+  ocamllsp (opam) and hls (ghcup/brew), which must match their compiler.
+  Completion is built in:
   `vim.lsp.completion` (autotrigger) + `'autocomplete'` with `complete=o,.`.
-- `core/format.lua` — format on save without conform: project prettier for
-  TS/JS/JSON, sql-formatter for SQL, LSP formatting otherwise.
+- `core/format.lua` — format on save without conform: web files use oxfmt
+  (project has `.oxfmtrc`) or prettierd/prettier (project uses prettier),
+  else the LSP; stylua for Lua, shfmt for sh/bash, sql-formatter for SQL,
+  LSP formatting otherwise.
 - `core/tasks.lua` — build/test/watch commands (run in a snacks terminal)
   and the REPL (`<localleader>r/e/b/f`).
 - `core/tabline.lua` — custom tabline, only with 2+ tabs: icon + file name of
@@ -178,15 +184,20 @@ then `:messages` and `v:errmsg`.
 
 - **Prefer built-ins.** A plugin is added only when 0.12 cannot do the job
   (completion, snippets, comments, undotree, cmdline UI, LSP are built in).
-- **LSP is the native API** — no nvim-lspconfig, no mason. nvim-lspconfig
-  concepts like `on_new_config`/`single_file_support` silently do nothing.
-  `vim.lsp.enable` loads every enabled `lsp/<name>.lua` at startup.
+- **LSP is the native API with nvim-lspconfig as data only** — its
+  `lsp/<name>.lua` files supply defaults; never the legacy
+  `require("lspconfig").x.setup()`. Overrides go in `after/lsp/` (higher
+  merge priority than `lsp/`; `:h lsp-config-merge`). A config whose
+  lspconfig default has a `root_dir` function ignores our `root_markers`.
+- **mason installs, never updates**: `mason-tool-installer` with
+  `run_on_start = true`, `auto_update = false`. Update deliberately with
+  `:MasonToolsUpdate`.
 - **nvim-treesitter is the `main` branch**: `setup()` takes only
   `install_dir`; parsers install via `install()`; highlighting starts per
   buffer via `vim.treesitter.start`. Needs the `tree-sitter` CLI.
 - **Python is basedpyright + ruff** (ruff formats; basedpyright never does).
-- hls must be started with `--lsp` (`lsp/hls.lua`); without it the wrapper
-  runs its setup tester and exits.
+- hls must be started with `--lsp` (lspconfig's default does); without it
+  the wrapper runs its setup tester and exits.
 
 ### Adding things
 
@@ -194,8 +205,9 @@ then `:messages` and `v:errmsg`.
   in the same file, restart, then `chezmoi add` `core/plugins.lua` AND
   `nvim-pack-lock.json`. Removing one: delete it from the list, then
   `:lua vim.pack.del({ "name" })`.
-- **LSP server** → `lsp/<name>.lua`, a `{ name, binary }` row in the
-  `servers` table in `core/lsp.lua`, and the binary in `setup.sh`.
+- **LSP server** → its lspconfig name in the `vim.lsp.enable` list
+  (`core/lsp.lua`), the mason package in `ensure_installed`
+  (`core/plugins.lua`), and `after/lsp/<name>.lua` only for real overrides.
 - **Language** → parser in `parsers` (core/plugins.lua), server as above,
   formatter in `core/format.lua` if the server does not format, build/test
   commands and REPL in `core/tasks.lua`.

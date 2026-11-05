@@ -1,13 +1,13 @@
--- Native LSP via vim.lsp.config/enable (no nvim-lspconfig). Server tables
--- live in lsp/<name>.lua at the config root (a runtimepath `lsp/` directory,
--- :h lsp-config); this file keeps what is shared: capabilities, diagnostics,
--- LspAttach keymaps, the Python interpreter helpers, and the gate that enables
--- a server only when its binary is present.
+-- Language servers through the native API (vim.lsp.config / vim.lsp.enable).
+-- nvim-lspconfig supplies each server's defaults (its lsp/<name>.lua: cmd,
+-- filetypes, root detection); our overrides live in after/lsp/<name>.lua,
+-- which wins (:h lsp-config-merge). mason installs the binaries
+-- (core/plugins.lua). This file keeps what is shared: capabilities,
+-- diagnostics, LspAttach keymaps, the Python interpreter helpers, and the
+-- list of servers.
 --
--- NOTE: this is the native API — nvim-lspconfig concepts like
--- `on_new_config` and `single_file_support` do not exist and are silently
--- ignored; the native equivalent of single-file support is the default
--- `workspace_required = false`.
+-- NOTE: lspconfig's legacy `require("lspconfig").x.setup()` API is not used;
+-- `on_new_config` and `single_file_support` do not exist here.
 
 local lsp = vim.lsp
 local M = {}
@@ -22,24 +22,75 @@ local function apply_code_action(kind)
   })
 end
 
--- Diagnostics: short text at the end of every line but the current one,
--- which gets the full message beneath it instead. Borders come from
--- 'winborder' (options.lua).
+-- Diagnostics: underlined, never refreshed while typing, worst first. Short
+-- text at the end of every line but the current one, which gets the full
+-- message beneath it; the source ("ruff", "basedpyright") is named only when
+-- several sources report on the buffer. Gutter icons are the snacks icon set
+-- (the same ones the <leader>xx picker shows). Borders come from 'winborder'.
 local severity = vim.diagnostic.severity
+
+local function diagnostic_icons()
+  local ok, icons = pcall(function()
+    return Snacks.picker.config.get().icons.diagnostics
+  end)
+  icons = ok and icons or { Error = "", Warn = "", Info = "", Hint = "" }
+  return {
+    [severity.ERROR] = vim.trim(icons.Error),
+    [severity.WARN] = vim.trim(icons.Warn),
+    [severity.INFO] = vim.trim(icons.Info),
+    [severity.HINT] = vim.trim(icons.Hint),
+  }
+end
+
+-- "source: message" only when the buffer has diagnostics from more than one
+-- source. The built-in source = "if_many" counts per namespace (one per
+-- server), so with ruff + basedpyright it labelled one and not the other,
+-- and virtual_lines has no source option at all; one format covers all three.
+local function several_sources(bufnr)
+  local sources = {}
+  for _, d in ipairs(vim.diagnostic.get(bufnr)) do
+    if d.source then
+      sources[d.source] = true
+    end
+  end
+  return vim.tbl_count(sources) > 1
+end
+
+local function with_source(diagnostic)
+  if diagnostic.source and several_sources(diagnostic.bufnr) then
+    return ("%s: %s"):format(diagnostic.source, diagnostic.message)
+  end
+  return diagnostic.message
+end
+
+-- Each server's diagnostics are drawn when that server reports, so the first
+-- one to report was drawn while it was still the only source. When a buffer
+-- goes from one source to several (or back), redraw all of its diagnostics.
+local labelled = {}
+vim.api.nvim_create_autocmd("DiagnosticChanged", {
+  group = vim.api.nvim_create_augroup("diagnostic-source-labels", { clear = true }),
+  callback = function(ev)
+    local several = several_sources(ev.buf)
+    if labelled[ev.buf] ~= several then
+      labelled[ev.buf] = several
+      vim.schedule(function()
+        if vim.api.nvim_buf_is_valid(ev.buf) then
+          vim.diagnostic.show(nil, ev.buf)
+        end
+      end)
+    end
+  end,
+  desc = "Redraw diagnostics when the number of sources crosses one",
+})
+
 vim.diagnostic.config({
-  virtual_text = { spacing = 4, prefix = "●", current_line = false },
-  virtual_lines = { current_line = true },
-  signs = {
-    text = {
-      [severity.ERROR] = "",
-      [severity.WARN] = "",
-      [severity.INFO] = "",
-      [severity.HINT] = "",
-    },
-  },
   underline = true,
   update_in_insert = false,
   severity_sort = true,
+  virtual_text = { spacing = 4, prefix = "●", current_line = false, format = with_source },
+  virtual_lines = { current_line = true, format = with_source },
+  float = { format = with_source },
+  signs = { text = diagnostic_icons() },
   -- Show the diagnostic after ]d / [d (jump.float was deprecated in 0.12).
   jump = {
     on_jump = function(_, bufnr)
@@ -129,30 +180,33 @@ vim.api.nvim_create_user_command("PythonEnv", function()
   vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "Python environment" })
 end, { desc = "Report the Python interpreter the LSP is using" })
 
--- Enable servers whose binary is present on the shared PATH, so a missing
--- tool degrades silently instead of erroring. { config name, binary, extra check }.
--- Installing a server: lsp/<name>.lua + a row here + the binary in setup.sh.
-local servers = {
-  { "basedpyright", "basedpyright-langserver" },
-  { "ruff", "ruff" },
-  { "vtsls", "vtsls" },
-  { "eslint", "vscode-eslint-language-server" },
-  { "clangd", "clangd" },
-  { "ocamllsp", "ocamllsp" },
-  { "hls", "haskell-language-server-wrapper" },
-  { "gopls", "gopls" },
-}
+-- Every server announces file-rename support, so renames in oil (or any
+-- client of workspace/willRenameFiles + didRenameFiles) reach all of them.
+lsp.config("*", {
+  capabilities = {
+    workspace = { fileOperations = { didRename = true, willRename = true } },
+  },
+})
 
-local enabled = {}
-for _, server in ipairs(servers) do
-  local name, binary = server[1], server[2]
-  if vim.fn.executable(binary) == 1 then
-    enabled[#enabled + 1] = name
-  end
-end
-if #enabled > 0 then
-  lsp.enable(enabled)
-end
+-- All servers are on. A server whose binary is missing (mason still
+-- installing it, or a toolchain not set up on this machine) is skipped
+-- silently by Neovim. Adding one: a name here (lspconfig's config name),
+-- the mason package in core/plugins.lua, overrides in after/lsp/<name>.lua.
+lsp.enable({
+  "basedpyright",
+  "ruff",
+  "vtsls",
+  "eslint",
+  "oxlint",
+  "tailwindcss",
+  "cssls",
+  "lua_ls",
+  "rust_analyzer",
+  "gopls",
+  "clangd", -- Xcode / system toolchain
+  "ocamllsp", -- opam
+  "hls", -- ghcup / brew
+})
 
 -- LspAttach keybindings. grr/gri/grt/gO/K/<C-s> are Neovim defaults (0.11+);
 -- only gd/gD and the leader maps are added here.

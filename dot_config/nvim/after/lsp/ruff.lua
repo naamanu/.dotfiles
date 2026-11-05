@@ -1,7 +1,5 @@
 -- ruff owns imports and formatting for Python; basedpyright owns types.
 return {
-  cmd = { "ruff", "server" },
-  filetypes = { "python" },
   root_markers = {
     { "pyproject.toml", "ruff.toml", ".ruff.toml", "uv.lock", "requirements.txt", "manage.py" },
     ".git",

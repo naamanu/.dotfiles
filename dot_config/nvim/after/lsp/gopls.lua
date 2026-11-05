@@ -1,9 +1,6 @@
 -- gopls formats with gofumpt (built in, no binary needed) and organizes
 -- imports on save via format.lua. Emacs's Eglot sends the same settings.
 return {
-  cmd = { "gopls" },
-  filetypes = { "go", "gomod", "gowork", "gotmpl" },
-  root_markers = { "go.work", "go.mod", ".git" },
   settings = {
     gopls = {
       gofumpt = true,

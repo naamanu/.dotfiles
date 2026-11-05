@@ -1,8 +1,12 @@
--- Format on save without a plugin.
+-- Format on save without a plugin. Formatters come from mason (plugins.lua).
 --
---   TS/JS/JSON   the project's own prettier (node_modules/.bin), else the
---                language server (vtsls)
---   SQL          sql-formatter on PATH
+--   JS/TS/JSON/CSS/HTML/YAML/Markdown/GraphQL/Vue
+--                oxfmt when the project has an .oxfmtrc; else prettierd (or
+--                prettier) when the project uses prettier -- a local install or
+--                a prettier config; else the language server (vtsls, cssls)
+--   Lua          stylua (nearest stylua.toml)
+--   sh/bash      shfmt (respects .editorconfig)
+--   SQL          sql-formatter
 --   Python       ruff (LSP); C/C++ clangd; OCaml ocamllsp (when the project
 --                has an .ocamlformat); Haskell hls (ormolu);
 --                Go gopls (organize imports, then gofumpt)
@@ -12,14 +16,59 @@
 
 local M = { enabled = true }
 
-local prettier_fts = {
+local web_fts = {
   javascript = true,
   javascriptreact = true,
   typescript = true,
   typescriptreact = true,
   json = true,
   jsonc = true,
+  css = true,
+  scss = true,
+  less = true,
+  html = true,
+  yaml = true,
+  markdown = true,
+  graphql = true,
+  vue = true,
 }
+
+local oxfmt_configs = { ".oxfmtrc.json", ".oxfmtrc.jsonc" }
+local prettier_configs = {
+  ".prettierrc",
+  ".prettierrc.json",
+  ".prettierrc.json5",
+  ".prettierrc.yaml",
+  ".prettierrc.yml",
+  ".prettierrc.toml",
+  ".prettierrc.js",
+  ".prettierrc.cjs",
+  ".prettierrc.mjs",
+  "prettier.config.js",
+  "prettier.config.cjs",
+  "prettier.config.mjs",
+  "prettier.config.ts",
+}
+
+local function executable(bin)
+  return vim.fn.executable(bin) == 1
+end
+
+-- The web formatter for FILE: oxfmt if the project configures it, prettier
+-- (through prettierd, which uses the project's own copy) if the project uses
+-- prettier, nil otherwise.
+local function web_formatter(buf, file)
+  if vim.fs.root(buf, oxfmt_configs) and executable("oxfmt") then
+    return { "oxfmt", "--stdin-filepath=" .. file }
+  end
+  local local_prettier = require("naamanu.core.tasks").local_package_binary("prettier", file)
+  if local_prettier or vim.fs.root(buf, prettier_configs) then
+    if executable("prettierd") then
+      return { "prettierd", file }
+    end
+    return { local_prettier or "prettier", "--stdin-filepath", file }
+  end
+end
 
 -- Servers that should never format: basedpyright (ruff does), eslint (fixes
 -- go through <leader>cE).
@@ -75,13 +124,17 @@ function M.format(buf)
   local ft = vim.bo[buf].filetype
   local file = vim.api.nvim_buf_get_name(buf)
 
-  if prettier_fts[ft] then
-    local prettier = require("naamanu.core.tasks").local_package_binary("prettier", file)
-    if prettier then
-      return pipe(buf, { prettier, "--stdin-filepath", file })
+  if web_fts[ft] then
+    local cmd = web_formatter(buf, file)
+    if cmd then
+      return pipe(buf, cmd)
     end
+  elseif ft == "lua" and executable("stylua") then
+    return pipe(buf, { "stylua", "--stdin-filepath", file, "-" })
+  elseif (ft == "sh" or ft == "bash") and executable("shfmt") then
+    return pipe(buf, { "shfmt", "--filename", file })
   elseif ft == "sql" then
-    if vim.fn.executable("sql-formatter") == 1 then
+    if executable("sql-formatter") then
       return pipe(buf, { "sql-formatter" })
     end
     return
