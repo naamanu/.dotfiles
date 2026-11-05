@@ -154,8 +154,10 @@ then `:messages` and `v:errmsg`.
   Cargo.toml/go.mod/pyproject.toml via `vim.fs.root`), incline.nvim (file
   tag top-right of each window, hidden on the cursor's line), todo-comments.nvim
   (+ plenary.nvim), nvim-highlight-colors (hex/rgb/hsl/ANSI/CSS var as
-  background; named colors and Tailwind off). Plus the built-in
-  `nvim.undotree` package. No theme
+  background; named colors and Tailwind off), mason.nvim +
+  mason-tool-installer, nvim-lspconfig (data only), blink.cmp (completion),
+  mini.pairs, codediff.nvim (diff view/history), conform.nvim (set up in
+  `core/format.lua`). Plus the built-in `nvim.undotree` package. No theme
   plugin: `colors/monokai-pro.lua` is built from Ghostty's "Monokai
   Pro" palette (treesitter + LSP semantic groups included); keep the two
   in step if either changes.

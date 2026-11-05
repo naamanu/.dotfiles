@@ -1,7 +1,5 @@
 # Neovim Research Workflow
 
-> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
-
 This guide explains how to use the current Neovim setup for research-style work without turning Neovim into a notebook UI.
 
 Use Neovim for:
@@ -10,7 +8,7 @@ Use Neovim for:
 - Markdown notes and experiment logs
 - SQL snippets and data queries
 - pytest-backed checks
-- project tasks through Overseer
+- project tasks (`<leader>ob`, `<leader>on`, `<leader>op`, `<leader>oT`)
 
 Use external tools such as JupyterLab when you need rich notebook output, plots, or long interactive sessions.
 
@@ -52,8 +50,9 @@ mkdir -p src scripts tests notes sql
 
 Python support in Neovim:
 
-- Ruff provides linting, fixes, and formatting.
-- basedpyright provides hover and type intelligence.
+- Ruff provides linting, fixes, and formatting (format on save).
+- basedpyright provides hover and type intelligence; `:PythonEnv` shows the interpreter it uses.
+- `<localleader>r` opens an ipython REPL; `<localleader>e` sends the line or selection.
 - `<leader>op` runs the current Python file.
 - `<leader>oT` runs pytest for the project or current file context.
 
@@ -72,13 +71,13 @@ Useful keys:
 
 | Key | Action |
 | :--- | :--- |
-| `<leader>ff` / `<leader>fp` | Find files / project files |
+| `<leader>ff` | Find files |
 | `<leader>fg` | Search notes and code |
 | `<leader>f/` | Search current note |
 | `<leader>fr` | Reopen recent files |
 | `<leader>fs` | Jump to symbols in code |
 
-`render-markdown.nvim` makes Markdown easier to read while staying in normal text files.
+Markdown gets treesitter highlighting; there is no in-editor rendering, so keep notes plain and readable as text.
 
 ---
 
@@ -99,7 +98,7 @@ Use JupyterLab outside Neovim for exploratory visualization-heavy sessions, then
 
 ## 5. SQL and Data Notes
 
-SQL files get Treesitter highlighting and `sql-formatter` via Conform. Keep reusable queries in `sql/` and format them with `<leader>cf`.
+SQL files get treesitter highlighting and `sql-formatter` on save (conform). Keep reusable queries in `sql/`; `<leader>cf` formats on demand.
 
 For data projects, keep commands explicit in notes:
 

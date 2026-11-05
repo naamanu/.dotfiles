@@ -1,7 +1,5 @@
 # Neovim Starting Projects
 
-> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
-
 This guide explains how to start a new project so that this Neovim setup becomes productive immediately.
 
 The important principle is simple:
@@ -25,6 +23,8 @@ Examples:
 - C and C++: `CMakeLists.txt`, `Makefile`, `meson.build`, `compile_commands.json`
 - OCaml: `dune-project`, `dune-workspace`, `dune`, `*.opam`
 - Haskell: `cabal.project`, `*.cabal`, `stack.yaml`, `package.yaml`
+- Go: `go.mod`, `go.work`
+- Rust: `Cargo.toml`
 
 If you create the right markers early, the editor behaves correctly much sooner.
 
@@ -38,7 +38,7 @@ For any new project:
 2. Add the tool-specific project marker files.
 3. Initialize Git.
 4. Open the root with `nvim`.
-5. Use `<leader>fp` or `<leader>ff` to open the first real file.
+5. Use `<leader>ff` to open the first real file.
 
 That is enough to activate most of the value in this config.
 
@@ -61,10 +61,10 @@ git init
 Why this works well here:
 
 - Python LSP attaches from the project root
-- Overseer prefers `uv run`
+- build/test commands prefer `uv run`
 - `<leader>op` runs the current file
 - `<leader>oT` runs tests
-- Ruff handles lint/format actions and Ty handles type intelligence
+- Ruff handles lint/format and basedpyright handles type intelligence
 
 ---
 
@@ -87,10 +87,10 @@ Why this works well here:
 
 - `vtsls` attaches from `package.json` or `tsconfig.json`
 - `eslint` attaches when the project has an ESLint config
-- formatting uses Prettier
+- format on save uses the first installed of oxfmt, prettierd, prettier
 - `<leader>ci`, `<leader>cI`, `<leader>cu`, and `<leader>cF` are useful immediately
-- `<leader>os` runs package scripts
-- `<leader>os` can run project test scripts such as `test`, `vitest`, or `jest`
+- `<leader>os` picks a package script; `<leader>od` runs `dev`
+- `<leader>on` runs the `test` script
 
 ---
 
@@ -169,8 +169,8 @@ notes/
 
 That works well with this Neovim setup because:
 
-- Markdown rendering is already configured
-- Telescope grep searches notes and code together
+- Markdown is formatted on save like the rest of the project
+- `<leader>fg` searches notes and code together
 - Recent files and buffer switching keep active notes easy to reopen
 
 ---
@@ -180,12 +180,12 @@ That works well with this Neovim setup because:
 A strong first-session routine:
 
 1. Open the root in Neovim.
-2. Use `<leader>fp` or `<leader>ff` to open the first source file.
+2. Use `<leader>ff` to open the first source file.
 3. Create `notes/index.md`.
 4. Use `<leader>fg` to search for the main entrypoint or TODO markers.
 5. Use `<leader>fb` and `<leader>fr` to move between active files and recent notes.
 6. Run the relevant build or script command once.
-7. Confirm LSP is attached and navigation works.
+7. Confirm a server is attached (`:checkhealth vim.lsp`) and `gd` works.
 
 If you do that much, the project is usually in good shape for the next session.
 

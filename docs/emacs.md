@@ -39,6 +39,6 @@ Everything else is stock Emacs; `C-h k` describes any key.
 
 ## Notes are shared with Neovim
 
-`~/notes` is a Denote directory (`denote-file-type 'markdown-yaml`). Neovim's
-`<leader>n` keys write the exact same file names, front matter and
-`[title](denote:ID)` links, so either editor works on any note.
+`~/notes` is a Denote directory (`denote-file-type 'markdown-yaml`). Neovim
+has no Denote commands; it edits the same files as plain Markdown, so create,
+link and rename notes from Emacs.

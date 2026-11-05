@@ -1,4 +1,4 @@
--- Terminal-agent helpers. Notes and citations live in core/notes.lua.
+-- Terminal-agent helpers and docs lookup by filetype.
 local M = {}
 
 local function project_root()

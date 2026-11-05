@@ -70,11 +70,10 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - Databases: PostgreSQL, SQLite
 - Containers: Docker + lazydocker — **opt-in**, set `INSTALL_DOCKER=1`
 - Fonts: Source Code Pro Nerd Font (editor and terminal face), Symbols Nerd Font (icons), plus Iosevka Comfy, JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts for optional manual font selection
-- Home-grown editor packages (cloned into `~/workspace`, not chezmoi-managed):
-  `fp-repl`, `dune-transient`, `mli-lens` (Emacs, `~/workspace/elisp/`) and
-  `lectern.nvim` (Neovim, `~/workspace/nvim/`).  The editor config is guarded
-  on these directories, so both editors start fine without them — the features
-  simply stay off.
+- Home-grown Emacs packages (cloned into `~/workspace/elisp/`, not
+  chezmoi-managed): `fp-repl`, `dune-transient`, `mli-lens`. The Emacs config
+  is guarded on these directories, so it starts fine without them — the
+  features simply stay off.
 
 ### macOS Only
 - Homebrew (installed automatically)
@@ -89,11 +88,11 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 ## Post-Install Checklist
 
 - [ ] Restart terminal (or log out/in)
-- [ ] `nvim` — first start installs the plugins (vim.pack) and treesitter parsers
+- [ ] `nvim` — first start installs the plugins (vim.pack), treesitter parsers and mason tools; blink.cmp and codediff fetch their prebuilt libraries
 - [ ] Log out/in for Docker group changes (Linux, only if `INSTALL_DOCKER=1`)
 - [ ] `gh auth login` — authenticate GitHub CLI
 - [ ] `gh extension install dlvhdr/gh-dash` — PR/issue dashboard (tmux `prefix G`)
-- [ ] Zotero: install the Better BibTeX plugin; *Export Library → Better BibLaTeX*, "Keep updated", to `~/notes/references.bib` (Emacs citar and Neovim `<leader>nc` read it)
+- [ ] Zotero: install the Better BibTeX plugin; *Export Library → Better BibLaTeX*, "Keep updated", to `~/notes/references.bib` (Emacs citar reads it)
 - [ ] macOS: grant Ghostty Accessibility so `cmd-\`` (quick terminal) works from any app
 - [ ] `slack login` — authorize Slack CLI when developing or managing a Slack app
 - [ ] `jupyter-lab --version` — verify the uv-installed JupyterLab works
@@ -159,7 +158,7 @@ sudo pacman -Syu
 
 ## Shared editor toolchain
 
-Emacs and Neovim use the same PATH-visible language servers, formatters, linters, and debugger adapters. Neovim does not maintain a private Mason toolchain.
+Emacs uses the PATH-visible language servers and formatters. Neovim installs most of its servers and formatters with mason (`:Mason`, never auto-updated; `:MasonToolsUpdate`); clangd, ocamllsp and hls come from their toolchains for both editors.
 
 ```sh
 ./setup.sh --check       # read-only bootstrap check
@@ -176,9 +175,9 @@ Java 21 is the default in fish and zsh; project `.envrc` files may select anothe
 Homebrew also installs JDK dependencies for its tooling. On macOS the Java 21 JDK
 is registered under `~/Library/Java/JavaVirtualMachines` for `java_home` discovery.
 
-- Neovim: open a `.java` file to start JDT LS. Existing LSP keys apply;
-  formatting uses Conform's LSP fallback. `SPC o b` builds, `SPC o n` tests,
-  and `,r` opens JShell. Maven/Gradle wrappers are preferred when present.
+- Neovim: no Java language server is enabled. `SPC o b` builds, `SPC o n`
+  tests, and `,r` opens JShell. Maven/Gradle wrappers are preferred when
+  present.
 - Emacs: `java-ts-mode` + Eglot provide completion, diagnostics and navigation.
   `C-c l f` formats; `M-x compile` runs the detected Maven/Gradle test command.
   Java build files also identify projects outside Git. Use `M-x ansi-term`

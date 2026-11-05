@@ -1,7 +1,5 @@
 # Neovim Note-Taking Workflow
 
-> **Note:** this guide predates the near-stock Neovim setup (2026-10-21); plugins it mentions may be gone. The current setup is in `nvim.md`.
-
 This guide explains how to use this Neovim setup for lightweight note-taking without turning the editor into a separate personal knowledge system.
 
 The emphasis here is:
@@ -15,14 +13,14 @@ If you want heavyweight task capture, agenda views, and citation workflows, the 
 
 ---
 
-## 0. `~/notes` is a Denote directory shared with Emacs
+## 0. `~/notes` is a Denote directory managed from Emacs
 
-Notes created with `<leader>nn` are byte-compatible with Emacs `denote`
-(`denote-file-type 'markdown-yaml`): `ID--title-slug__tag1_tag2.md`, the
-same aligned YAML front matter, `[title](denote:ID)` links, journal entries in
-`journal/`. Either editor can create, link, rename and backlink any note.
-The keys are listed in `nvim.md` → *Notes*. Set `NOTES_DIR` / `BIBLIOGRAPHY`
-to move the directory or the shared Zotero export.
+`~/notes` holds Emacs `denote` notes (`denote-file-type 'markdown-yaml`):
+`ID--title-slug__tag1_tag2.md` with YAML front matter and
+`[title](denote:ID)` links. Neovim has no Denote commands: create, link,
+rename and backlink notes in Emacs. Neovim edits the same files as plain
+Markdown and finds them with the picker (`<leader>ff`, `<leader>fg` from
+`~/notes`).
 
 ---
 
@@ -76,15 +74,14 @@ The main file workflow tools are:
 
 | Key | Action |
 | :--- | :--- |
-| `-` | open parent directory in Oil |
-| `<leader>e` | open Oil |
+| `-` | open the parent directory in oil |
 | `<leader>ff` | find files |
 | `<leader>fr` | recent files |
 
 Practical creation flow:
 
-1. Open the target directory with `-` or `<leader>e`.
-2. Create or rename files directly through Oil.
+1. Open the target directory with `-`.
+2. Create or rename files directly in oil, then `:w`.
 3. Open the note and start writing.
 4. Use `<leader>fr` later to reopen it quickly.
 
@@ -116,9 +113,7 @@ Best practice:
 
 ## 5. Make notes readable while editing
 
-Markdown rendering is already configured, so headings, bullets, checkboxes, and code blocks read cleanly in the buffer.
-
-That means Markdown can carry more of the workflow than plain text usually can.
+Markdown gets treesitter highlighting (headings, code blocks, links) and is formatted on save, so notes stay tidy as plain text. There is no in-editor rendering.
 
 Good patterns:
 
@@ -131,11 +126,11 @@ Good patterns:
 
 ## 6. Link notes to active work
 
-Use Telescope and buffer navigation when a note is part of the working set.
+Use the picker and buffer navigation when a note is part of the working set.
 
 | Key | Action |
 | :--- | :--- |
-| `<leader>fb` | find open buffers |
+| `<leader>fb` or `<leader>,` | find open buffers |
 | `<leader>fr` | find recent files |
 | `<leader>fg` | search across notes and code |
 
@@ -162,8 +157,8 @@ A strong pattern is to keep a running note open while debugging:
 
 Then use:
 
-- `<leader>gp` to inspect code diffs
-- `<leader>gh` for file history
+- `<leader>gp` to preview a hunk, `<leader>gv` for the full diff view
+- `<leader>gL` for the current file's history
 - `<leader>fg` to search previous notes for similar problems
 
 The point is to leave behind a durable trail, not just solve the issue once.
@@ -226,7 +221,7 @@ One simple routine that fits this setup:
 
 1. Keep a `notes/` directory in active repos.
 2. Create `index.md`, `todo.md`, and date-stamped logs as needed.
-3. Use Telescope grep instead of manually browsing old notes.
+3. Use `<leader>fg` instead of manually browsing old notes.
 4. Keep the active note in a buffer and reopen it with `<leader>fb` or `<leader>fr`.
 5. Archive or compress notes once the project stabilizes.
 
