@@ -39,6 +39,7 @@ lua/naamanu/
 | blink.cmp (`^1`) | completion menu; `<CR>` accepts, opens by itself in the cmdline |
 | mini.pairs | auto-closing brackets and quotes in insert and cmdline mode |
 | conform.nvim | format on save, 1000ms timeout, LSP fallback |
+| codediff.nvim | side-by-side diffs and history; tree explorer (50 cols, +/- stats, opens on cursor move); `gc` compact mode (8 context lines, folds synced) |
 | vim-tmux-navigator | `C-h/j/k/l` across windows and tmux panes |
 | monokai (lsdr) | the original TextMate Monokai, as shipped |
 
@@ -88,6 +89,8 @@ move, `<C-e>` close, `<Tab>`/`<S-Tab>` snippet jump.
 | `<leader>gp` / `gb` / `gd` | Preview hunk / blame line (popup) / diff |
 | `<leader>ga` | Blame the whole file (side window; `<CR>` opens the commit) |
 | `<leader>ub` | Toggle end-of-line blame for the cursor line (off at start) |
+| `<leader>gv` | Diff view of changed files (CodeDiff) |
+| `<leader>gl` / `gL` | Git history / history of this file (or selected lines) |
 | `<leader>gg` / `gi` / `gP` / `gB` | LazyGit / issues / PRs / open on GitHub |
 | `<leader>ob` / `on` | Build / test project (terminal) |
 | `<leader>os` / `od` | Run package.json script / `dev` |

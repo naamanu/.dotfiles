@@ -22,6 +22,8 @@
 --                     from after/lsp/
 --   conform.nvim      format on save (formatters, LSP fallback); configured
 --                     in core/format.lua
+--   codediff.nvim     VS Code-style side-by-side diffs, changed-file explorer,
+--                     commit history (downloads its diff library on first use)
 --   mini.pairs        auto-closing brackets and quotes (insert + cmdline)
 --   blink.cmp         completion menu (LSP, path, snippets, buffer, cmdline);
 --                     pinned to 1.x, its prebuilt fuzzy matcher is fetched
@@ -59,6 +61,7 @@ vim.pack.add({
   "https://github.com/nvim-mini/mini.icons",
   "https://github.com/nvim-mini/mini.pairs",
   "https://github.com/stevearc/conform.nvim",
+  "https://github.com/esmuellert/codediff.nvim",
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/b0o/incline.nvim",
   "https://github.com/nvim-lua/plenary.nvim",
@@ -657,6 +660,32 @@ require("gitsigns").setup({
     bmap("n", "<leader>gd", gs.diffthis, "Diff against index")
   end,
 })
+
+-- --- CodeDiff ---------------------------------------------------------------
+
+-- Side-by-side diffs of the working tree, revisions and history. The explorer
+-- is a 50-column tree with +/- line counts per file and folder, and the file
+-- under the cursor opens as you move. Compact mode (gc in a diff, off at
+-- start) folds everything but the changes and 8 lines around them, with folds
+-- opened/closed in both panes together.
+require("codediff").setup({
+  diff = {
+    layout = "side-by-side",
+    compact = false,
+    compact_context_lines = 8,
+    compact_sync_folds = true,
+  },
+  explorer = {
+    view_mode = "tree",
+    width = 50,
+    auto_open_on_cursor = true,
+    line_stats = { enabled = true },
+  },
+})
+map("n", "<leader>gv", "<cmd>CodeDiff<CR>", "Diff view (changed files)")
+map("n", "<leader>gl", "<cmd>CodeDiff history<CR>", "Git history")
+map("n", "<leader>gL", "<cmd>CodeDiff history %<CR>", "Git history (this file)")
+map("x", "<leader>gL", ":CodeDiff history<CR>", "Git history (selected lines)")
 
 -- --- Built-in optional plugins ----------------------------------------------
 
