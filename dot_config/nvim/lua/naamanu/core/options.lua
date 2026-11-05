@@ -124,7 +124,9 @@ end
 -- their own windows. Where each message goes (|ui-messages| kinds):
 --   msg    short messages: a corner popup, at most 30% tall, gone after 5s
 --   pager  long output (errors, :ls/:set listings, :verbose, :!cmd and its
---          output, progress): scrollable, at most half the screen
+--          output): scrollable, at most half the screen. Opening it moves
+--          the cursor into it, so LSP progress (sent on every format-on-save)
+--          goes to msg instead.
 --   cmd    search count, completion/wildmenu lists, confirm prompts, and the
 --          output of commands typed on the cmdline
 -- Long output collapses to `[+N]`; g< reopens it in the pager. The centered
@@ -142,7 +144,6 @@ if ui2_ok then
     echoerr = true,
     lua_error = true,
     rpc_error = true,
-    progress = true,
   }
   local targets = {
     typed_cmd = "cmd",
