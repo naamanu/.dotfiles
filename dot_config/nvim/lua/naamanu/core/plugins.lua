@@ -282,6 +282,37 @@ require("snacks").setup({
     sources = { files = { hidden = true } },
   },
   terminal = { enabled = true },
+  notifier = { enabled = true }, -- vim.notify as popups (top right)
+  indent = { enabled = true }, -- indent guides + current scope
+  statuscolumn = { enabled = true }, -- marks/signs left, folds/git right
+  -- Every occurrence of the word under the cursor, from LSP document
+  -- highlights (so only in buffers with a language server).
+  words = { enabled = true },
+  scroll = { enabled = false }, -- no smooth scrolling
+})
+
+-- ]] / [[ jump between those occurrences. The go, python, lua, c and markdown
+-- ftplugins map ]] / [[ buffer-locally (section motions), which would win over
+-- a global map, so they are also set per buffer once an LSP attaches (after
+-- the ftplugin ran).
+local function words_jump_keys(buf)
+  local opts = function(desc)
+    return { buffer = buf, desc = desc }
+  end
+  vim.keymap.set({ "n", "x", "o" }, "]]", function()
+    Snacks.words.jump(vim.v.count1)
+  end, opts("Next reference"))
+  vim.keymap.set({ "n", "x", "o" }, "[[", function()
+    Snacks.words.jump(-vim.v.count1)
+  end, opts("Previous reference"))
+end
+words_jump_keys(nil)
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("snacks-words-keys", { clear = true }),
+  callback = function(ev)
+    words_jump_keys(ev.buf)
+  end,
+  desc = "]] / [[ jump between LSP references in this buffer",
 })
 
 local P = function(name, opts)
