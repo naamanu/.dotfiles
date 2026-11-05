@@ -83,7 +83,13 @@ end
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
   callback = function(ev)
-    if pcall(vim.treesitter.start, ev.buf) and not no_ts_indent[ev.match] then
+    if not pcall(vim.treesitter.start, ev.buf) then
+      return
+    end
+    -- Folds from the syntax tree (window-local; foldlevel 99 in options.lua).
+    vim.wo[0][0].foldmethod = "expr"
+    vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    if not no_ts_indent[ev.match] then
       vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
     end
   end,

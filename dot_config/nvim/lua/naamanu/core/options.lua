@@ -105,6 +105,15 @@ vim.opt.shortmess:append("I")
 -- windows.
 o.splitkeep = "screen"
 
+-- Folds: treesitter supplies them (core/plugins.lua sets foldexpr where a
+-- parser attaches). Level 99 so every file opens unfolded; zc/za/zM still
+-- close them along the syntax tree. foldtext="" keeps the folded line's own
+-- syntax highlighting instead of the "+-- N lines" summary.
+o.foldlevel = 99
+o.foldlevelstart = 99
+o.foldtext = ""
+opt.fillchars:append({ fold = " " })
+
 -- :grep uses ripgrep and fills the quickfix list.
 if vim.fn.executable("rg") == 1 then
   o.grepprg = "rg --vimgrep --smart-case"
