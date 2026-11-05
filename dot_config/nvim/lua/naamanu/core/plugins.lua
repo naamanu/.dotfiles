@@ -279,7 +279,13 @@ require("snacks").setup({
   picker = {
     enabled = true,
     ui_select = true, -- code actions and other vim.ui.select prompts
-    sources = { files = { hidden = true } },
+    -- Dotfiles are real project files: files and grep include hidden paths.
+    -- .git/ itself stays out (snacks excludes it), and so do gitignored files.
+    sources = {
+      files = { hidden = true },
+      grep = { hidden = true },
+      grep_word = { hidden = true },
+    },
   },
   terminal = { enabled = true },
   notifier = { enabled = true }, -- vim.notify as popups (top right)
@@ -320,8 +326,17 @@ local P = function(name, opts)
     Snacks.picker[name](opts)
   end
 end
+-- The everyday pickers on short keys:
+map("n", "<leader>/", P("grep"), "Live grep (incl. hidden)")
+map("n", "<leader>,", P("buffers"), "Open buffers")
+map("n", "<leader>'", P("resume"), "Reopen last picker")
+map("n", "<leader>xx", P("diagnostics"), "Diagnostics (all buffers)")
+map("n", "<leader>xb", P("diagnostics_buffer"), "Diagnostics (this buffer)")
+map("n", "<leader>n", P("notifications"), "Notification history")
+map("n", "<leader>gh", P("git_diff"), "Git hunks")
+
 map("n", "<leader>ff", P("files"), "Find files")
-map("n", "<leader>fg", P("grep"), "Grep")
+map("n", "<leader>fg", P("grep"), "Grep (incl. hidden)")
 map({ "n", "x" }, "<leader>fc", P("grep_word"), "Grep word/selection")
 map("n", "<leader>fb", P("buffers"), "Buffers")
 map("n", "<leader>fr", P("recent"), "Recent files")
