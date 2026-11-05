@@ -15,8 +15,10 @@
 --   lualine.nvim      the global statusline
 --   incline.nvim      a file-name tag in each window's top-right corner
 
--- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
--- Registered before vim.pack.add so it also fires on the first install.
+-- :TSUpdate on PackChanged: nvim-treesitter's parsers must be rebuilt whenever
+-- the plugin is installed or updated (update() is what :TSUpdate runs; waited
+-- on so the parsers exist before first use). Registered before vim.pack.add
+-- so it also fires on the first install.
 vim.api.nvim_create_autocmd("PackChanged", {
   group = vim.api.nvim_create_augroup("pack-hooks", { clear = true }),
   callback = function(ev)
@@ -65,25 +67,49 @@ end
 -- The `main` branch: setup() takes only install_dir; parsers are installed
 -- explicitly and highlighting starts per buffer via vim.treesitter.start.
 local parsers = {
+  "bash",
   "c",
+  "cmake",
   "cpp",
-  "python",
-  "javascript",
-  "typescript",
-  "tsx",
-  "json",
-  "sql",
-  "ocaml",
-  "ocaml_interface",
-  "haskell",
+  "css",
+  "diff",
+  "fish",
+  "gitignore",
   "go",
   "gomod",
   "gosum",
   "gowork",
+  "graphql",
+  "haskell",
+  "html",
+  "http",
+  "java",
+  "javascript",
+  "jsdoc",
+  "json",
+  "lua",
+  "luadoc",
+  "luap",
+  "markdown",
+  "markdown_inline",
+  "ocaml",
+  "ocaml_interface",
+  "printf",
+  "python",
+  "query",
+  "racket",
+  "regex",
+  "rust",
+  "scss",
+  "sql",
+  "toml",
+  "tsx",
+  "typescript",
+  "vim",
+  "vimdoc",
+  "xml",
+  "yaml",
 }
-
--- Treesitter indentexpr only where it beats the runtime indent scripts.
-local no_ts_indent = { python = true, markdown = true }
 
 require("nvim-treesitter").setup({})
 local installed = require("nvim-treesitter.config").get_installed("parsers")
@@ -98,16 +124,21 @@ if #missing > 0 then
   require("nvim-treesitter").install(missing, { force = true })
 end
 
+-- Whenever a parser exists for the buffer's filetype (vim.treesitter.start
+-- maps filetype -> language, e.g. sh -> bash): highlighting, folds and
+-- treesitter indent. Indent only where the language ships an indents query;
+-- without one the indentexpr would leave every new line at column 0.
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
   callback = function(ev)
     if not pcall(vim.treesitter.start, ev.buf) then
       return
     end
+    local lang = vim.treesitter.language.get_lang(ev.match) or ev.match
     -- Folds from the syntax tree (window-local; foldlevel 99 in options.lua).
     vim.wo[0][0].foldmethod = "expr"
     vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-    if not no_ts_indent[ev.match] then
+    if #vim.treesitter.query.get_files(lang, "indents") > 0 then
       vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
     end
   end,
