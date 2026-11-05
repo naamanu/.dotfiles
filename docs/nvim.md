@@ -85,7 +85,9 @@ move, `<C-e>` close, `<Tab>`/`<S-Tab>` snippet jump.
 | `<C-Space>` (insert) | Open completion / toggle docs |
 | `]h` / `[h` | Next / previous hunk |
 | `<leader>gs` / `gr` / `gS` / `gR` | Stage / reset hunk / buffer |
-| `<leader>gp` / `gb` / `gd` | Preview hunk / blame / diff |
+| `<leader>gp` / `gb` / `gd` | Preview hunk / blame line (popup) / diff |
+| `<leader>ga` | Blame the whole file (side window; `<CR>` opens the commit) |
+| `<leader>ub` | Toggle end-of-line blame for the cursor line (off at start) |
 | `<leader>gg` / `gi` / `gP` / `gB` | LazyGit / issues / PRs / open on GitHub |
 | `<leader>ob` / `on` | Build / test project (terminal) |
 | `<leader>os` / `od` | Run package.json script / `dev` |

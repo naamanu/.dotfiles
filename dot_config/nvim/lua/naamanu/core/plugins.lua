@@ -620,7 +620,13 @@ end, "Terminal (toggle)")
 
 -- --- Gitsigns ---------------------------------------------------------------
 
+-- Blame: <leader>gb a popup for the line (full commit message), <leader>ga
+-- the whole file in a side window (<CR> on a line opens its commit), and
+-- <leader>ub toggles the end-of-line blame for the cursor line (off at start).
 require("gitsigns").setup({
+  current_line_blame = false,
+  current_line_blame_opts = { delay = 300, virt_text_pos = "eol" },
+  current_line_blame_formatter = "<author>, <author_time:%R> • <summary>",
   on_attach = function(bufnr)
     local gs = require("gitsigns")
     local bmap = function(mode, lhs, rhs, desc)
@@ -646,6 +652,8 @@ require("gitsigns").setup({
     bmap("n", "<leader>gb", function()
       gs.blame_line({ full = true })
     end, "Blame line")
+    bmap("n", "<leader>ga", gs.blame, "Blame file")
+    bmap("n", "<leader>ub", gs.toggle_current_line_blame, "Toggle line blame")
     bmap("n", "<leader>gd", gs.diffthis, "Diff against index")
   end,
 })
