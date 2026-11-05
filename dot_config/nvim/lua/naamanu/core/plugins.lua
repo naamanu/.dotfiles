@@ -12,6 +12,7 @@
 --   tiny-cmdline.nvim the ui2 cmdline as a centered floating box
 --   mini.icons        file/filetype/LSP-kind icons; also stands in for
 --                     nvim-web-devicons, so plugins asking for it get these
+--   lualine.nvim      the global statusline
 
 -- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
 -- Registered before vim.pack.add so it also fires on the first install.
@@ -41,6 +42,7 @@ vim.pack.add({
   "https://github.com/mfussenegger/nvim-dap",
   "https://github.com/rachartier/tiny-cmdline.nvim",
   "https://github.com/nvim-mini/mini.icons",
+  "https://github.com/nvim-lualine/lualine.nvim",
 }, { confirm = false })
 
 -- --- Icons ------------------------------------------------------------------
@@ -116,6 +118,120 @@ vim.api.nvim_create_autocmd("FileType", {
 -- so the search pattern and count read in the cmdline.
 require("tiny-cmdline").setup({
   position = { x = "50%", y = "20%" },
+})
+
+-- --- Lualine ----------------------------------------------------------------
+
+-- One global bar (laststatus=3), theme derived from the colorscheme.
+--   a mode | b branch | c project root (when not the cwd), icon, path
+--   x macro register, diagnostics, git diff | y progress | z line:column
+
+-- Project root: nearest ancestor holding any of these.
+local root_markers =
+  { ".git", "lua", "package.json", "Makefile", "Cargo.toml", "go.mod", "pyproject.toml" }
+
+local function project_root()
+  return vim.fs.root(0, root_markers)
+end
+
+-- Root folder name, only when it is not the cwd (cwd is already in the title
+-- and the shell prompt).
+local function root_name()
+  local root = project_root()
+  if not root or vim.fs.normalize(root) == vim.fs.normalize(vim.fn.getcwd()) then
+    return ""
+  end
+  return vim.fs.basename(root)
+end
+
+-- File path relative to the project root (or cwd), ~ for home, with
+-- modified/readonly marks. Special buffers show their name or filetype.
+local function pretty_path()
+  local buf = vim.api.nvim_get_current_buf()
+  local name = vim.api.nvim_buf_get_name(buf)
+  if vim.bo[buf].buftype ~= "" or name == "" then
+    return name ~= "" and vim.fs.basename((name:gsub("/+$", ""))) or "[No Name]"
+  end
+  local base = project_root() or vim.fn.getcwd()
+  local path = vim.fs.relpath(base, name) or vim.fn.fnamemodify(name, ":~")
+  if vim.bo[buf].modified then
+    path = path .. " ●"
+  end
+  if vim.bo[buf].readonly or not vim.bo[buf].modifiable then
+    path = path .. " "
+  end
+  return path
+end
+
+local function macro()
+  local reg = vim.fn.reg_recording()
+  return reg ~= "" and ("recording @" .. reg) or ""
+end
+
+-- Diff counts from gitsigns (already computed for the sign column).
+local function git_diff()
+  local d = vim.b.gitsigns_status_dict
+  if d then
+    return { added = d.added, modified = d.changed, removed = d.removed }
+  end
+end
+
+require("lualine").setup({
+  options = {
+    theme = "auto",
+    globalstatus = true,
+    component_separators = "",
+    section_separators = { left = "\u{e0bc}", right = "\u{e0ba}" }, -- the tabline's slants
+    -- Redraw on cursor movement as well as the usual buffer/window events.
+    refresh = {
+      events = {
+        "WinEnter",
+        "BufEnter",
+        "BufWritePost",
+        "SessionLoadPost",
+        "FileChangedShellPost",
+        "VimResized",
+        "Filetype",
+        "CursorMoved",
+        "CursorMovedI",
+        "ModeChanged",
+        "RecordingEnter",
+      },
+    },
+  },
+  sections = {
+    lualine_a = { "mode" },
+    lualine_b = { "branch" },
+    lualine_c = {
+      { root_name, color = { gui = "bold" } },
+      { "filetype", icon_only = true, padding = { left = 1, right = 0 } },
+      { pretty_path, padding = { left = 0, right = 1 } },
+    },
+    lualine_x = {
+      { macro, color = "WarningMsg" },
+      "diagnostics",
+      { "diff", source = git_diff },
+    },
+    lualine_y = { "progress" },
+    lualine_z = {
+      function()
+        local pos = vim.api.nvim_win_get_cursor(0)
+        return ("%d:%d"):format(pos[1], pos[2] + 1)
+      end,
+    },
+  },
+})
+
+-- RecordingLeave fires while reg_recording() still names the register, so
+-- refresh just after it, or "recording @q" would linger until the next move.
+vim.api.nvim_create_autocmd("RecordingLeave", {
+  group = vim.api.nvim_create_augroup("lualine-macro", { clear = true }),
+  callback = function()
+    vim.defer_fn(function()
+      require("lualine").refresh({ place = { "statusline" } })
+    end, 50)
+  end,
+  desc = "Clear the macro indicator from lualine",
 })
 
 -- --- Oil --------------------------------------------------------------------
