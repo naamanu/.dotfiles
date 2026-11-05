@@ -14,6 +14,8 @@
 --                     nvim-web-devicons, so plugins asking for it get these
 --   lualine.nvim      the global statusline
 --   incline.nvim      a file-name tag in each window's top-right corner
+--   todo-comments.nvim  TODO/FIXME/HACK/... highlighted (needs plenary.nvim)
+--   nvim-highlight-colors  color literals painted as their own background
 
 -- :TSUpdate on PackChanged: nvim-treesitter's parsers must be rebuilt whenever
 -- the plugin is installed or updated (update() is what :TSUpdate runs; waited
@@ -47,6 +49,9 @@ vim.pack.add({
   "https://github.com/nvim-mini/mini.icons",
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/b0o/incline.nvim",
+  "https://github.com/nvim-lua/plenary.nvim",
+  "https://github.com/folke/todo-comments.nvim",
+  "https://github.com/brenoprata10/nvim-highlight-colors",
 }, { confirm = false })
 
 -- --- Icons ------------------------------------------------------------------
@@ -293,6 +298,25 @@ require("incline").setup({
       vim.bo[props.buf].modified and { " [+]", group = "InclineModified" } or "",
     }
   end,
+})
+
+-- --- Small highlights ---------------------------------------------------------
+
+-- TODO, FIXME, HACK, WARN, PERF, NOTE, TEST in comments, with the defaults.
+require("todo-comments").setup({})
+
+-- Colors in the text painted as their own background: hex, rgb(), hsl(),
+-- ANSI escapes and CSS var(--x) usages. Tailwind classes are left alone.
+require("nvim-highlight-colors").setup({
+  render = "background",
+  enable_hex = true,
+  enable_short_hex = true,
+  enable_rgb = true,
+  enable_hsl = true,
+  enable_ansi = true,
+  enable_var_usage = true,
+  enable_named_colors = false,
+  enable_tailwind = false,
 })
 
 -- --- Oil --------------------------------------------------------------------
