@@ -172,10 +172,12 @@ then `:messages` and `v:errmsg`.
   auto-opens in the cmdline. `vim.lsp.completion`/`'autocomplete'` are off.
 - Pairs are mini.pairs (`core/plugins.lua`), in insert and command-line
   mode.
-- `core/format.lua` — format on save without conform: web files use oxfmt
-  (project has `.oxfmtrc`) or prettierd/prettier (project uses prettier),
-  else the LSP; stylua for Lua, shfmt for sh/bash, sql-formatter for SQL,
-  LSP formatting otherwise.
+- `core/format.lua` — conform.nvim, format on save with a 1000ms timeout
+  and LSP fallback: web files (js/ts/jsx/tsx/json/css/scss/less/html/
+  markdown/mdx/yaml) take the first installed of oxfmt, prettierd,
+  prettier; stylua for Lua, shfmt for sh/bash, fish_indent for fish,
+  sql-formatter for SQL; Go runs gopls organize-imports first.
+  `:ToggleFormatter` turns format on save off for the current buffer.
 - `core/tasks.lua` — build/test/watch commands (run in a snacks terminal)
   and the REPL (`<localleader>r/e/b/f`).
 - `core/tabline.lua` — custom tabline, only with 2+ tabs: icon + file name of
@@ -189,7 +191,7 @@ then `:messages` and `v:errmsg`.
 
 - **Prefer built-ins.** A plugin is added only when 0.12 cannot do the job
   (snippets, comments, undotree, cmdline UI, LSP are built in; completion
-  is the exception, blink.cmp).
+  (blink.cmp) and formatting (conform.nvim) are the exceptions).
 - **LSP is the native API with nvim-lspconfig as data only** — its
   `lsp/<name>.lua` files supply defaults; never the legacy
   `require("lspconfig").x.setup()`. Overrides go in `after/lsp/` (higher

@@ -1,7 +1,7 @@
 # Neovim Setup
 
-Near-stock Neovim 0.12: the stock look and keys, built-in LSP, completion,
-snippets, comments and undotree, six plugins for what Neovim cannot do
+Near-stock Neovim 0.12: the stock look and keys, built-in LSP, snippets,
+comments and undotree, blink.cmp for completion, a few plugins for what Neovim cannot do
 itself, and one theme (lsdr/monokai). Tooling covers **Python, TypeScript/JavaScript, C/C++, SQL, OCaml,
 Haskell and Go**.
 
@@ -10,18 +10,18 @@ Haskell and Go**.
 ```text
 init.lua                  vim.loader, leaders (<Space>, local leader ",")
 nvim-pack-lock.json       plugin revisions (vim.pack)
-lsp/<server>.lua          basedpyright, ruff, vtsls, eslint, clangd, ocamllsp, hls, gopls
+after/lsp/<server>.lua    overrides on nvim-lspconfig's defaults
 after/ftplugin/           per-filetype indentation and OCaml LSP extras
 lua/naamanu/
   theme.lua               shared light/dark mode + built-in colorscheme picker
   core/
     init.lua              load order
-    options.lua           options, completion, :grep via rg, ui2
+    options.lua           options, :grep via rg, ui2
     keymaps.lua           general keys, sessions, REPL, build/test keys
     autocmds.lua
     plugins.lua           the only plugin list (vim.pack) and its setup
-    lsp.lua               diagnostics, LspAttach keys, completion, server gate
-    format.lua            format on save (prettier / sql-formatter / LSP)
+    lsp.lua               diagnostics, LspAttach keys, capabilities, server list
+    format.lua            format on save (conform.nvim, LSP fallback)
     dap.lua               debugging (nvim-dap + Delve)
     tasks.lua             project build/test/watch commands and the REPL
     workflows.lua         terminal agent, docs lookup
@@ -36,6 +36,9 @@ lua/naamanu/
 | snacks.nvim | picker (files, grep, LSP symbols, GitHub) and terminals |
 | gitsigns.nvim | hunks in the sign column, stage/reset/blame |
 | nvim-dap | debugging; Go through Delve's DAP server (`dlv dap`) |
+| blink.cmp (`^1`) | completion menu; `<CR>` accepts, opens by itself in the cmdline |
+| mini.pairs | auto-closing brackets and quotes in insert and cmdline mode |
+| conform.nvim | format on save, 1000ms timeout, LSP fallback |
 | vim-tmux-navigator | `C-h/j/k/l` across windows and tmux panes |
 | monokai (lsdr) | the original TextMate Monokai, as shipped |
 
@@ -47,21 +50,25 @@ Updates: `:lua vim.pack.update()`, review the diff, `:write` to apply, then
 | Language | Server | Format on save |
 | :--- | :--- | :--- |
 | Python | basedpyright + ruff | ruff |
-| TS / JS | vtsls (+ eslint with a config) | project prettier, else vtsls |
+| TS / JS / JSON / CSS / HTML / Markdown / YAML | vtsls, cssls (+ eslint with a config) | first installed of oxfmt, prettierd, prettier; else the server |
+| Lua | lua_ls | stylua |
+| sh / bash | — | shfmt |
+| fish | — | fish_indent |
 | C / C++ | clangd | clangd (clang-format) |
 | SQL | — | sql-formatter |
 | OCaml | ocamllsp | ocamlformat (with `.ocamlformat`) |
 | Haskell | hls | ormolu |
 | Go | gopls | gofumpt (via gopls), imports organized first |
 
-`:FormatToggle` turns format-on-save off for the session; `<leader>cf`
-formats on demand.
+`:ToggleFormatter` turns format on save off (and back on) for the current
+buffer; `<leader>cf` formats on demand.
 
 ## Keys
 
 Stock keys still apply: `grn` rename, `gra` code action, `grr` references,
 `gri` implementation, `K` hover, `[d`/`]d` diagnostics, `gc` comment,
-`<C-y>` accept completion, `<C-n>`/`<C-p>` move, `<Tab>` snippet jump.
+Completion (blink.cmp, "enter" preset): `<CR>` accept, `<C-n>`/`<C-p>`
+move, `<C-e>` close, `<Tab>`/`<S-Tab>` snippet jump.
 
 | Key | Action |
 | :--- | :--- |
@@ -75,7 +82,7 @@ Stock keys still apply: `grn` rename, `gra` code action, `grr` references,
 | `<leader>la` / `lr` / `ld` / `lh` | Code action / rename / line diagnostics / inlay hints |
 | `<leader>ci` / `cF` / `cE` | Organize imports / fix all / fix ESLint |
 | `<leader>cf` | Format |
-| `<C-Space>` (insert) | Force completion |
+| `<C-Space>` (insert) | Open completion / toggle docs |
 | `]h` / `[h` | Next / previous hunk |
 | `<leader>gs` / `gr` / `gS` / `gR` | Stage / reset hunk / buffer |
 | `<leader>gp` / `gb` / `gd` | Preview hunk / blame / diff |

@@ -20,6 +20,8 @@
 --                     goes first on PATH); mason-tool-installer keeps the list
 --   nvim-lspconfig    default server configs (lsp/*.lua); ours override them
 --                     from after/lsp/
+--   conform.nvim      format on save (formatters, LSP fallback); configured
+--                     in core/format.lua
 --   mini.pairs        auto-closing brackets and quotes (insert + cmdline)
 --   blink.cmp         completion menu (LSP, path, snippets, buffer, cmdline);
 --                     pinned to 1.x, its prebuilt fuzzy matcher is fetched
@@ -56,6 +58,7 @@ vim.pack.add({
   "https://github.com/rachartier/tiny-cmdline.nvim",
   "https://github.com/nvim-mini/mini.icons",
   "https://github.com/nvim-mini/mini.pairs",
+  "https://github.com/stevearc/conform.nvim",
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/b0o/incline.nvim",
   "https://github.com/nvim-lua/plenary.nvim",
