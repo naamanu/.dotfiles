@@ -54,6 +54,12 @@ cursor-style = block
 cursor-style-blink = true
 {{- if eq .chezmoi.os "darwin" }}
 
+# Ghostty's own fullscreen instead of the macOS one: native fullscreen turns
+# background-opacity off, so the blur would vanish. Takes effect the next time
+# a window goes fullscreen; tabs of a fullscreen window wait in a separate
+# window (cmd+` to switch).
+macos-non-native-fullscreen = true
+
 # Quick terminal: a dropdown from the top of the screen, from any app.
 # (Global keybinds need Ghostty to have Accessibility permission.)
 keybind = global:cmd+grave_accent=toggle_quick_terminal
