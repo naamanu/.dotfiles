@@ -170,6 +170,8 @@ then `:messages` and `v:errmsg`.
   preset (<CR> accepts), auto-brackets, docs after 200ms, no ghost text,
   treesitter-highlighted menu with mini.icons kind icons, and the menu
   auto-opens in the cmdline. `vim.lsp.completion`/`'autocomplete'` are off.
+- Pairs are mini.pairs (`core/plugins.lua`), in insert and command-line
+  mode.
 - `core/format.lua` — format on save without conform: web files use oxfmt
   (project has `.oxfmtrc`) or prettierd/prettier (project uses prettier),
   else the LSP; stylua for Lua, shfmt for sh/bash, sql-formatter for SQL,

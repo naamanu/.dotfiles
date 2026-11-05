@@ -20,6 +20,7 @@
 --                     goes first on PATH); mason-tool-installer keeps the list
 --   nvim-lspconfig    default server configs (lsp/*.lua); ours override them
 --                     from after/lsp/
+--   mini.pairs        auto-closing brackets and quotes (insert + cmdline)
 --   blink.cmp         completion menu (LSP, path, snippets, buffer, cmdline);
 --                     pinned to 1.x, its prebuilt fuzzy matcher is fetched
 --                     for the release tag
@@ -54,6 +55,7 @@ vim.pack.add({
   "https://github.com/mfussenegger/nvim-dap",
   "https://github.com/rachartier/tiny-cmdline.nvim",
   "https://github.com/nvim-mini/mini.icons",
+  "https://github.com/nvim-mini/mini.pairs",
   "https://github.com/nvim-lualine/lualine.nvim",
   "https://github.com/b0o/incline.nvim",
   "https://github.com/nvim-lua/plenary.nvim",
@@ -109,6 +111,15 @@ require("mason-tool-installer").setup({
 -- Symbols Nerd Font Mono, Ghostty's fallback font.
 require("mini.icons").setup()
 MiniIcons.mock_nvim_web_devicons()
+
+-- --- Pairs ------------------------------------------------------------------
+
+-- Typing an opening bracket or quote inserts its pair; typing the closer
+-- steps over it, <BS> deletes both, <CR> between a pair opens a line. On in
+-- insert and command-line mode (mini.pairs' default leaves cmdline off).
+require("mini.pairs").setup({
+  modes = { insert = true, command = true, terminal = false },
+})
 
 -- --- Completion (blink.cmp) -------------------------------------------------
 
