@@ -130,13 +130,32 @@ the config from the cwd) before `chezmoi add`.
 ### Layout and load order
 
 `init.lua` (`vim.loader.enable()`, leaders) → `lua/naamanu/core/init.lua`:
-options → keymaps → autocmds → **plugins** → theme → lsp → format → workflows.
+options → keymaps → autocmds → **plugins** → theme → tabline → lsp → format →
+dap → workflows. Each module loads in its own `pcall`, so one failure cannot
+stop the rest; failures are reported once after startup. Startup must stay
+error-free: check `nvim --headless +qa` AND a real UI (ui2, tiny-cmdline and
+the tabline only run with a UI attached), e.g. nvim in a detached tmux pane,
+then `:messages` and `v:errmsg`.
 
 - `core/plugins.lua` — the ONLY plugin list: one `vim.pack.add` (built-in
   package manager; revisions in `nvim-pack-lock.json`) with each plugin's
-  setup and keys: nvim-treesitter (`main` branch, parsers for the languages
-  above), oil.nvim, snacks.nvim (picker + terminal only), gitsigns.nvim,
-  vim-tmux-navigator. Plus the built-in `nvim.undotree` package. No theme
+  setup and keys: nvim-treesitter (`main` branch; ~40 parsers listed in `parsers`, installed
+  at startup if missing; a FileType autocmd starts highlighting, folds and --
+  where an indents query exists -- treesitter indent; `:TSUpdate` runs on
+  PackChanged), oil.nvim (always a centered float with a live preview on the right
+  -- `-`, `nvim .`, `:e dir` and `:Oil` all end up there, `q` closes; replaces
+  netrw; hidden files; icon/permissions/size/mtime
+  columns; renames update imports through the LSP and save the edited
+  buffers -- a `workspace/applyEdit` wrapper covers servers like vtsls that
+  only implement didRenameFiles), snacks.nvim (picker, terminal, notifier, indent, statuscolumn, words with `]]`/`[[`; scroll off), gitsigns.nvim,
+  vim-tmux-navigator, nvim-dap, tiny-cmdline.nvim (centered ui2 cmdline),
+  mini.icons (also mocks nvim-web-devicons), lualine.nvim (one global
+  statusline; project root = nearest .git/lua/package.json/Makefile/
+  Cargo.toml/go.mod/pyproject.toml via `vim.fs.root`), incline.nvim (file
+  tag top-right of each window, hidden on the cursor's line), todo-comments.nvim
+  (+ plenary.nvim), nvim-highlight-colors (hex/rgb/hsl/ANSI/CSS var as
+  background; named colors and Tailwind off). Plus the built-in
+  `nvim.undotree` package. No theme
   plugin: `colors/monokai-pro.lua` is built from Ghostty's "Monokai
   Pro" palette (treesitter + LSP semantic groups included); keep the two
   in step if either changes.
@@ -148,6 +167,9 @@ options → keymaps → autocmds → **plugins** → theme → lsp → format �
   TS/JS/JSON, sql-formatter for SQL, LSP formatting otherwise.
 - `core/tasks.lua` — build/test/watch commands (run in a snacks terminal)
   and the REPL (`<localleader>r/e/b/f`).
+- `core/tabline.lua` — custom tabline, only with 2+ tabs: icon + file name of
+  each tab's active window between slanted separators, names cut at 20
+  chars; an oil tab shows its directory (`~/foo`, no icon), cut from the left. Colors are the `TabLine*` groups in `colors/monokai-pro.lua`.
 - `theme.lua` — shared light/dark mode from theme-mode(1) plus a family
   picker (`<leader>uC`) over Neovim's built-in colorschemes and `monokai`
   (the default; monokai-pro in both modes, like Ghostty).
