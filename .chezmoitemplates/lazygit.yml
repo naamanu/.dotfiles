@@ -1,0 +1,9 @@
+# lazygit: render diffs through delta, like `git diff` in the shell. delta
+# picks up the [delta] section of ~/.gitconfig (line numbers, navigate).
+# lazygit 0.66 renamed git.pagers to git.diffRenderers; delta reads the diff on
+# stdin, so it is a stdinFilter. --dark: delta cannot query the background from
+# inside lazygit, and the theme (Monokai Pro) is dark in both modes.
+git:
+  diffRenderers:
+    - type: stdinFilter
+      command: delta --dark --paging=never
