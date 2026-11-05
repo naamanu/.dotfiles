@@ -59,9 +59,11 @@ local groups = {
   -- UI ----------------------------------------------------------------------
   Normal = { fg = c.fg },
   NormalNC = { link = "Normal" },
-  NormalFloat = { fg = c.fg, bg = c.bg_float },
-  FloatBorder = { fg = c.border, bg = c.bg_float },
-  FloatTitle = { fg = c.yellow, bg = c.bg_float, bold = true },
+  -- Floats (hover, diagnostics, ui2 popup/pager, tiny-cmdline) are transparent
+  -- like Normal: the blur shows through and only the rounded border is drawn.
+  NormalFloat = { fg = c.fg },
+  FloatBorder = { fg = c.border },
+  FloatTitle = { fg = c.yellow, bold = true },
   Cursor = { fg = c.bg, bg = c.cursor },
   CursorLine = { bg = c.bg_line },
   CursorColumn = { link = "CursorLine" },
