@@ -9,6 +9,7 @@
 --   gitsigns.nvim     hunks in the sign column, stage/reset/blame
 --   vim-tmux-navigator  C-h/j/k/l across Neovim windows and tmux panes
 --   nvim-dap          debugging (Delve for Go); configured in core/dap.lua
+--   tiny-cmdline.nvim the ui2 cmdline as a centered floating box
 
 -- nvim-treesitter's parsers must be rebuilt whenever the plugin changes.
 -- Registered before vim.pack.add so it also fires on the first install.
@@ -36,6 +37,7 @@ vim.pack.add({
   "https://github.com/lewis6991/gitsigns.nvim",
   "https://github.com/christoomey/vim-tmux-navigator",
   "https://github.com/mfussenegger/nvim-dap",
+  "https://github.com/rachartier/tiny-cmdline.nvim",
 }, { confirm = false })
 
 local map = function(mode, lhs, rhs, desc)
@@ -93,6 +95,15 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
     end
   end,
+})
+
+-- --- tiny-cmdline -----------------------------------------------------------
+
+-- The ui2 cmdline (options.lua: cmdheight=0, ui2) as a floating box,
+-- centered left to right and 20% from the top. / and ? stay at the bottom,
+-- so the search pattern and count read in the cmdline.
+require("tiny-cmdline").setup({
+  position = { x = "50%", y = "20%" },
 })
 
 -- --- Oil --------------------------------------------------------------------

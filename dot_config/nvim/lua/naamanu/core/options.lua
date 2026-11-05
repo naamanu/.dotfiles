@@ -120,13 +120,71 @@ if vim.fn.executable("rg") == 1 then
   o.grepformat = "%f:%l:%c:%m"
 end
 
--- Built-in ui2 (experimental in 0.12): the cmdline and messages render in
--- their own windows. Long output collapses to a `[+N]` marker instead of the
--- hit-enter prompt; g< (or <CR> right after a : command) opens it in the
--- pager. Guarded so an older Neovim still starts.
+-- Built-in ui2 (experimental in 0.12): messages and the cmdline render in
+-- their own windows. Where each message goes (|ui-messages| kinds):
+--   msg    short messages: a corner popup, at most 30% tall, gone after 5s
+--   pager  long output (errors, :ls/:set listings, :verbose, :!cmd and its
+--          output, progress): scrollable, at most half the screen
+--   cmd    search count, completion/wildmenu lists, confirm prompts, and the
+--          output of commands typed on the cmdline
+-- Long output collapses to `[+N]`; g< reopens it in the pager. The centered
+-- cmdline box itself is tiny-cmdline.nvim (core/plugins.lua).
 local ui2_ok, ui2 = pcall(require, "vim._core.ui2")
 if ui2_ok then
-  ui2.enable({ msg = { targets = "cmd" } })
+  local pager_kinds = {
+    list_cmd = true,
+    verbose = true,
+    shell_cmd = true,
+    shell_out = true,
+    shell_err = true,
+    shell_ret = true,
+    emsg = true,
+    echoerr = true,
+    lua_error = true,
+    rpc_error = true,
+    progress = true,
+  }
+  local targets = {
+    typed_cmd = "cmd",
+    search_count = "cmd",
+    search_count_cmd = "cmd", -- see the msg_show wrapper below
+    wildlist = "cmd",
+    completion = "cmd",
+    confirm = "cmd",
+  }
+  for kind in pairs(pager_kinds) do
+    targets[kind] = "pager"
+  end
+  ui2.enable({
+    msg = {
+      target = "msg", -- every kind not listed in `targets`
+      targets = targets,
+      msg = { height = 0.3, timeout = 5000 },
+      pager = { height = 0.5 },
+      cmd = { height = 0.5 },
+    },
+  })
+  -- ui2 looks up the trigger before the kind, so `typed_cmd = "cmd"` would
+  -- also catch a typed :ls or :!cmd. Drop the trigger for the pager kinds so
+  -- long output from a typed command still lands in the pager.
+  local msgs = require("vim._core.ui2.messages")
+  local msg_show = msgs.msg_show
+  msgs.msg_show = function(kind, content, replace_last, history, append, id, trigger)
+    if trigger == "typed_cmd" and pager_kinds[kind] then
+      trigger = ""
+    end
+    -- With cmdheight=0 ui2 writes the search count into the hidden cmdline
+    -- window, so it never shows. Send just the "[1/5]" part as a cmdline
+    -- message instead.
+    if kind == "search_count" and vim.o.cmdheight == 0 then
+      local last = content[#content]
+      local count = last and last[2]:match("W? %[>?%d*%??/>?%d*%?*%]")
+      if count then
+        kind, content = "search_count_cmd", { { last[1], vim.trim(count), last[3] } }
+      end
+    end
+    return msg_show(kind, content, replace_last, history, append, id, trigger)
+  end
 end
 
 -- Disable unused providers
