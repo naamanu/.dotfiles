@@ -8,6 +8,7 @@ require("naamanu.core.plugins")
 
 local theme = require("naamanu.theme")
 theme.apply(theme.mode())
+require("naamanu.core.tabline")
 
 require("naamanu.core.lsp")
 require("naamanu.core.format")

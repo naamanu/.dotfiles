@@ -77,9 +77,13 @@ local groups = {
   WinSeparator = { fg = c.border },
   StatusLine = { fg = c.fg, bg = c.border },
   StatusLineNC = { fg = c.comment, bg = c.bg_line },
-  TabLine = { fg = c.comment, bg = c.bg_line },
-  TabLineFill = { bg = c.bg_dark },
-  TabLineSel = { fg = c.fg, bg = c.border, bold = true },
+  -- Tabline (core/tabline.lua): active tab purple, inactive muted, the bar
+  -- itself transparent. The *Sep groups draw the slanted edges.
+  TabLine = { fg = "#a59fa6", bg = c.bg_line },
+  TabLineSep = { fg = c.bg_line },
+  TabLineFill = {},
+  TabLineSel = { fg = c.bg, bg = c.purple, bold = true },
+  TabLineSelSep = { fg = c.purple },
   WinBar = { fg = c.fg, bold = true },
   WinBarNC = { fg = c.comment },
   Visual = { bg = c.selection },
