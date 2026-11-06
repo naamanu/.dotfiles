@@ -122,54 +122,71 @@ After verifying: `chezmoi add ~/.emacs.d/init.el ~/.emacs.d/early-init.el`.
 
 ## Neovim configuration (`dot_config/nvim/`)
 
-Deliberately near-stock Neovim 0.12. Tooling covers **Python, TS/JS, C/C++,
-SQL, OCaml and Haskell** only. `stylua.toml` (2 spaces, width 100) formats
+Deliberately near-stock Neovim 0.12. Tooling covers **Python, TS/JS, Go,
+Rust, C/C++, Java, Lua, SQL, OCaml and Haskell**, plus shell, JSON, YAML,
+TOML and Markdown. `stylua.toml` (2 spaces, width 100) formats
 the tree: run `stylua lua lsp after` from `~/.config/nvim` (stylua only finds
 the config from the cwd) before `chezmoi add`.
 
 ### Layout and load order
 
 `init.lua` (`vim.loader.enable()`, leaders) → `lua/naamanu/core/init.lua`:
-options → keymaps → autocmds → **plugins** → theme → tabline → lsp → format →
-dap → workflows. Each module loads in its own `pcall`, so one failure cannot
+options → keymaps → autocmds → **plugins** → ui → git → theme → tabline →
+lsp → format → dap → workflows. Each module loads in its own `pcall`, so one failure cannot
 stop the rest; failures are reported once after startup. Startup must stay
 error-free: check `nvim --headless +qa` AND a real UI (ui2, tiny-cmdline and
 the tabline only run with a UI attached), e.g. nvim in a detached tmux pane,
 then `:messages` and `v:errmsg`.
 
 - `core/plugins.lua` — the ONLY plugin list: one `vim.pack.add` (built-in
-  package manager; revisions in `nvim-pack-lock.json`) with each plugin's
-  setup and keys: nvim-treesitter (`main` branch; ~40 parsers listed in `parsers`, installed
-  at startup if missing; a FileType autocmd starts highlighting, folds and --
-  where an indents query exists -- treesitter indent; `:TSUpdate` runs on
-  PackChanged), oil.nvim (always a centered float with a live preview on the right
-  -- `-`, `nvim .`, `:e dir` and `:Oil` all end up there, `q` closes; replaces
-  netrw; hidden files; icon/permissions/size/mtime
-  columns; renames update imports through the LSP and save the edited
-  buffers -- a `workspace/applyEdit` wrapper covers servers like vtsls that
-  only implement didRenameFiles), snacks.nvim (picker, terminal, notifier, indent, statuscolumn, words with `]]`/`[[`; scroll off), gitsigns.nvim,
-  vim-tmux-navigator, nvim-dap, tiny-cmdline.nvim (centered ui2 cmdline),
-  mini.icons (also mocks nvim-web-devicons), lualine.nvim (one global
-  statusline; project root = nearest .git/lua/package.json/Makefile/
-  Cargo.toml/go.mod/pyproject.toml via `vim.fs.root`), incline.nvim (file
-  tag top-right of each window, hidden on the cursor's line), todo-comments.nvim
-  (+ plenary.nvim), nvim-highlight-colors (hex/rgb/hsl/ANSI/CSS var as
-  background; named colors and Tailwind off), mason.nvim +
-  mason-tool-installer, nvim-lspconfig (data only), blink.cmp (completion),
-  mini.pairs, codediff.nvim (diff view/history), conform.nvim (set up in
-  `core/format.lua`). Plus the built-in `nvim.undotree` package. No theme
-  plugin: `colors/monokai-pro.lua` is built from Ghostty's "Monokai
-  Pro" palette (treesitter + LSP semantic groups included); keep the two
-  in step if either changes.
+  package manager; revisions in `nvim-pack-lock.json`), plus mason +
+  mason-tool-installer, mini.pairs, mini.ai (treesitter text objects
+  f/c/o/u from nvim-treesitter-textobjects' queries, plus a/brackets/
+  quotes), mini.surround (on `gs`: gsa/gsd/gsr/gsf/gsF/gsh, so `s` stays
+  stock), blink.cmp, and nvim-treesitter (`main` branch; ~40 parsers listed
+  in `parsers`, missing ones installed just after startup; a FileType
+  autocmd starts highlighting, folds, treesitter indent where an indents
+  query exists, and buffer-local `]m [m ]M [M ]k [k` moves -- scheduled so
+  they win over ftplugin maps; `:TSUpdate` runs on PackChanged). Plus the
+  built-in `nvim.undotree` package.
+- `core/ui.lua` — mini.icons (also mocks nvim-web-devicons), tiny-cmdline
+  (centered ui2 cmdline), lualine (one global statusline; project root =
+  nearest .git/lua/package.json/Makefile/Cargo.toml/go.mod/pyproject.toml
+  via `vim.fs.root`), incline (file tag top-right of each window, hidden on
+  the cursor's line), todo-comments (+ plenary), nvim-highlight-colors
+  (hex/rgb/hsl/ANSI/CSS var as background; named colors and Tailwind off),
+  oil (always a centered float with a live preview -- `-`, `nvim .`,
+  `:e dir` and `:Oil` all end up there, `q` closes; replaces netrw; renames
+  update imports through the LSP and save the edited buffers -- a
+  `workspace/applyEdit` wrapper covers servers like vtsls that only
+  implement didRenameFiles), snacks (picker, terminal, notifier, input,
+  bigfile, indent, scope with `ii`/`ai` and `[i`/`]i`, statuscolumn, words
+  with `]]`/`[[`; scroll off). snacks' input/scope/picker start on UIEnter,
+  so headless tests must `doautocmd UIEnter` to see their keys.
+- `core/git.lua` — gitsigns and codediff. codediff is configured through
+  `require("codediff.config").setup` (not `codediff.setup`, which loads the
+  whole diff UI at startup).
+- No theme plugin: `colors/monokai-pro.lua` is built from Ghostty's "Monokai
+  Pro" palette (treesitter + LSP semantic groups included); keep the two in
+  step if either changes.
 - `core/lsp.lua` — native `vim.lsp.config`/`enable` over nvim-lspconfig's
   defaults; our overrides in `after/lsp/<name>.lua`. Every server in the
   `vim.lsp.enable` list is on (Neovim skips one whose binary is missing);
   `vim.lsp.config("*")` gives all of them file-rename capabilities
   (willRename/didRename). Binaries come from mason, except clangd (Xcode),
-  ocamllsp (opam) and hls (ghcup/brew), which must match their compiler.
+  ocamllsp (opam), hls (ghcup/brew) and jdtls (brew), which must match their
+  toolchain. jdtls needs JDK 25+ to run: `after/lsp/jdtls.lua` sets
+  `cmd_env.JAVA_HOME` to brew's newest openjdk and registers `$JAVA_HOME`
+  (21) as the project runtime -- mason's jdtls fails on JDK 21 (exit 13).
   The same `"*"` config adds blink.cmp's completion capabilities.
+  LspAttach turns server document colors off (nvim-highlight-colors paints
+  them) and enables `vim.lsp.inline_completion` for servers that offer it
+  (copilot; `<leader>uA` toggles, `<M-]>`/`<M-[>` cycle). `<leader>lR` is
+  `:lsp restart`. jsonls/yamlls take schemas from SchemaStore.nvim in
+  `before_init`.
 - Completion is blink.cmp (`core/plugins.lua`, pinned `^1`): `enter`
-  preset (<CR> accepts), auto-brackets, docs after 200ms, no ghost text,
+  preset (<CR> accepts; <Tab> accepts an inline suggestion first, then
+  jumps snippet fields), auto-brackets, docs after 200ms, no ghost text,
   treesitter-highlighted menu with mini.icons kind icons, and the menu
   auto-opens in the cmdline. `vim.lsp.completion`/`'autocomplete'` are off.
 - Pairs are mini.pairs (`core/plugins.lua`), in insert and command-line
@@ -180,6 +197,16 @@ then `:messages` and `v:errmsg`.
   prettier; stylua for Lua, shfmt for sh/bash, fish_indent for fish,
   sql-formatter for SQL; Go runs gopls organize-imports first.
   `:ToggleFormatter` turns format on save off for the current buffer.
+- `core/dap.lua` — nvim-dap, set up on the first debug key (not at
+  startup): Go through `dlv dap`, Python through nvim-dap-python with
+  mason's `debugpy-adapter`, running the program under the interpreter
+  `core/lsp.lua`'s `python_path()` finds; `<leader>dt` debugs the test at
+  the cursor (Go or pytest).
+- `core/options.lua` — also routes ui2 messages. The search-count and
+  typed-command tweaks wrap the private `vim._core.ui2.messages.msg_show`;
+  if a Neovim release moves it they are skipped with one warning. Retest
+  messages after every Neovim upgrade. Remote-plugin providers (python3,
+  node, perl, ruby) are disabled; nothing needs them.
 - `core/tasks.lua` — build/test/watch commands (run in a snacks terminal)
   and the REPL (`<localleader>r/e/b/f`).
 - `core/tabline.lua` — custom tabline, only with 2+ tabs: icon + file name of
@@ -192,8 +219,9 @@ then `:messages` and `v:errmsg`.
 ### Rules
 
 - **Prefer built-ins.** A plugin is added only when 0.12 cannot do the job
-  (snippets, comments, undotree, cmdline UI, LSP are built in; completion
-  (blink.cmp) and formatting (conform.nvim) are the exceptions).
+  (snippets, comments, undotree, cmdline UI, LSP, inline completion,
+  `:lsp restart`, `:restart`/`ZR` are built in; completion (blink.cmp) and
+  formatting (conform.nvim) are the exceptions).
 - **LSP is the native API with nvim-lspconfig as data only** — its
   `lsp/<name>.lua` files supply defaults; never the legacy
   `require("lspconfig").x.setup()`. Overrides go in `after/lsp/` (higher
@@ -211,9 +239,9 @@ then `:messages` and `v:errmsg`.
 
 ### Adding things
 
-- **Plugin** → add it to `vim.pack.add` in `core/plugins.lua` with its setup
-  in the same file, restart, then `chezmoi add` `core/plugins.lua` AND
-  `nvim-pack-lock.json`. Removing one: delete it from the list, then
+- **Plugin** → add it to `vim.pack.add` in `core/plugins.lua`, its setup in
+  the module for its topic (plugins/ui/git/format/dap), restart, then
+  `chezmoi add` the changed modules AND `nvim-pack-lock.json`. Removing one: delete it from the list, then
   `:lua vim.pack.del({ "name" })`.
 - **LSP server** → its lspconfig name in the `vim.lsp.enable` list
   (`core/lsp.lua`), the mason package in `ensure_installed`

@@ -92,6 +92,8 @@ editing the text, then `:w`. Renames update imports through the LSP.
 | `]]` / `[[` | Next / previous use of the word under the cursor |
 | `]d` / `[d` | Next / previous diagnostic |
 | `]h` / `[h` | Next / previous git hunk |
+| `]m` / `[m` | Next / previous function (`]M`/`[M` its end) |
+| `]k` / `[k` | Next / previous class |
 | `<C-d>` / `<C-u>` | Half-page down / up (kept centered) |
 | `<C-o>` / `<C-i>` | Back / forward through jumps |
 
@@ -124,6 +126,12 @@ split, `<C-t>` in a tab, `<C-q>` to send the results to the quickfix list,
   typing the closer steps over it; `<BS>` deletes both. Works in the `:`
   command line too.
 - **Comment:** `gcc` toggles a line; `gc{motion}` or `gc` in Visual mode a block.
+- **Text objects** (after `d`, `c`, `y`, `v`…): `af`/`if` function,
+  `ac`/`ic` class, `aa`/`ia` argument, `au`/`iu` call, `ao`/`io` block,
+  `ii`/`ai` indent scope, plus brackets and quotes (`ci(` works even from
+  before the parens).
+- **Surround:** `gsaiw"` wraps a word in quotes, `gsd(` removes parens,
+  `gsr'"` swaps `'` for `"`.
 - **Select by syntax:** in Visual mode `an` grows the selection to the
   parent node, `in` shrinks it; `]n`/`[n` move to the next/previous node.
 - **Move lines:** `J`/`K` in Visual mode move the selection down/up;
@@ -131,7 +139,7 @@ split, `<C-t>` in a tab, `<C-q>` to send the results to the quickfix list,
 - **Paste over a selection** without losing the register: `<leader>p`.
 - **Undo tree** (`<leader>uu`): browse and restore any earlier state.
 
-> **Practice** — `v` inside a function, press `an` a few times to grow the selection, `<Esc>`. Type `foo(` in insert mode and watch `)` appear.
+> **Practice** — Inside a function, `vaf` selects all of it and `yif` copies its body. On a word, `gsaiw)` wraps it in parens and `gsd)` takes them off. Type `foo(` in insert mode and watch `)` appear.
 
 ---
 
@@ -149,9 +157,14 @@ snippets and the current buffer. Docs for the selected item show after
 | `<C-e>` | Close the menu |
 | `<C-b>` / `<C-f>` | Scroll the docs |
 | `<C-k>` | Toggle signature help |
-| `<Tab>` / `<S-Tab>` | Jump through snippet placeholders |
+| `<Tab>` / `<S-Tab>` | Accept the inline suggestion if one shows; else jump through snippet placeholders |
 
 In the `:` command line the menu opens by itself as you type.
+
+**Inline suggestions (Copilot, optional):** run `:LspCopilotSignIn` once
+(needs a GitHub Copilot plan; your code goes to GitHub once signed in). Grey
+ghost text then appears as you type: `<Tab>` accepts, `<M-]>`/`<M-[>` cycle,
+`<leader>uA` turns them off or on.
 
 > **Practice** — In a code buffer start typing a known function, `<C-n>` to it, `<CR>` to accept — note the `(` it adds.
 
@@ -160,9 +173,11 @@ In the `:` command line the menu opens by itself as you type.
 ## 6. Code intelligence (built-in LSP)
 
 Servers come from mason (installed on first start) or the toolchain (clangd,
-ocamllsp, hls) and attach by filetype: basedpyright + ruff, vtsls, eslint,
-oxlint, cssls, tailwindcss, lua_ls, rust-analyzer, gopls, clangd, ocamllsp,
-hls. Inlay hints are on where supported.
+ocamllsp, hls, jdtls) and attach by filetype: basedpyright + ruff, vtsls,
+eslint, oxlint, cssls, tailwindcss, lua_ls, rust-analyzer, gopls, bashls
+(with shellcheck), jsonls and yamlls (schemas for package.json, tsconfig,
+GitHub workflows, docker-compose…), taplo, marksman, jdtls, clangd,
+ocamllsp, hls. Inlay hints are on where supported.
 
 | Key | Action |
 | :--- | :--- |
@@ -223,8 +238,9 @@ Maven/Gradle).
 sml, jshell. `<localleader>e` sends the line or selection, `b` the buffer,
 `f` the top-level form.
 
-**Debug** (Go via Delve): `<F5>` start, `<leader>db` breakpoint,
-`<F10>`/`<F11>`/`<F12>` step, `<leader>dt` debug the test under the cursor.
+**Debug** (Go via Delve, Python via debugpy): `<F5>` start, `<leader>db`
+breakpoint, `<F10>`/`<F11>`/`<F12>` step, `<leader>dt` debug the test under
+the cursor (Go test, or pytest test in Python).
 
 > **Practice** — In a project, `<leader>on` to run the tests; `<C-/>` toggles a terminal on the right.
 
@@ -267,6 +283,8 @@ sml, jshell. `<localleader>e` sends the line or selection, `b` the buffer,
   (did the server attach?), `:Mason` (is it installed?), `:ConformInfo`
   (which formatter?), `<leader>lR` to restart servers.
 - **A plugin missing:** `:lua vim.pack.update()`, review, `:write`.
+- **After changing the config:** `ZR` restarts Neovim and restores the
+  session.
 - **General health:** `:checkhealth`.
 
 ---

@@ -26,6 +26,7 @@ The setup is near-stock Neovim 0.12 built around a few centers:
 - oil for moving and creating files
 - the built-in LSP client, with servers installed by mason
 - blink.cmp for completion and conform for format on save
+- mini.ai and mini.surround for text objects and surrounding pairs
 - `core/tasks.lua` for builds, tests, watch mode and REPLs
 - gitsigns, codediff and LazyGit for review
-- Python through basedpyright, ruff, pytest and `uv`
+- Python through basedpyright, ruff, pytest, debugpy and `uv`

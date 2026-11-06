@@ -22,13 +22,16 @@ Think in four loops.
 `<leader>ff` for files, `<leader>fg` (or `<leader>/`) for text,
 `<leader>fs` for symbols in the file, `<leader>fS` across the workspace,
 and `gd`/`grr`/`gri` once a server is attached. `]]`/`[[` jump between
-uses of the word under the cursor.
+uses of the word under the cursor, `]m`/`[m` between functions.
 
 ### Edit
 
 Buffers (`<leader>,`, `<leader>bn`/`bp`/`bd`), comments (`gcc`, `gc` in
-Visual mode), auto-pairs, syntax selection (`an`/`in` in Visual mode),
-completion with `<CR>` to accept, and `<C-s>` to save (which formats).
+Visual mode), auto-pairs, text objects (`af`/`if` function, `ac` class,
+`aa` argument, `ii` indent scope), surround (`gsa`/`gsd`/`gsr`), syntax
+selection (`an`/`in` in Visual mode), completion with `<CR>` to accept,
+inline suggestions with `<Tab>` (once signed in to Copilot), and `<C-s>` to
+save (which formats).
 
 ### Execute
 
@@ -82,7 +85,9 @@ Start from the repository root with `nvim` (or `nvim .`, which opens oil).
 `<leader>ci`, `cI`, `cu`, `cF` and `cE` organize imports, add missing ones,
 remove unused ones, fix all, and apply ESLint fixes. Python uses ruff for
 lint/fix/format and basedpyright for types; Go uses gopls; Rust
-rust-analyzer.
+rust-analyzer; Java jdtls; shell scripts get shellcheck through bashls; JSON
+and YAML files are checked against their SchemaStore schema (package.json,
+tsconfig, GitHub workflows, docker-compose).
 
 ---
 
@@ -119,9 +124,10 @@ server; Go organizes imports first. Linting comes from the language servers
 | Java | Maven or Gradle (wrappers preferred) |
 | Racket | `raco make` / `raco test` |
 
-Commands run in a snacks terminal. Debugging (Go, through Delve): `<F5>`
-starts, `<leader>db` sets a breakpoint, `<leader>dt` debugs the test under
-the cursor.
+Commands run in a snacks terminal. Debugging (Go through Delve, Python
+through debugpy with the project's venv): `<F5>` starts, `<leader>db` sets a
+breakpoint, `<leader>dt` debugs the test under the cursor (Go test or
+pytest).
 
 ---
 

@@ -55,6 +55,9 @@ Python support in Neovim:
 - `<localleader>r` opens an ipython REPL; `<localleader>e` sends the line or selection.
 - `<leader>op` runs the current Python file.
 - `<leader>oT` runs pytest for the project or current file context.
+- `<leader>dt` debugs the pytest test under the cursor (debugpy, the
+  project's venv); `<F5>` debugs the current file, `<leader>db` sets a
+  breakpoint.
 
 ---
 

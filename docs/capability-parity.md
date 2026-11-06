@@ -9,7 +9,7 @@ The editors share external binaries and workflows while keeping native interacti
 
 ## Tool ownership
 
-Tools resolve in this order: project environment (`direnv`, `.venv`, `node_modules/.bin`, opam switch), `~/.local/bin`, then the system PATH. Neovim's mason installs its own language servers and formatters (its bin directory goes first on Neovim's PATH); clangd, ocamllsp and hls come from their toolchains so they match the compiler. Run `dev-doctor --all` from a terminal, or `:checkhealth` in Neovim.
+Tools resolve in this order: project environment (`direnv`, `.venv`, `node_modules/.bin`, opam switch), `~/.local/bin`, then the system PATH. Neovim's mason installs its own language servers, formatters and debugpy (its bin directory goes first on Neovim's PATH); clangd, ocamllsp, hls and jdtls come from their toolchains so they match the compiler. Run `dev-doctor --all` from a terminal, or `:checkhealth` in Neovim.
 
 `setup.sh` installs tools; `setup.sh --check` is read-only. Editor plugins remain pinned by their package metadata or Neovim's `nvim-pack-lock.json`. Projects own compiler and dependency versions.
 
@@ -29,10 +29,14 @@ The Neovim column below is current; Emacs covers only OCaml and Haskell
 | Haskell | HLS | ormolu | Cabal/Stack |
 | Racket | — | — | raco make / raco test |
 | Standard ML | — | — | SML/NJ REPL |
-| Java | — | — | Maven/Gradle, JShell |
+| Java | jdtls (Homebrew) | Eclipse formatter via jdtls | Maven/Gradle, JShell |
 | Lua | lua-language-server | stylua | project command |
-| shell / fish | — | shfmt / fish_indent | project command |
-| CSS/HTML/JSON/YAML/Markdown | cssls, tailwindcss | oxfmt / prettierd / Prettier | project command |
+| shell | bashls + shellcheck | shfmt | project command |
+| fish | — | fish_indent | project command |
+| CSS/HTML | cssls, tailwindcss | oxfmt / prettierd / Prettier | project command |
+| JSON/YAML | jsonls / yamlls with SchemaStore schemas | oxfmt / prettierd / Prettier | project command |
+| Markdown | marksman | oxfmt / prettierd / Prettier | project command |
+| TOML | taplo | taplo | project command |
 | SQL | none | sql-formatter | interactive client |
 
 Missing optional binaries leave editing usable and are reported by the doctor.
@@ -45,7 +49,7 @@ Missing optional binaries leave editing usable and are reported by the doctor.
 | Build/test | `C-c p m` / `C-c p t` | `<leader>ob` / `<leader>on` |
 | LSP action/rename | `C-c l a` / `C-c l r` | `<leader>la` / `<leader>lr` |
 | Format | `C-c l f` or save | `<leader>cf` or save |
-| Debug | `C-c d` prefix | `<leader>d` prefix |
+| Debug | `C-c d` prefix | `<leader>d` prefix (Go: Delve, Python: debugpy) |
 | HTTP request | Restclient `.http` buffer | — |
 | Terminal agent | `C-c g g` | `<leader>aa` |
 | Agent context | `C-c g c` | `<leader>ac` |
@@ -58,6 +62,8 @@ Missing optional binaries leave editing usable and are reported by the doctor.
 | Breadcrumbs | breadcrumb (header line) | — |
 | Fuzzy finder | Vertico + Consult + Orderless | snacks.picker |
 | Snippets | tempel (`<name`) | LSP snippets through blink.cmp |
+| Inline AI suggestions | — | Copilot through `vim.lsp.inline_completion` (`:LspCopilotSignIn`) |
+| Text objects / surround | evil + evil-surround | mini.ai (`af`, `ac`, `aa`…) + mini.surround (`gsa`/`gsd`/`gsr`) |
 | Side-by-side diff / history | built-in `vc` (`C-x v =`, `C-x v l`) | codediff (`<leader>gv` / `<leader>gl`) |
 
 ## Shared look

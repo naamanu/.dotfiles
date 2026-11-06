@@ -91,6 +91,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - [ ] `nvim` — first start installs the plugins (vim.pack), treesitter parsers and mason tools; blink.cmp and codediff fetch their prebuilt libraries
 - [ ] Log out/in for Docker group changes (Linux, only if `INSTALL_DOCKER=1`)
 - [ ] `gh auth login` — authenticate GitHub CLI
+- [ ] Optional: in Neovim, `:LspCopilotSignIn` (in any file) — enables Copilot inline suggestions; needs a GitHub Copilot plan
 - [ ] `gh extension install dlvhdr/gh-dash` — PR/issue dashboard (tmux `prefix G`)
 - [ ] Zotero: install the Better BibTeX plugin; *Export Library → Better BibLaTeX*, "Keep updated", to `~/notes/references.bib` (Emacs citar reads it)
 - [ ] macOS: grant Ghostty Accessibility so `cmd-\`` (quick terminal) works from any app
@@ -158,7 +159,7 @@ sudo pacman -Syu
 
 ## Shared editor toolchain
 
-Emacs uses the PATH-visible language servers and formatters. Neovim installs most of its servers and formatters with mason (`:Mason`, never auto-updated; `:MasonToolsUpdate`); clangd, ocamllsp and hls come from their toolchains for both editors.
+Emacs uses the PATH-visible language servers and formatters. Neovim installs most of its servers, formatters and debugpy with mason (`:Mason`, never auto-updated; `:MasonToolsUpdate`); clangd, ocamllsp, hls and jdtls come from their toolchains for both editors.
 
 ```sh
 ./setup.sh --check       # read-only bootstrap check
@@ -175,9 +176,11 @@ Java 21 is the default in fish and zsh; project `.envrc` files may select anothe
 Homebrew also installs JDK dependencies for its tooling. On macOS the Java 21 JDK
 is registered under `~/Library/Java/JavaVirtualMachines` for `java_home` discovery.
 
-- Neovim: no Java language server is enabled. `SPC o b` builds, `SPC o n`
-  tests, and `,r` opens JShell. Maven/Gradle wrappers are preferred when
-  present.
+- Neovim: jdtls (Homebrew's) provides completion, diagnostics and navigation.
+  Current JDT LS needs JDK 25+ to run, so it runs on Homebrew's newest
+  `openjdk` (a jdtls dependency) and checks code against `$JAVA_HOME`
+  (JDK 21). `SPC o b` builds, `SPC o n` tests, and `,r` opens JShell.
+  Maven/Gradle wrappers are preferred when present.
 - Emacs: `java-ts-mode` + Eglot provide completion, diagnostics and navigation.
   `C-c l f` formats; `M-x compile` runs the detected Maven/Gradle test command.
   Java build files also identify projects outside Git. Use `M-x ansi-term`
@@ -185,4 +188,6 @@ is registered under `~/Library/Java/JavaVirtualMachines` for `java_home` discove
 - Editor debugging adapters and JUnit test-explorer extensions are not installed;
   run tests through Maven/Gradle and use the JDK's `jdb` when needed.
 - Linux bootstrap installs distribution JDK/build tools; install Eclipse JDT LS
-  separately and expose its `bin/jdtls` launcher on PATH.
+  separately, expose its `bin/jdtls` launcher on PATH, and give it a JDK 25+
+  (`JAVA_HOME` in `after/lsp/jdtls.lua`'s `cmd_env` points at Homebrew's on
+  macOS).
