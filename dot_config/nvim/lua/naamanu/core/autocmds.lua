@@ -59,7 +59,7 @@ autocmd("BufReadPost", {
   desc = "Restore cursor position",
 })
 
--- Reload buffers changed on disk (pairs with 'autoread' in options.lua)
+-- Reload buffers changed on disk ('autoread' is on by default)
 autocmd({ "FocusGained", "TermClose", "TermLeave" }, {
   group = augroup("checktime", { clear = true }),
   callback = function()

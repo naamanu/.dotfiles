@@ -9,24 +9,19 @@ o.relativenumber = true
 o.tabstop = 2
 o.shiftwidth = 2
 o.expandtab = true
-o.autoindent = true
-o.smartindent = true
 
 -- Line wrapping
 o.wrap = false
 
--- Search settings
+-- Search: case-insensitive unless the pattern has a capital.
 o.ignorecase = true
 o.smartcase = true
-o.hlsearch = true
-o.incsearch = true
 
 -- Cursor line
 o.cursorline = true
 
 -- Appearance. `background` belongs to theme.lua (the shared light/dark
 -- state); setting it here flashed dark before the theme loaded in light mode.
-o.termguicolors = true
 -- Always one sign column, so text does not shift when git or diagnostic signs
 -- appear.
 o.signcolumn = "yes"
@@ -49,9 +44,6 @@ opt.fillchars:append({ eob = " " })
 -- pickers); plugins that pass their own `border` still win.
 o.winborder = "rounded"
 
--- Backspace
-o.backspace = "indent,eol,start"
-
 -- Clipboard
 opt.clipboard:append("unnamedplus")
 
@@ -63,12 +55,6 @@ o.splitbelow = true
 o.swapfile = false
 o.backup = false
 o.undofile = true
-
--- Pick up files changed outside Neovim; autocmds.lua runs :checktime on focus.
-o.autoread = true
-
--- Mouse
-o.mouse = "a"
 
 -- Performance
 o.updatetime = 250
@@ -87,9 +73,6 @@ o.sidescrolloff = 8
 -- Show invisible characters
 o.list = true
 opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
-
--- File encoding
-o.fileencoding = "utf-8"
 
 -- Sessions: what <leader><tab>s / <leader><tab>o (keymaps.lua) persist.
 -- No `options`/`blank`, so restoring a session does not replay stale settings.
@@ -127,7 +110,7 @@ end
 --   cmd    search count, completion/wildmenu lists, confirm prompts, and the
 --          output of commands typed on the cmdline
 -- Long output collapses to `[+N]`; g< reopens it in the pager. The centered
--- cmdline box itself is tiny-cmdline.nvim (core/plugins.lua).
+-- cmdline box itself is tiny-cmdline.nvim (core/ui.lua).
 local ui2_ok, ui2 = pcall(require, "vim._core.ui2")
 if ui2_ok then
   local pager_kinds = {
@@ -165,8 +148,23 @@ if ui2_ok then
   -- ui2 looks up the trigger before the kind, so `typed_cmd = "cmd"` would
   -- also catch a typed :ls or :!cmd. Drop the trigger for the pager kinds so
   -- long output from a typed command still lands in the pager.
-  local msgs = require("vim._core.ui2.messages")
-  local msg_show = msgs.msg_show
+  --
+  -- vim._core is private: a Neovim release can move or rename it. If it has,
+  -- the two tweaks below are skipped with one warning instead of failing
+  -- silently (ui2 itself still works).
+  local msgs_ok, msgs = pcall(require, "vim._core.ui2.messages")
+  local msg_show = msgs_ok and type(msgs) == "table" and msgs.msg_show
+  if type(msg_show) ~= "function" then
+    vim.schedule(function()
+      vim.notify(
+        "ui2 internals changed (vim._core.ui2.messages.msg_show): typed-command pager"
+          .. " routing and the search count are off. See core/options.lua.",
+        vim.log.levels.WARN
+      )
+    end)
+    msgs = {} -- the assignment below then wraps nothing
+    msg_show = function() end
+  end
   msgs.msg_show = function(kind, content, replace_last, history, append, id, trigger)
     if trigger == "typed_cmd" and pager_kinds[kind] then
       trigger = ""
@@ -185,14 +183,9 @@ if ui2_ok then
   end
 end
 
--- Disable unused providers
+-- No remote-plugin providers: nothing here is a Python, Node, Perl or Ruby
+-- remote plugin, so skip loading them (and their :checkhealth warnings).
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_node_provider = 0
 vim.g.loaded_perl_provider = 0
-
--- Python provider: dedicated uv venv (created by setup.sh)
-local python_venv = vim.fn.expand("~/.local/share/nvim/venv/bin/python")
-if vim.fn.filereadable(python_venv) == 1 then
-  vim.g.python3_host_prog = python_venv
-end
-
--- Ruby provider: unused, disable to avoid warnings
 vim.g.loaded_ruby_provider = 0

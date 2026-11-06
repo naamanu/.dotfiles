@@ -231,6 +231,8 @@ if [ "$PLATFORM" = "mac" ]; then
     # clippy and rustfmt are components of the same toolchain; brew's rust
     # would shadow it.
     brew_install go lua uv ghc cabal-install haskell-language-server ormolu
+    # jdtls pulls in brew's newest openjdk and runs on it (current JDT LS needs
+    # 25+); projects build with openjdk@21 ($JAVA_HOME).
     brew_install openjdk@21 maven gradle jdtls
     # Register the JDK for macOS discovery without requiring a system-wide link.
     mkdir -p "$HOME/Library/Java/JavaVirtualMachines"
@@ -651,7 +653,7 @@ elif [ "$PLATFORM" = "linux" ]; then
         install_pkg jdk21-openjdk maven gradle
     fi
     if ! command -v jdtls >/dev/null 2>&1; then
-        echo "Install Eclipse JDT LS (Java 21+) and put its bin/jdtls launcher on PATH."
+        echo "Install Eclipse JDT LS and put its bin/jdtls launcher on PATH; it runs on JDK 25+ (projects can stay on 21)."
         FAILED_PACKAGES+=(jdtls)
     fi
 
@@ -1057,14 +1059,6 @@ if [ -x "$ISABELLE_EMACS_DIR/bin/isabelle" ]; then
     else
         FAILED_PACKAGES+=(isabelle-emacs-components-or-HOL)
     fi
-fi
-
-# Neovim Python provider. Pin the interpreter: without --python, uv picks the
-# system python (3.9 on macOS), which is too old for jupyter_client.
-if command -v uv &> /dev/null; then
-    echo "Setting up Neovim Python provider..."
-    uv venv --python 3.12 ~/.local/share/nvim/venv || FAILED_PACKAGES+=(nvim-venv)
-    uv pip install --python ~/.local/share/nvim/venv/bin/python pynvim jupyter_client || FAILED_PACKAGES+=(pynvim)
 fi
 
 # ML/AI & Scientific Python tools (global uv tools)
