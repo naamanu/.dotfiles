@@ -209,6 +209,13 @@ lsp.enable({
   "lua_ls",
   "rust_analyzer",
   "gopls",
+  "bashls", -- with shellcheck diagnostics
+  "jsonls", -- schemas from SchemaStore (after/lsp/jsonls.lua)
+  "yamlls", -- schemas from SchemaStore (after/lsp/yamlls.lua)
+  "taplo", -- TOML
+  "marksman", -- Markdown links, headings, references
+  "jdtls", -- Java (Homebrew jdtls; after/lsp/jdtls.lua)
+  "copilot", -- inline suggestions; :LspCopilotSignIn once per machine
   "clangd", -- Xcode / system toolchain
   "ocamllsp", -- opam
   "hls", -- ghcup / brew
@@ -244,19 +251,32 @@ vim.api.nvim_create_autocmd("LspAttach", {
     map("<leader>cE", function()
       apply_code_action("source.fixAll.eslint")
     end, "Fix ESLint issues")
-    map("<leader>lR", function()
-      local clients = vim.lsp.get_clients({ bufnr = event.buf })
-      for _, attached_client in ipairs(clients) do
-        attached_client:stop(true)
-      end
-      vim.defer_fn(function()
-        vim.cmd("edit")
-      end, 100)
-    end, "Restart LSP clients")
+    map("<leader>lR", "<cmd>lsp restart<CR>", "Restart LSP clients")
 
     local client = vim.lsp.get_client_by_id(event.data.client_id)
 
     -- Completion is blink.cmp (core/plugins.lua), not vim.lsp.completion.
+
+    -- Color swatches from the server (cssls, tailwindcss) are off:
+    -- nvim-highlight-colors already paints color literals in every file, and
+    -- both together drew each color twice.
+    vim.lsp.document_color.enable(false, { bufnr = event.buf })
+
+    -- Inline suggestions (Copilot) as ghost text while typing. <Tab> accepts
+    -- (blink.cmp's <Tab> tries this first, core/plugins.lua), <M-]> / <M-[>
+    -- cycle the alternatives, <leader>uA turns them off/on everywhere.
+    if client and client:supports_method("textDocument/inlineCompletion", event.buf) then
+      vim.lsp.inline_completion.enable(vim.g.inline_completion ~= false, { bufnr = event.buf })
+      local imap = function(lhs, fn, desc)
+        vim.keymap.set("i", lhs, fn, { buffer = event.buf, desc = "LSP: " .. desc })
+      end
+      imap("<M-]>", function()
+        vim.lsp.inline_completion.select({ count = 1 })
+      end, "Next inline suggestion")
+      imap("<M-[>", function()
+        vim.lsp.inline_completion.select({ count = -1 })
+      end, "Previous inline suggestion")
+    end
 
     -- Inlay hints on by default.
     if client and client:supports_method("textDocument/inlayHint", event.buf) then
@@ -280,5 +300,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end
   end,
 })
+
+-- On by default; the choice lasts for the session and applies to every
+-- buffer, including ones a suggestion server attaches to later.
+vim.keymap.set("n", "<leader>uA", function()
+  vim.g.inline_completion = vim.g.inline_completion == false
+  vim.lsp.inline_completion.enable(vim.g.inline_completion)
+  vim.notify("Inline suggestions " .. (vim.g.inline_completion and "on" or "off"))
+end, { desc = "Toggle inline (AI) suggestions" })
 
 return M

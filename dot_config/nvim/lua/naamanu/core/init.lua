@@ -1,6 +1,7 @@
--- Load order: options and keys first, then plugins (vim.pack), the theme,
--- the tabline, LSP (servers enabled only when their binary is on PATH),
--- format-on-save, and the plugin-free helpers.
+-- Load order: options and keys first, then plugins (vim.pack, editing and
+-- completion), the UI and git plugins, the theme, the tabline, LSP (servers
+-- enabled only when their binary is on PATH), format-on-save, debugging and
+-- the plugin-free helpers.
 --
 -- Each module loads in its own pcall: one that fails (a plugin missing on a
 -- fresh or offline machine, a typo) cannot stop the ones after it, so the
@@ -19,6 +20,8 @@ load("naamanu.core.options")
 load("naamanu.core.keymaps")
 load("naamanu.core.autocmds")
 load("naamanu.core.plugins")
+load("naamanu.core.ui") -- icons, statusline, oil, snacks
+load("naamanu.core.git") -- gitsigns, codediff
 load("naamanu.theme", function(name)
   local theme = require(name)
   theme.apply(theme.mode())
