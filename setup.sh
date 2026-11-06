@@ -185,6 +185,8 @@ if [ "$PLATFORM" = "mac" ]; then
     echo ""
     echo "Installing shell and terminal tools..."
     brew_install fish tmux starship zoxide direnv fnm
+    # Session picker behind the tmux `prefix s` popup.
+    brew_install sesh
     # GNU coreutils (as g-prefixed binaries): Emacs Dired uses `gls' for
     # --group-directories-first, which BSD ls lacks.
     brew_install coreutils
@@ -1186,6 +1188,25 @@ fi
 
 if command -v cargo &> /dev/null && ! command -v stylua &> /dev/null; then
     cargo install stylua || FAILED_PACKAGES+=(stylua)
+fi
+
+# Linux: the optional CLI tools Homebrew provides on macOS but apt often
+# lacks, plus sesh (tmux `prefix s`), which no distro packages.  Run here,
+# after rustup, because cargo does not exist yet on a fresh machine when the
+# CLI section runs.  hurl builds against libcurl and libxml2.
+if [ "$PLATFORM" = linux ] && command -v cargo &> /dev/null; then
+    for crate in du-dust:dust procs:procs tokei:tokei hurl:hurl; do
+        command -v "${crate#*:}" &> /dev/null && continue
+        cargo install --locked "${crate%%:*}" || FAILED_PACKAGES+=("${crate%%:*}")
+    done
+fi
+if [ "$PLATFORM" = linux ] && command -v go &> /dev/null; then
+    if ! command -v glow &> /dev/null; then
+        GOBIN="$HOME/.local/bin" go install github.com/charmbracelet/glow/v2@latest || FAILED_PACKAGES+=(glow)
+    fi
+    if ! command -v sesh &> /dev/null; then
+        GOBIN="$HOME/.local/bin" go install github.com/joshmedeski/sesh/v2@latest || FAILED_PACKAGES+=(sesh)
+    fi
 fi
 
 # Set fish as default shell

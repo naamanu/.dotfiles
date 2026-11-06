@@ -66,6 +66,8 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - LSP/Formatters: language servers, prettier, sql-formatter, stylua, ruff, basedpyright, jupytext, cmake-language-server and cmake-format (uv tools), texlab (macOS), marksman (Markdown/notes), tinymist + typstyle (Typst), hoogle (cabal, local Haskell search), shellcheck, enchant (spellcheck)
 - Emacs pdf-tools build deps: poppler, automake
 - Treesitter: tree-sitter CLI (parser compilation for Neovim)
+- CLI extras: dust, procs, tokei, glow, hurl (Homebrew on macOS; distro package or cargo/go fallback on Linux)
+- tmux: sesh session picker (`prefix s`; Homebrew on macOS, `go install` on Linux)
 - Git: gh, lazygit, git-delta, difftastic (`git dft`), jj (jujutsu), git-absorb; gh-dash extension (post-install, after `gh auth login`)
 - Databases: PostgreSQL, SQLite
 - Containers: Docker + lazydocker — **opt-in**, set `INSTALL_DOCKER=1`
