@@ -222,7 +222,7 @@ if [ "$PLATFORM" = "mac" ]; then
 
     echo ""
     echo "Installing version control tools..."
-    brew_install gh lazygit git-delta
+    brew_install gh lazygit git-delta git-lfs
     # Syntax-aware diffs (`git dft`), jujutsu, fixup autosquash.
     brew_install difftastic jj git-absorb
 
@@ -582,6 +582,8 @@ elif [ "$PLATFORM" = "linux" ]; then
     elif [ "$PKG_MGR" = "pacman" ]; then
         install_pkg github-cli
     fi
+
+    install_pkg git-lfs
 
     if ! command -v lazygit &> /dev/null; then
         echo "Installing lazygit..."

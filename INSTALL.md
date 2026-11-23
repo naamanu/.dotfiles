@@ -68,7 +68,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - Treesitter: tree-sitter CLI (parser compilation for Neovim)
 - CLI extras: dust, procs, tokei, glow, hurl (Homebrew on macOS; distro package or cargo/go fallback on Linux)
 - tmux: sesh session picker (`prefix s`; Homebrew on macOS, `go install` on Linux)
-- Git: gh, lazygit, git-delta, difftastic (`git dft`), jj (jujutsu), git-absorb; gh-dash extension (post-install, after `gh auth login`)
+- Git: gh, lazygit, git-delta, difftastic (`git dft`), jj (jujutsu), git-absorb, git-lfs; gh-dash extension (post-install, after `gh auth login`)
 - Databases: PostgreSQL, SQLite
 - Containers: Docker + lazydocker — **opt-in**, set `INSTALL_DOCKER=1`
 - Fonts: Source Code Pro Nerd Font (editor and terminal face), Symbols Nerd Font (icons), plus Iosevka Comfy, JetBrains Mono, Fira Code, Hack, Inconsolata and Commit Mono Nerd Fonts for optional manual font selection
