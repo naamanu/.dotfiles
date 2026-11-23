@@ -535,8 +535,8 @@ elif [ "$PLATFORM" = "linux" ]; then
     install_optional_pkg hyperfine
     install_optional_pkg tokei
     install_optional_pkg glow
-    # File encryption (chezmoi's age backend).
-    install_pkg age
+    # File encryption (chezmoi's age backend) and memory checking.
+    install_pkg age valgrind
 
     if ! command -v yazi &> /dev/null; then
         if command -v cargo &> /dev/null; then
