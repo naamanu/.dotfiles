@@ -556,7 +556,8 @@ elif [ "$PLATFORM" = "linux" ]; then
     # git helpers (difftastic, jujutsu, git-absorb): crates on every distro.
     if command -v cargo &> /dev/null; then
         for crate in just:just watchexec-cli:watchexec ast-grep:ast-grep xh:xh \
-            difftastic:difft jj-cli:jj git-absorb:git-absorb typstyle:typstyle; do
+            difftastic:difft jj-cli:jj git-absorb:git-absorb typstyle:typstyle \
+            tealdeer:tldr; do
             command -v "${crate#*:}" &> /dev/null && continue
             cargo install --locked "${crate%%:*}" || FAILED_PACKAGES+=("${crate%%:*}")
         done
