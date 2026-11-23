@@ -1097,6 +1097,8 @@ if command -v uv &> /dev/null; then
     # CMake language server for the systems track (both editors gate on it).
     uv tool install cmake-language-server || FAILED_PACKAGES+=(cmake-language-server)
     uv tool install cmakelang || FAILED_PACKAGES+=(cmake-format)
+    # Git hook runner for per-repo formatters/linters (.pre-commit-config.yaml).
+    uv tool install pre-commit || FAILED_PACKAGES+=(pre-commit)
 fi
 
 # Install Node.js LTS via fnm
