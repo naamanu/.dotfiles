@@ -538,6 +538,14 @@ elif [ "$PLATFORM" = "linux" ]; then
     # File encryption (chezmoi's age backend) and memory checking.
     install_pkg age valgrind
 
+    # mikefarah's Go yq, matching Homebrew's. Distro "yq" is usually the
+    # unrelated Python jq wrapper, so take the release binary instead.
+    if ! yq --version 2>/dev/null | grep -q mikefarah; then
+        mkdir -p ~/.local/bin
+        curl -fsSLo ~/.local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${DEB_ARCH}" \
+            && chmod +x ~/.local/bin/yq || FAILED_PACKAGES+=(yq)
+    fi
+
     if ! command -v yazi &> /dev/null; then
         if command -v cargo &> /dev/null; then
             cargo install yazi-fm yazi-cli || FAILED_PACKAGES+=(yazi)
