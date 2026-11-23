@@ -211,6 +211,8 @@ if [ "$PLATFORM" = "mac" ]; then
     echo ""
     echo "Installing modern CLI utilities..."
     brew_install neovim ripgrep fd fzf bat eza jq yq htop btop tldr
+    # File encryption (chezmoi's age backend for secrets in the source tree).
+    brew_install age
     # nvim-treesitter (main branch) compiles parsers via the tree-sitter CLI
     brew_install tree-sitter-cli
     brew_install yazi atuin glow dust procs hyperfine tokei
@@ -533,6 +535,8 @@ elif [ "$PLATFORM" = "linux" ]; then
     install_optional_pkg hyperfine
     install_optional_pkg tokei
     install_optional_pkg glow
+    # File encryption (chezmoi's age backend).
+    install_pkg age
 
     if ! command -v yazi &> /dev/null; then
         if command -v cargo &> /dev/null; then
