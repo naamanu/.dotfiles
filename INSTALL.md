@@ -94,6 +94,7 @@ To edit a config: `chezmoi edit ~/.config/fish/config.fish --apply`
 - [ ] Log out/in for Docker group changes (Linux, only if `INSTALL_DOCKER=1`)
 - [ ] `gh auth login` — authenticate GitHub CLI
 - [ ] Optional: in Neovim, `:LspCopilotSignIn` (in any file) — enables Copilot inline suggestions; needs a GitHub Copilot plan
+- [ ] `gh auth refresh -s admin:ssh_signing_key && gh ssh-key add ~/.ssh/id_ed25519.pub --type signing` — commits are SSH-signed when `~/.ssh/id_ed25519.pub` exists; this makes GitHub show them as Verified
 - [ ] `gh extension install dlvhdr/gh-dash` — PR/issue dashboard (tmux `prefix G`)
 - [ ] Zotero: install the Better BibTeX plugin; *Export Library → Better BibLaTeX*, "Keep updated", to `~/notes/references.bib` (Emacs citar reads it)
 - [ ] macOS: grant Ghostty Accessibility so `cmd-\`` (quick terminal) works from any app
