@@ -1,11 +1,18 @@
 # Ghostty Terminal Configuration
 
 # Font configuration
-# Menlo for text (the same face as Emacs), Symbols Nerd Font for the icons it
-# lacks. Match the font size on each platform.
+# Menlo on macOS, SauceCodePro Nerd Font on Linux (Menlo is Apple-only; a
+# missing face silently falls back to proportional Noto Sans) -- the same face
+# as Emacs. Symbols Nerd Font covers icons the text face lacks.
+# Sizes are points: macOS renders 1pt = 1px (72 DPI), GTK 1pt = 1.33px
+# (96 DPI), so Linux 12 matches macOS 16 on screen.
+{{- if eq .chezmoi.os "darwin" }}
 font-family = "Menlo"
+{{- else }}
+font-family = "SauceCodePro Nerd Font Mono"
+{{- end }}
 font-family = "Symbols Nerd Font Mono"
-font-size = {{ if eq .chezmoi.os "darwin" }}16{{ else }}15{{ end }}
+font-size = {{ if eq .chezmoi.os "darwin" }}16{{ else }}12{{ end }}
 font-thicken = true
 
 # Window configuration

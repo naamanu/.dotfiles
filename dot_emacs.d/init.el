@@ -42,9 +42,14 @@
       create-lockfiles nil
       indent-tabs-mode nil)
 
-;; Stock font (Menlo on macOS), 16pt -- the same size as Ghostty.  Applies
-;; to every frame, including those emacsclient opens on a daemon.
-(set-face-attribute 'default nil :height 160)
+;; Same face and on-screen size as Ghostty: Menlo 16pt on macOS; on Linux
+;; SauceCodePro Nerd Font at 12pt, since GTK renders points at 96 DPI (1.33px)
+;; where macOS uses 72 DPI.  Applies to every frame, including those
+;; emacsclient opens on a daemon.
+(if (eq system-type 'darwin)
+    (set-face-attribute 'default nil :height 160)
+  (set-face-attribute 'default nil :height 120
+                      :family "SauceCodePro Nerd Font Mono"))
 
 ;; Remember minibuffer history, recent files and the place in each file.
 (setq savehist-file (expand-file-name "history" my/var-dir)
